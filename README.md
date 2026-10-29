@@ -1,0 +1,2 @@
+# Amanah
+website madrasah/sekolah 
