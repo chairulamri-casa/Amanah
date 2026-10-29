@@ -532,8 +532,6 @@ function sebutan(jenjang) {
 function LoginForm({ onLogin, onRegister, loading, errorMsg }) {
   const [mode, setMode] = useState("login");
   const [nip, setNip] = useState("");
-  const [nama, setNama] = useState("");
-  const [role, setRole] = useState("guru");
   const [password, setPassword] = useState("");
   const [password2, setPassword2] = useState("");
 
@@ -542,11 +540,9 @@ function LoginForm({ onLogin, onRegister, loading, errorMsg }) {
     if (mode === "login") {
       onLogin(nip.trim(), password);
     } else {
-      if (!nip.trim()) { onRegister(null, "NIP/NIK wajib diisi."); return; }
-      if (!nama.trim()) { onRegister(null, "Nama wajib diisi."); return; }
       if (password.length < 6) { onRegister(null, "Password minimal 6 karakter."); return; }
       if (password !== password2) { onRegister(null, "Konfirmasi password tidak cocok."); return; }
-      onRegister(nip.trim(), password, nama.trim(), role);
+      onRegister(nip.trim(), password);
     }
   }
 
@@ -558,29 +554,12 @@ function LoginForm({ onLogin, onRegister, loading, errorMsg }) {
         <button type="button" onClick={() => setMode("daftar")} className="underline" style={{ color: mode === "daftar" ? "var(--c-accent)" : "var(--c-muted)", fontWeight: mode === "daftar" ? 700 : 400 }}>Daftar Akun Baru</button>
       </div>
       {mode === "daftar" && (
-        <p className="text-xs text-[var(--c-muted)]">Daftarkan akun baru untuk madrasah ini. Isi NIP/NIK, nama lengkap, dan buat password.</p>
+        <p className="text-xs text-[var(--c-muted)]">Hanya untuk NIP/NIK yang sudah didaftarkan admin di daftar pegawai, tapi belum punya password.</p>
       )}
       <div>
         <label className="block text-xs font-semibold uppercase text-[var(--c-muted)] mb-1">NIP / NIK</label>
         <input value={nip} onChange={(e) => setNip(e.target.value)} autoComplete="off" className="w-full px-3 py-2 rounded-sm border border-[var(--c-border)] bg-white text-[var(--c-ink)] outline-none focus:border-[var(--c-accent)]" />
       </div>
-      {mode === "daftar" && (
-        <>
-          <div>
-            <label className="block text-xs font-semibold uppercase text-[var(--c-muted)] mb-1">Nama Lengkap</label>
-            <input value={nama} onChange={(e) => setNama(e.target.value)} autoComplete="off" className="w-full px-3 py-2 rounded-sm border border-[var(--c-border)] bg-white text-[var(--c-ink)] outline-none focus:border-[var(--c-accent)]" />
-          </div>
-          <div>
-            <label className="block text-xs font-semibold uppercase text-[var(--c-muted)] mb-1">Peran</label>
-            <select value={role} onChange={(e) => setRole(e.target.value)} className="w-full px-3 py-2 rounded-sm border border-[var(--c-border)] bg-white text-[var(--c-ink)] outline-none focus:border-[var(--c-accent)]">
-              <option value="admin">Admin</option>
-              <option value="guru">Guru</option>
-              <option value="staf">Staf</option>
-              <option value="pimpinan">Pimpinan</option>
-            </select>
-          </div>
-        </>
-      )}
       <div>
         <label className="block text-xs font-semibold uppercase text-[var(--c-muted)] mb-1">Password</label>
         <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="off" className="w-full px-3 py-2 rounded-sm border border-[var(--c-border)] bg-white text-[var(--c-ink)] outline-none focus:border-[var(--c-accent)]" />
@@ -680,7 +659,7 @@ function ZoomableImg({ src, alt, className, style, wrapperClassName }) {
   );
 }
 
-function Header({ madrasah, myPegawai, mySuperadmin, onLogout, onLogin, onRegister, loginLoading, loginError }) {
+function Header({ madrasah, myPegawai, onLogout, onLogin, onRegister, loginLoading, loginError }) {
   const [fullscreen, setFullscreen] = useState(!!document.fullscreenElement);
   const [showLogin, setShowLogin] = useState(false);
 
@@ -690,7 +669,7 @@ function Header({ madrasah, myPegawai, mySuperadmin, onLogout, onLogin, onRegist
     return () => document.removeEventListener("fullscreenchange", handler);
   }, []);
 
-  useEffect(() => { if (myPegawai || mySuperadmin) setShowLogin(false); }, [myPegawai, mySuperadmin]);
+  useEffect(() => { if (myPegawai) setShowLogin(false); }, [myPegawai]);
 
   function toggleFullscreen() {
     if (!document.fullscreenElement) {
@@ -734,9 +713,9 @@ function Header({ madrasah, myPegawai, mySuperadmin, onLogout, onLogin, onRegist
           <button onClick={toggleFullscreen} title={fullscreen ? "Keluar layar penuh" : "Layar penuh"} className="hidden sm:block text-[var(--c-gold-border)] text-lg">
             {fullscreen ? "⤢" : "⛶"}
           </button>
-          {(myPegawai || mySuperadmin) ? (
+          {myPegawai ? (
             <div>
-              <p className="text-xs sm:text-sm font-semibold truncate max-w-[90px] sm:max-w-none">{myPegawai ? myPegawai.nama : mySuperadmin.nama}</p>
+              <p className="text-xs sm:text-sm font-semibold truncate max-w-[90px] sm:max-w-none">{myPegawai.nama}</p>
               <button onClick={onLogout} className="text-[10px] sm:text-[11px] text-[var(--c-gold-border)] underline">Logout</button>
             </div>
           ) : (
@@ -2037,60 +2016,6 @@ function ManajemenTab({ madrasahId, jenjang, tahunAjaranAktif, myPegawai, onLogi
     { status: "Keluar", label: "Keluar/Lainnya" },
   ];
 
-  // ── Reset Password ──────────────────────────────────────────
-  const [resetPegawaiId, setResetPegawaiId] = useState(null);
-  const [resetPassword, setResetPassword] = useState("");
-  const [resetSaving, setResetSaving] = useState(false);
-
-  function startResetPassword(p) { setResetPegawaiId(p.id); setResetPassword(""); }
-  function cancelResetPassword() { setResetPegawaiId(null); setResetPassword(""); }
-
-  async function saveResetPassword(p) {
-    if (resetPassword.length < 6) { toastFn("Password minimal 6 karakter."); return; }
-    setResetSaving(true);
-    try {
-      const email = p.nip_nik + AUTH_EMAIL_SUFFIX;
-      // Gunakan updateUser via admin — pakai signInWithPassword trick:
-      // Cara yang tersedia di client: update password user yang sedang login saja.
-      // Untuk reset password orang lain dari sisi admin, kita hapus auth user lama
-      // lalu buat ulang dengan password baru, kemudian link user_id baru ke pegawai.
-      if (!p.user_id) {
-        // Belum punya akun — buat baru langsung
-        const { data: signUpData, error: signUpErr } = await supabaseClient.auth.signUp({ email, password: resetPassword });
-        if (signUpErr) throw signUpErr;
-        if (!signUpData?.user) throw new Error("Gagal membuat akun.");
-        const { error: linkErr } = await supabaseClient.from("pegawai").update({ user_id: signUpData.user.id }).eq("id", p.id);
-        if (linkErr) throw linkErr;
-        toastFn(`Akun baru dibuat untuk ${p.nama}.`);
-      } else {
-        // Sudah punya akun — gunakan Admin API via edge function jika ada,
-        // atau fallback: update password via supabaseClient.auth.admin (perlu service key).
-        // Karena kita di client dengan anon key, kita pakai workaround:
-        // Delete auth user via RPC jika ada, lalu recreate.
-        // Solusi paling aman di client: simpan password baru ke tabel reset_request,
-        // tapi untuk simplisitas, kita informasikan keterbatasan ini.
-        const { error: updateErr } = await supabaseClient.rpc("admin_reset_password", {
-          p_user_id: p.user_id,
-          p_new_password: resetPassword,
-        });
-        if (updateErr) {
-          // RPC belum ada — fallback: beritahu admin
-          toastFn("Perlu RPC admin_reset_password di Supabase. Lihat instruksi SQL.");
-          setResetSaving(false);
-          return;
-        }
-        toastFn(`Password ${p.nama} berhasil direset.`);
-      }
-      cancelResetPassword();
-      loadPegawaiDaftar();
-    } catch (err) {
-      toastFn("Gagal reset: " + err.message);
-    } finally {
-      setResetSaving(false);
-    }
-  }
-  // ────────────────────────────────────────────────────────────
-
   function startNonaktifkanPegawai(p) {
     setDeactivatingPegawaiId(p.id);
     setDeactivatePegawaiForm({ status: "Pindah", alasan: "" });
@@ -3193,18 +3118,13 @@ function ManajemenTab({ madrasahId, jenjang, tahunAjaranAktif, myPegawai, onLogi
                             </span>
                           )}
                         </div>
-                        <div className="flex items-center gap-3 flex-wrap">
+                        <div className="flex items-center gap-3">
                           {!statusNonAktif && (
                             <span className="text-[10px] px-2 py-0.5 rounded-sm" style={{ color: p.user_id ? "var(--c-green)" : "var(--c-gold)", border: `1px solid ${p.user_id ? "var(--c-green)" : "var(--c-gold)"}` }}>
                               {p.user_id ? "Sudah bisa login" : "Belum ada akun login"}
                             </span>
                           )}
                           <button onClick={() => startEditPegawai(p)} className="text-[11px] text-[var(--c-ink)] underline">Edit</button>
-                          {!statusNonAktif && (
-                            <button onClick={() => startResetPassword(p)} className="text-[11px] text-[var(--c-green)] underline">
-                              {p.user_id ? "Reset Password" : "Buat Akun"}
-                            </button>
-                          )}
                           {statusNonAktif ? (
                             <button onClick={() => aktifkanKembaliPegawai(p)} className="text-[11px] text-[var(--c-green)] underline">Aktifkan Kembali</button>
                           ) : (
@@ -3212,22 +3132,6 @@ function ManajemenTab({ madrasahId, jenjang, tahunAjaranAktif, myPegawai, onLogi
                           )}
                           <button onClick={() => hapusPegawai(p)} disabled={hapusPegawaiSaving === p.id} className="text-[11px] text-[var(--c-accent)] underline">{hapusPegawaiSaving === p.id ? "…" : "Hapus"}</button>
                         </div>
-                        {resetPegawaiId === p.id && (
-                          <div className="mt-2 flex items-center gap-2 flex-wrap">
-                            <input
-                              type="password"
-                              value={resetPassword}
-                              onChange={e => setResetPassword(e.target.value)}
-                              placeholder="Password baru (min 6 karakter)"
-                              className="border rounded px-2 py-1 text-xs flex-1 min-w-[180px]"
-                              style={{ borderColor: "var(--c-border)" }}
-                            />
-                            <button onClick={() => saveResetPassword(p)} disabled={resetSaving} className="text-xs px-3 py-1 rounded text-white font-semibold" style={{ background: "var(--c-green)" }}>
-                              {resetSaving ? "…" : (p.user_id ? "Simpan" : "Buat Akun")}
-                            </button>
-                            <button onClick={cancelResetPassword} className="text-xs px-2 py-1 rounded border" style={{ borderColor: "var(--c-border)" }}>Batal</button>
-                          </div>
-                        )}
                       </div>
                     );
                   })}
@@ -6762,112 +6666,6 @@ function KelolaJadwal({ madrasahId, kelasEntities, pegawaiList, toastFn }) {
   );
 }
 
-// ── FLYER IMPORT FORM ─────────────────────────────────────────────
-function FlyerImportForm({ myPegawai, onImport, toastFn }) {
-  const [step, setStep] = useState("upload"); // upload | preview
-  const [fotoBlob, setFotoBlob] = useState(null);
-  const [fotoPreview, setFotoPreview] = useState(null);
-  const [compressing, setCompressing] = useState(false);
-  const [judul, setJudul] = useState("");
-  const [konten, setKonten] = useState("");
-  const [tanggal, setTanggal] = useState(new Date().toISOString().slice(0, 10));
-  const fileRef = useRef(null);
-
-  async function handleFile(e) {
-    const file = e.target.files[0];
-    if (!file) return;
-    setCompressing(true);
-    try {
-      const blob = await compressImage(file, 1200, 0.82);
-      setFotoBlob(blob);
-      setFotoPreview(URL.createObjectURL(blob));
-      // coba baca nama file sebagai judul awal
-      const namaFile = file.name.replace(/\.[^.]+$/, "").replace(/[-_]/g, " ").replace(/\b\w/g, c => c.toUpperCase());
-      if (!judul) setJudul(namaFile.length > 5 && namaFile.length < 120 ? namaFile : "");
-      setStep("preview");
-    } catch {
-      toastFn("Gagal memproses gambar.");
-    } finally {
-      setCompressing(false);
-    }
-  }
-
-  function handleImport() {
-    if (!fotoBlob) { toastFn("Pilih gambar flyer dulu."); return; }
-    if (!judul.trim()) { toastFn("Isi judul berita."); return; }
-    const isiKonten = konten.trim() || `${judul.trim()}\n\n(Lihat flyer untuk informasi lengkap.)`;
-    onImport({ judul: judul.trim(), konten: isiKonten, fotoBlob, fotoPreview, tanggal });
-  }
-
-  return (
-    <div className="bg-[var(--c-cream)] border border-[var(--c-border)] rounded-sm p-5 space-y-4 max-w-lg">
-      <div>
-        <p className="text-sm font-semibold text-[var(--c-ink)] mb-1">📲 Import Flyer Instagram</p>
-        <p className="text-xs text-[var(--c-muted)]">Upload foto flyer dari Instagram/WA → otomatis jadi berita dengan foto sebagai sampul.</p>
-      </div>
-
-      {step === "upload" && (
-        <div
-          className="border-2 border-dashed border-[var(--c-border)] rounded-sm p-8 text-center cursor-pointer hover:border-[var(--c-accent)] transition-colors"
-          onClick={() => fileRef.current?.click()}>
-          <div className="text-3xl mb-2">🖼️</div>
-          <p className="text-sm font-semibold text-[var(--c-ink)]">Tap untuk pilih gambar flyer</p>
-          <p className="text-xs text-[var(--c-muted)] mt-1">JPG, PNG, WEBP — dari galeri HP atau file</p>
-          {compressing && <p className="text-xs text-[var(--c-accent)] mt-2">⏳ Memproses gambar…</p>}
-          <input ref={fileRef} type="file" accept="image/*" onChange={handleFile} className="hidden" />
-        </div>
-      )}
-
-      {step === "preview" && fotoPreview && (
-        <div className="space-y-3">
-          <div className="relative">
-            <img src={fotoPreview} className="w-full rounded-sm border border-[var(--c-border)] object-cover max-h-64" />
-            <button
-              type="button"
-              onClick={() => { setStep("upload"); setFotoBlob(null); setFotoPreview(null); if (fileRef.current) fileRef.current.value = ""; }}
-              className="absolute top-2 right-2 bg-white border border-[var(--c-border)] rounded-sm px-2 py-1 text-xs text-[var(--c-muted)]">
-              Ganti Foto
-            </button>
-          </div>
-          <input ref={fileRef} type="file" accept="image/*" onChange={handleFile} className="hidden" />
-
-          <div>
-            <label className="block text-xs font-semibold uppercase text-[var(--c-muted)] mb-1">Judul Berita <span className="text-red-400">*</span></label>
-            <input
-              value={judul}
-              onChange={e => setJudul(e.target.value)}
-              placeholder="Contoh: Pertemuan dengan BPBA Aceh"
-              className="w-full px-3 py-2 rounded-sm border border-[var(--c-border)] bg-white outline-none focus:border-[var(--c-accent)] text-sm" />
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold uppercase text-[var(--c-muted)] mb-1">Tanggal</label>
-            <input type="date" value={tanggal} onChange={e => setTanggal(e.target.value)}
-              className="w-full px-3 py-2 rounded-sm border border-[var(--c-border)] bg-white outline-none focus:border-[var(--c-accent)] text-sm" />
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold uppercase text-[var(--c-muted)] mb-1">Keterangan Singkat (opsional)</label>
-            <textarea
-              value={konten}
-              onChange={e => setKonten(e.target.value)}
-              rows={3}
-              placeholder="Kosongkan jika hanya ingin tampilkan flyer sebagai berita."
-              className="w-full px-3 py-2 rounded-sm border border-[var(--c-border)] bg-white outline-none focus:border-[var(--c-accent)] resize-none text-sm" />
-            <p className="text-[10px] text-[var(--c-muted)] mt-1">Jika dikosongkan, isi berita otomatis berisi judul + keterangan singkat.</p>
-          </div>
-
-          <button type="button" onClick={handleImport}
-            className="w-full py-2.5 rounded-sm font-semibold text-sm text-[var(--c-offwhite)]"
-            style={{ background: "var(--c-ink)" }}>
-            ✅ Lanjut ke Form Berita →
-          </button>
-        </div>
-      )}
-    </div>
-  );
-}
-
 function BeritaTab({ madrasahId, madrasahSlug, myPegawai, onLogin, onRegister, loginLoading, loginError, toastFn, initialOpenId }) {
   const [mode, setMode] = useState("list"); // list | detail | tulis
   const [beritaList, setBeritaList] = useState([]);
@@ -7012,7 +6810,6 @@ function BeritaTab({ madrasahId, madrasahSlug, myPegawai, onLogin, onRegister, l
           {[
             { id: "list", label: "📰 Berita" },
             { id: "tulis", label: editingId ? "Edit Berita" : "Tulis Berita" },
-            { id: "flyer", label: "📲 Import Flyer" },
           ].map((t) => (
             <button key={t.id} onClick={() => { if (t.id === "list") cancelEdit(); setMode(t.id); }}
               className="px-4 py-2 text-sm font-semibold rounded-sm border"
@@ -7113,27 +6910,6 @@ function BeritaTab({ madrasahId, madrasahSlug, myPegawai, onLogin, onRegister, l
             </div>
           )}
         </div>
-      )}
-
-      {mode === "flyer" && (
-        !myPegawai ? (
-          <div>
-            <p className="text-sm text-[#3D4238] mb-3">Login dulu untuk mengimpor flyer.</p>
-            <LoginForm onLogin={onLogin} onRegister={onRegister} loading={loginLoading} errorMsg={loginError} />
-          </div>
-        ) : (
-          <FlyerImportForm
-            myPegawai={myPegawai}
-            onImport={({ judul, konten, fotoBlob, fotoPreview, tanggal }) => {
-              setEditingId(null);
-              setForm({ judul, konten, tanggal_terbit: tanggal });
-              setFotoBlob(fotoBlob);
-              setFotoPreview(fotoPreview);
-              setMode("tulis");
-            }}
-            toastFn={toastFn}
-          />
-        )
       )}
 
       {mode === "tulis" && (
@@ -12708,7 +12484,6 @@ function App() {
   const [toast, setToast] = useState("");
   const [myPegawai, setMyPegawai] = useState(null);
   const [mySiswa, setMySiswa] = useState(null);
-  const [mySuperadmin, setMySuperadmin] = useState(null);
   const [tautanLayanan, setTautanLayanan] = useState([]);
   const [sessionMismatch, setSessionMismatch] = useState(false);
   const [loginLoading, setLoginLoading] = useState(false);
@@ -12831,17 +12606,14 @@ function App() {
 
   async function loadMyPegawai() {
     const { data: { session } } = await supabaseClient.auth.getSession();
-    if (!session || !madrasah) { setMyPegawai(null); setMySiswa(null); setMySuperadmin(null); setSessionMismatch(false); return; }
-    const [pegawaiRes, siswaRes, superadminRes] = await Promise.all([
+    if (!session || !madrasah) { setMyPegawai(null); setMySiswa(null); setSessionMismatch(false); return; }
+    const [pegawaiRes, siswaRes] = await Promise.all([
       supabaseClient.from("pegawai").select("*").eq("user_id", session.user.id).eq("madrasah_id", madrasah.id).maybeSingle(),
       supabaseClient.from("siswa").select("*").eq("user_id", session.user.id).eq("madrasah_id", madrasah.id).maybeSingle(),
-      supabaseClient.from("superadmin").select("*").eq("user_id", session.user.id).eq("aktif", true).maybeSingle(),
     ]);
     setMyPegawai(pegawaiRes.data || null);
     setMySiswa(siswaRes.data || null);
-    setMySuperadmin(superadminRes.data || null);
-    // superadmin tidak dianggap mismatch meski tidak ada di pegawai madrasah ini
-    setSessionMismatch(!pegawaiRes.data && !siswaRes.data && !superadminRes.data);
+    setSessionMismatch(!pegawaiRes.data && !siswaRes.data); // sesi aktif tapi bukan pegawai/siswa madrasah ini
   }
 
   useEffect(() => {
@@ -12861,17 +12633,21 @@ function App() {
     toastFn("Berhasil login.");
   }
 
-  async function handleRegister(nip, password, nama, role) {
+  async function handleRegister(nip, password) {
     if (nip === null) { setLoginError(password); return; } // dipakai untuk pesan validasi form
     setLoginLoading(true);
     setLoginError("");
     try {
-      // Cek apakah NIP sudah terdaftar di madrasah ini
-      const { data: existing } = await supabaseClient
-        .from("pegawai").select("id, user_id")
+      const { data: pegawaiRow, error: cariErr } = await supabaseClient
+        .from("pegawai").select("id, user_id, nama")
         .eq("madrasah_id", madrasah.id).eq("nip_nik", nip)
         .maybeSingle();
-      if (existing?.user_id) {
+      if (cariErr) throw cariErr;
+      if (!pegawaiRow) {
+        setLoginError("NIP/NIK belum terdaftar. Hubungi admin untuk didaftarkan dulu.");
+        return;
+      }
+      if (pegawaiRow.user_id) {
         setLoginError("NIP/NIK ini sudah punya akun. Silakan login.");
         return;
       }
@@ -12879,28 +12655,13 @@ function App() {
       const { data: signUpData, error: signUpErr } = await supabaseClient.auth.signUp({ email, password });
       if (signUpErr) throw signUpErr;
       if (!signUpData.session) {
-        setLoginError("Pendaftaran perlu konfirmasi email — hubungi admin untuk menonaktifkan opsi 'Confirm email' di Supabase.");
+        setLoginError("Pendaftaran perlu konfirmasi email — hubungi admin untuk mengaktifkan opsi 'Confirm email' off di Supabase.");
         return;
       }
-      const userId = signUpData.user.id;
-      if (existing) {
-        // Pegawai sudah ada tapi belum punya akun — link saja
-        const { error: linkErr } = await supabaseClient
-          .from("pegawai").update({ user_id: userId }).eq("id", existing.id);
-        if (linkErr) throw linkErr;
-      } else {
-        // Pegawai belum ada — insert baru sekaligus
-        const { error: insertErr } = await supabaseClient.from("pegawai").insert({
-          madrasah_id: madrasah.id,
-          nip_nik: nip,
-          nama: nama,
-          role: role,
-          status: "Aktif",
-          user_id: userId,
-        });
-        if (insertErr) throw insertErr;
-      }
-      toastFn(`Akun berhasil dibuat. Selamat datang, ${nama}.`);
+      const { error: linkErr } = await supabaseClient
+        .from("pegawai").update({ user_id: signUpData.user.id }).eq("id", pegawaiRow.id);
+      if (linkErr) throw linkErr;
+      toastFn(`Akun berhasil dibuat. Selamat datang, ${pegawaiRow.nama}.`);
     } catch (err) {
       setLoginError("Gagal mendaftar: " + err.message);
     } finally {
@@ -13014,7 +12775,7 @@ function App() {
   return (
     <div className="min-h-screen" style={{ background: "var(--c-canvas)" }}>
       <div className="sticky top-0 z-20">
-        <Header madrasah={madrasah} myPegawai={myPegawai} mySuperadmin={mySuperadmin} onLogout={handleLogout} onLogin={handleLogin} onRegister={handleRegister} loginLoading={loginLoading} loginError={loginError} />
+        <Header madrasah={madrasah} myPegawai={myPegawai} onLogout={handleLogout} onLogin={handleLogin} onRegister={handleRegister} loginLoading={loginLoading} loginError={loginError} />
         {madrasah && (
           <nav className="border-b border-[var(--c-border)] bg-[var(--c-offwhite)]">
             <div className="max-w-3xl mx-auto">
@@ -13077,15 +12838,6 @@ function App() {
                   ...(myPegawai?.role === "admin" ? [{
                     id: "admin", label: "⚙ Admin",
                     items: [{ id: "manajemen", label: "👥 Manajemen" }, { id: "pengaturan", label: "Pengaturan" }],
-                  }] : []),
-                  ...(mySuperadmin ? [{
-                    id: "superadmin", label: "🌐 Superadmin",
-                    items: [
-                      { id: "sa_madrasah", label: "🏫 Kelola Madrasah" },
-                      { id: "sa_fitur", label: "⚙ Kelola Fitur" },
-                      { id: "sa_statistik", label: "📊 Statistik Global" },
-                      { id: "manajemen", label: "👥 Kelola Pegawai" },
-                    ],
                   }] : []),
                 ].filter((g) => g.items.length > 0);
 
@@ -13198,11 +12950,9 @@ function App() {
               : tab === "jadwal"
               ? <JadwalTab madrasahId={madrasah.id} tahunAjaranAktif={madrasah.tahun_ajaran_aktif} myPegawai={myPegawai} toastFn={toastFn} />
               : tab === "manajemen"
-              ? <ManajemenTab madrasahId={madrasah.id} jenjang={madrasah.jenjang} tahunAjaranAktif={madrasah.tahun_ajaran_aktif} myPegawai={myPegawai || (mySuperadmin ? { ...mySuperadmin, role: "admin", nip_nik: mySuperadmin.nip } : null)} onLogin={handleLogin} onRegister={handleRegister} loginLoading={loginLoading} loginError={loginError} toastFn={toastFn} />
+              ? <ManajemenTab madrasahId={madrasah.id} jenjang={madrasah.jenjang} tahunAjaranAktif={madrasah.tahun_ajaran_aktif} myPegawai={myPegawai} onLogin={handleLogin} onRegister={handleRegister} loginLoading={loginLoading} loginError={loginError} toastFn={toastFn} />
               : tab === "supervisi"
               ? <SupervisiTab madrasah={madrasah} myPegawai={myPegawai} toastFn={toastFn} onLogin={handleLogin} onRegister={handleRegister} loginLoading={loginLoading} loginError={loginError} />
-              : (tab === "sa_madrasah" || tab === "sa_fitur" || tab === "sa_statistik") && mySuperadmin
-              ? <SuperadminTab subTab={tab} mySuperadmin={mySuperadmin} toastFn={toastFn} />
               : tab === "dashboard_pimpinan"
               ? <DashboardPimpinanTab madrasahId={madrasah.id} madrasah={madrasah} myPegawai={myPegawai} />
               : myPegawai?.role === "admin"
@@ -14171,310 +13921,6 @@ function SupervisiTab({madrasah, myPegawai, toastFn, onLogin, onRegister, loginL
 // ══════════════════════════════════════════════════════════════════
 // AKHIR MODUL SUPERVISI
 // ══════════════════════════════════════════════════════════════════
-
-// ══════════════════════════════════════════════════════════════════
-// SUPERADMIN TAB
-// ══════════════════════════════════════════════════════════════════
-
-const SEMUA_FITUR = [
-  { key: "supervisi",    label: "🔍 Supervisi Akademik" },
-  { key: "jurnal",       label: "📋 Jurnal Harian" },
-  { key: "absensi",      label: "✅ Absensi" },
-  { key: "jadwal",       label: "📅 Jadwal" },
-  { key: "gurustaf",     label: "👥 Guru & Staf" },
-  { key: "prestasi",     label: "🏆 Prestasi" },
-  { key: "inspirasi",    label: "💡 Pojok Inspirasi" },
-  { key: "pengaduan",    label: "📣 Pengaduan" },
-  { key: "ptsp",         label: "🛎 Layanan PTSP" },
-  { key: "perpustakaan", label: "📚 Perpustakaan" },
-  { key: "berita",       label: "📰 Berita" },
-  { key: "galeri",       label: "🖼 Galeri" },
-  { key: "surat",        label: "📨 Arsip Surat" },
-  { key: "identitas",    label: "🏠 Identitas" },
-  { key: "profilmadrasah", label: "🏫 Profil Madrasah" },
-];
-
-function SuperadminTab({ subTab, mySuperadmin, toastFn }) {
-  const [madrasahList, setMadrasahList] = React.useState([]);
-  const [loading, setLoading] = React.useState(true);
-  const [search, setSearch] = React.useState("");
-  const [filterJenjang, setFilterJenjang] = React.useState("semua");
-  const [saving, setSaving] = React.useState({});
-  const [selected, setSelected] = React.useState([]); // untuk toggle massal
-  const [stats, setStats] = React.useState(null);
-  const [editMadrasah, setEditMadrasah] = React.useState(null); // {id, nama, slug, jenjang, fitur_aktif}
-  const [showTambah, setShowTambah] = React.useState(false);
-
-  React.useEffect(() => { loadAll(); }, []);
-
-  async function loadAll() {
-    setLoading(true);
-    const { data } = await supabaseClient.from("madrasah").select("id,nama,slug,jenjang,fitur_aktif,domain").order("nama");
-    setMadrasahList(data || []);
-    setLoading(false);
-  }
-
-  async function loadStats() {
-    const [mRes, pRes, sRes] = await Promise.all([
-      supabaseClient.from("madrasah").select("id", { count: "exact", head: true }),
-      supabaseClient.from("pegawai").select("id", { count: "exact", head: true }),
-      supabaseClient.from("supervisi").select("id", { count: "exact", head: true }),
-    ]);
-    setStats({
-      madrasah: mRes.count || 0,
-      pegawai: pRes.count || 0,
-      supervisi: sRes.count || 0,
-    });
-  }
-
-  React.useEffect(() => { if (subTab === "sa_statistik") loadStats(); }, [subTab]);
-
-  async function toggleFitur(madrasahId, fiturKey, nilai) {
-    setSaving(s => ({ ...s, [madrasahId + fiturKey]: true }));
-    const m = madrasahList.find(x => x.id === madrasahId);
-    const fiturBaru = { ...(m.fitur_aktif || {}), [fiturKey]: nilai };
-    const { error } = await supabaseClient.from("madrasah").update({ fitur_aktif: fiturBaru }).eq("id", madrasahId);
-    setSaving(s => { const n = { ...s }; delete n[madrasahId + fiturKey]; return n; });
-    if (error) { toastFn("Gagal menyimpan."); return; }
-    setMadrasahList(list => list.map(x => x.id === madrasahId ? { ...x, fitur_aktif: fiturBaru } : x));
-  }
-
-  async function toggleFiturMassal(fiturKey, nilai) {
-    if (!selected.length) { toastFn("Pilih madrasah dulu."); return; }
-    setSaving(s => ({ ...s, massal: true }));
-    const updates = selected.map(id => {
-      const m = madrasahList.find(x => x.id === id);
-      return supabaseClient.from("madrasah").update({ fitur_aktif: { ...(m.fitur_aktif || {}), [fiturKey]: nilai } }).eq("id", id);
-    });
-    await Promise.all(updates);
-    setSaving(s => { const n = { ...s }; delete n.massal; return n; });
-    toastFn(`Fitur ${fiturKey} ${nilai ? "diaktifkan" : "dinonaktifkan"} untuk ${selected.length} madrasah.`);
-    await loadAll();
-    setSelected([]);
-  }
-
-  async function simpanEdit() {
-    if (!editMadrasah) return;
-    setSaving(s => ({ ...s, edit: true }));
-    const { error } = await supabaseClient.from("madrasah")
-      .update({ nama: editMadrasah.nama, jenjang: editMadrasah.jenjang, slug: editMadrasah.slug, domain: editMadrasah.domain })
-      .eq("id", editMadrasah.id);
-    setSaving(s => { const n = { ...s }; delete n.edit; return n; });
-    if (error) { toastFn("Gagal menyimpan: " + error.message); return; }
-    toastFn("Data madrasah diperbarui.");
-    setEditMadrasah(null);
-    await loadAll();
-  }
-
-  async function tambahMadrasah(form) {
-    const slug = form.nama.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") + "-" + Math.random().toString(36).slice(2, 8);
-    const { error } = await supabaseClient.from("madrasah").insert({ nama: form.nama, jenjang: form.jenjang, slug, fitur_aktif: {} });
-    if (error) { toastFn("Gagal: " + error.message); return; }
-    toastFn("Madrasah berhasil ditambahkan.");
-    setShowTambah(false);
-    await loadAll();
-  }
-
-  const filtered = madrasahList.filter(m => {
-    const matchSearch = m.nama.toLowerCase().includes(search.toLowerCase());
-    const matchJenjang = filterJenjang === "semua" || m.jenjang === filterJenjang || (filterJenjang === "null" && !m.jenjang);
-    return matchSearch && matchJenjang;
-  });
-
-  const jenjangOptions = ["semua", "MI", "MTs", "MA", "MAK", "SD", "null"];
-
-  // ── Sub-tab: Kelola Madrasah ──────────────────────────────────
-  if (subTab === "sa_madrasah") return (
-    <div>
-      <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
-        <h2 className="text-lg font-bold" style={{ color: "var(--c-ink)" }}>🏫 Kelola Madrasah</h2>
-        <button onClick={() => setShowTambah(true)} className="text-sm px-3 py-1.5 rounded font-semibold text-white" style={{ background: "var(--c-green)" }}>+ Tambah Madrasah</button>
-      </div>
-      <div className="flex gap-2 mb-3 flex-wrap">
-        <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Cari nama madrasah..." className="border rounded px-3 py-1.5 text-sm flex-1 min-w-[180px]" style={{ borderColor: "var(--c-border)" }} />
-        <select value={filterJenjang} onChange={e => setFilterJenjang(e.target.value)} className="border rounded px-2 py-1.5 text-sm" style={{ borderColor: "var(--c-border)" }}>
-          {jenjangOptions.map(j => <option key={j} value={j}>{j === "null" ? "Belum diisi" : j === "semua" ? "Semua Jenjang" : j}</option>)}
-        </select>
-      </div>
-      <div className="text-xs mb-2" style={{ color: "var(--c-muted)" }}>Menampilkan {filtered.length} dari {madrasahList.length} madrasah</div>
-      {loading ? <div className="text-center py-8" style={{ color: "var(--c-muted)" }}>Memuat...</div> : (
-        <div className="space-y-2">
-          {filtered.map(m => (
-            <div key={m.id} className="border rounded p-3 flex items-center justify-between gap-2" style={{ borderColor: "var(--c-border)", background: "var(--c-cream)" }}>
-              <div className="flex-1 min-w-0">
-                <div className="font-semibold text-sm truncate" style={{ color: "var(--c-ink)" }}>{m.nama}</div>
-                <div className="text-xs" style={{ color: "var(--c-muted)" }}>{m.jenjang || <span className="italic">jenjang belum diisi</span>} · {m.slug}</div>
-              </div>
-              <button onClick={() => setEditMadrasah({ ...m })} className="text-xs px-2 py-1 rounded border" style={{ borderColor: "var(--c-border)", color: "var(--c-ink)" }}>Edit</button>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Modal Edit */}
-      {editMadrasah && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: "rgba(0,0,0,0.4)" }}>
-          <div className="rounded-lg p-6 w-full max-w-md" style={{ background: "var(--c-offwhite)" }}>
-            <h3 className="font-bold text-base mb-4" style={{ color: "var(--c-ink)" }}>Edit Madrasah</h3>
-            <div className="space-y-3">
-              <div><label className="text-xs font-semibold block mb-1" style={{ color: "var(--c-muted)" }}>NAMA</label>
-                <input value={editMadrasah.nama} onChange={e => setEditMadrasah(x => ({ ...x, nama: e.target.value }))} className="w-full border rounded px-3 py-2 text-sm" style={{ borderColor: "var(--c-border)" }} /></div>
-              <div><label className="text-xs font-semibold block mb-1" style={{ color: "var(--c-muted)" }}>JENJANG</label>
-                <select value={editMadrasah.jenjang || ""} onChange={e => setEditMadrasah(x => ({ ...x, jenjang: e.target.value || null }))} className="w-full border rounded px-3 py-2 text-sm" style={{ borderColor: "var(--c-border)" }}>
-                  <option value="">-- Pilih Jenjang --</option>
-                  {["MI","MTs","MA","MAK","SD"].map(j => <option key={j} value={j}>{j}</option>)}
-                </select></div>
-              <div><label className="text-xs font-semibold block mb-1" style={{ color: "var(--c-muted)" }}>SLUG</label>
-                <input value={editMadrasah.slug || ""} onChange={e => setEditMadrasah(x => ({ ...x, slug: e.target.value }))} className="w-full border rounded px-3 py-2 text-sm" style={{ borderColor: "var(--c-border)" }} /></div>
-              <div><label className="text-xs font-semibold block mb-1" style={{ color: "var(--c-muted)" }}>DOMAIN (opsional)</label>
-                <input value={editMadrasah.domain || ""} onChange={e => setEditMadrasah(x => ({ ...x, domain: e.target.value }))} placeholder="contoh: man1bandaaceh.sch.id" className="w-full border rounded px-3 py-2 text-sm" style={{ borderColor: "var(--c-border)" }} /></div>
-            </div>
-            <div className="flex gap-2 mt-4">
-              <button onClick={simpanEdit} disabled={saving.edit} className="flex-1 py-2 rounded font-semibold text-white text-sm" style={{ background: "var(--c-green)" }}>{saving.edit ? "Menyimpan..." : "Simpan"}</button>
-              <button onClick={() => setEditMadrasah(null)} className="flex-1 py-2 rounded font-semibold text-sm border" style={{ borderColor: "var(--c-border)", color: "var(--c-ink)" }}>Batal</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Modal Tambah */}
-      {showTambah && <ModalTambahMadrasah onSimpan={tambahMadrasah} onBatal={() => setShowTambah(false)} />}
-    </div>
-  );
-
-  // ── Sub-tab: Kelola Fitur ─────────────────────────────────────
-  if (subTab === "sa_fitur") return (
-    <div>
-      <h2 className="text-lg font-bold mb-1" style={{ color: "var(--c-ink)" }}>⚙ Kelola Fitur</h2>
-      <p className="text-xs mb-4" style={{ color: "var(--c-muted)" }}>Toggle fitur per madrasah atau aktifkan/nonaktifkan massal untuk madrasah terpilih.</p>
-
-      {/* Filter & Pilih */}
-      <div className="flex gap-2 mb-3 flex-wrap">
-        <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Cari madrasah..." className="border rounded px-3 py-1.5 text-sm flex-1 min-w-[160px]" style={{ borderColor: "var(--c-border)" }} />
-        <select value={filterJenjang} onChange={e => setFilterJenjang(e.target.value)} className="border rounded px-2 py-1.5 text-sm" style={{ borderColor: "var(--c-border)" }}>
-          {jenjangOptions.map(j => <option key={j} value={j}>{j === "null" ? "Belum diisi" : j === "semua" ? "Semua" : j}</option>)}
-        </select>
-        <button onClick={() => setSelected(filtered.map(m => m.id))} className="text-xs px-2 py-1 rounded border" style={{ borderColor: "var(--c-border)" }}>Pilih Semua</button>
-        <button onClick={() => setSelected([])} className="text-xs px-2 py-1 rounded border" style={{ borderColor: "var(--c-border)" }}>Hapus Pilihan</button>
-      </div>
-
-      {/* Toolbar Massal */}
-      {selected.length > 0 && (
-        <div className="rounded p-3 mb-3 border" style={{ background: "var(--c-notice-bg)", borderColor: "var(--c-notice-border)" }}>
-          <div className="text-xs font-semibold mb-2" style={{ color: "var(--c-ink)" }}>{selected.length} madrasah dipilih — Aktifkan/nonaktifkan fitur massal:</div>
-          <div className="flex flex-wrap gap-2">
-            {SEMUA_FITUR.map(f => (
-              <div key={f.key} className="flex items-center gap-1">
-                <button onClick={() => toggleFiturMassal(f.key, true)} disabled={saving.massal} className="text-xs px-2 py-1 rounded text-white" style={{ background: "var(--c-green)" }}>✓ {f.label}</button>
-                <button onClick={() => toggleFiturMassal(f.key, false)} disabled={saving.massal} className="text-xs px-2 py-1 rounded text-white" style={{ background: "#888" }}>✗</button>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {loading ? <div className="text-center py-8" style={{ color: "var(--c-muted)" }}>Memuat...</div> : (
-        <div className="space-y-3">
-          {filtered.map(m => (
-            <div key={m.id} className="border rounded p-3" style={{ borderColor: "var(--c-border)", background: "var(--c-cream)" }}>
-              <div className="flex items-center gap-2 mb-2">
-                <input type="checkbox" checked={selected.includes(m.id)} onChange={e => setSelected(s => e.target.checked ? [...s, m.id] : s.filter(x => x !== m.id))} />
-                <span className="font-semibold text-sm" style={{ color: "var(--c-ink)" }}>{m.nama}</span>
-                <span className="text-xs" style={{ color: "var(--c-muted)" }}>{m.jenjang || "—"}</span>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {SEMUA_FITUR.map(f => {
-                  const aktif = (m.fitur_aktif || {})[f.key] !== false;
-                  const isSaving = saving[m.id + f.key];
-                  return (
-                    <button key={f.key} onClick={() => toggleFitur(m.id, f.key, !aktif)} disabled={isSaving}
-                      className="text-xs px-2 py-1 rounded border transition-all"
-                      style={{ borderColor: aktif ? "var(--c-green)" : "var(--c-border)", background: aktif ? "var(--c-green)" : "transparent", color: aktif ? "white" : "var(--c-muted)", opacity: isSaving ? 0.5 : 1 }}>
-                      {isSaving ? "..." : f.label}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-
-  // ── Sub-tab: Statistik Global ─────────────────────────────────
-  if (subTab === "sa_statistik") return (
-    <div>
-      <h2 className="text-lg font-bold mb-4" style={{ color: "var(--c-ink)" }}>📊 Statistik Global</h2>
-      {!stats ? <div className="text-center py-8" style={{ color: "var(--c-muted)" }}>Memuat statistik...</div> : (
-        <div>
-          <div className="grid grid-cols-3 gap-4 mb-6">
-            {[
-              { label: "Total Madrasah", value: stats.madrasah, icon: "🏫" },
-              { label: "Total Pegawai", value: stats.pegawai, icon: "👥" },
-              { label: "Total Supervisi", value: stats.supervisi, icon: "🔍" },
-            ].map(s => (
-              <div key={s.label} className="rounded-lg p-4 text-center border" style={{ background: "var(--c-cream)", borderColor: "var(--c-border)" }}>
-                <div className="text-2xl mb-1">{s.icon}</div>
-                <div className="text-2xl font-bold" style={{ color: "var(--c-accent)" }}>{s.value}</div>
-                <div className="text-xs" style={{ color: "var(--c-muted)" }}>{s.label}</div>
-              </div>
-            ))}
-          </div>
-          <div className="border rounded p-4" style={{ borderColor: "var(--c-border)", background: "var(--c-cream)" }}>
-            <h3 className="font-semibold text-sm mb-3" style={{ color: "var(--c-ink)" }}>Distribusi per Jenjang</h3>
-            {["MI","MTs","MA","MAK","SD"].map(j => {
-              const jumlah = madrasahList.filter(m => m.jenjang === j).length;
-              const pct = madrasahList.length ? Math.round(jumlah / madrasahList.length * 100) : 0;
-              return (
-                <div key={j} className="flex items-center gap-2 mb-2">
-                  <div className="w-12 text-xs font-semibold" style={{ color: "var(--c-ink)" }}>{j}</div>
-                  <div className="flex-1 rounded-full h-3" style={{ background: "var(--c-border)" }}>
-                    <div className="h-3 rounded-full" style={{ width: pct + "%", background: "var(--c-green)" }} />
-                  </div>
-                  <div className="text-xs w-10 text-right" style={{ color: "var(--c-muted)" }}>{jumlah}</div>
-                </div>
-              );
-            })}
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-12 text-xs font-semibold" style={{ color: "var(--c-muted)" }}>—</div>
-              <div className="flex-1 rounded-full h-3" style={{ background: "var(--c-border)" }}>
-                <div className="h-3 rounded-full" style={{ width: (madrasahList.length ? Math.round(madrasahList.filter(m => !m.jenjang).length / madrasahList.length * 100) : 0) + "%", background: "var(--c-muted-light)" }} />
-              </div>
-              <div className="text-xs w-10 text-right" style={{ color: "var(--c-muted)" }}>{madrasahList.filter(m => !m.jenjang).length}</div>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-
-  return null;
-}
-
-function ModalTambahMadrasah({ onSimpan, onBatal }) {
-  const [form, setForm] = React.useState({ nama: "", jenjang: "" });
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: "rgba(0,0,0,0.4)" }}>
-      <div className="rounded-lg p-6 w-full max-w-md" style={{ background: "var(--c-offwhite)" }}>
-        <h3 className="font-bold text-base mb-4" style={{ color: "var(--c-ink)" }}>+ Tambah Madrasah Baru</h3>
-        <div className="space-y-3">
-          <div><label className="text-xs font-semibold block mb-1" style={{ color: "var(--c-muted)" }}>NAMA MADRASAH / SEKOLAH</label>
-            <input value={form.nama} onChange={e => setForm(x => ({ ...x, nama: e.target.value }))} placeholder="contoh: MTsN 2 Banda Aceh" className="w-full border rounded px-3 py-2 text-sm" style={{ borderColor: "var(--c-border)" }} /></div>
-          <div><label className="text-xs font-semibold block mb-1" style={{ color: "var(--c-muted)" }}>JENJANG</label>
-            <select value={form.jenjang} onChange={e => setForm(x => ({ ...x, jenjang: e.target.value }))} className="w-full border rounded px-3 py-2 text-sm" style={{ borderColor: "var(--c-border)" }}>
-              <option value="">-- Pilih Jenjang --</option>
-              {["MI","MTs","MA","MAK","SD"].map(j => <option key={j} value={j}>{j}</option>)}
-            </select></div>
-        </div>
-        <div className="flex gap-2 mt-4">
-          <button onClick={() => onSimpan(form)} disabled={!form.nama} className="flex-1 py-2 rounded font-semibold text-white text-sm" style={{ background: form.nama ? "var(--c-green)" : "var(--c-muted)" }}>Simpan</button>
-          <button onClick={onBatal} className="flex-1 py-2 rounded font-semibold text-sm border" style={{ borderColor: "var(--c-border)", color: "var(--c-ink)" }}>Batal</button>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 ReactDOM.createRoot(document.getElementById("root")).render(<App />);
 </script>
