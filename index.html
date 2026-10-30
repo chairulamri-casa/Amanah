@@ -77,13 +77,6 @@
 </script>
 
 <script>
-  // Paksa Babel Standalone pakai JSX runtime "classic" (bukan "automatic"),
-  // supaya tidak menyisipkan `import` yang tidak jalan lewat <script> biasa.
-  Babel.registerPreset("react-classic", {
-    presets: [[Babel.availablePresets["react"], { runtime: "classic" }]],
-  });
-</script>
-<script>
 const{useState,useEffect,useRef}=React;// ============================================================
 // KONFIGURASI -- isi dengan Project URL dan anon key dari
 // Supabase Anda (Project Settings -> API Keys).
