@@ -285,6 +285,99 @@
       </div>
     </div>
 
+    <!-- JALUR PRESTASI -->
+    <div id="jalurPrestasiBox" class="section-card hidden border-l-4 border-yellow-400">
+      <div class="section-title">🏆 Data Prestasi</div>
+      <div class="text-xs text-gray-500 mb-4 bg-yellow-50 rounded-lg p-2">Isi data prestasi yang digunakan sebagai dasar pendaftaran jalur prestasi.</div>
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div class="field-group sm:col-span-2">
+          <label>Jenis Prestasi <span class="text-red-500">*</span></label>
+          <select id="f_jenis_prestasi">
+            <option value="">-- Pilih Jenis --</option>
+            <option value="Akademik">Akademik (Olimpiade, Lomba Pelajaran)</option>
+            <option value="Non-Akademik">Non-Akademik (Olahraga, Seni, dll)</option>
+            <option value="Hafidz Quran">Hafidz Quran</option>
+            <option value="Keagamaan">Keagamaan (MTQ, Kaligrafi, dll)</option>
+          </select>
+        </div>
+        <div class="field-group sm:col-span-2">
+          <label>Nama Prestasi / Lomba <span class="text-red-500">*</span></label>
+          <input type="text" id="f_nama_prestasi" placeholder="Contoh: Juara 1 Olimpiade Matematika"/>
+        </div>
+        <div class="field-group">
+          <label>Tingkat <span class="text-red-500">*</span></label>
+          <select id="f_tingkat_prestasi">
+            <option value="">-- Pilih Tingkat --</option>
+            <option value="Kecamatan">Kecamatan</option>
+            <option value="Kabupaten/Kota">Kabupaten/Kota</option>
+            <option value="Provinsi">Provinsi</option>
+            <option value="Nasional">Nasional</option>
+            <option value="Internasional">Internasional</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label>Tahun Prestasi <span class="text-red-500">*</span></label>
+          <input type="number" id="f_tahun_prestasi" placeholder="Contoh: 2024" min="2010" max="2030"/>
+        </div>
+        <div class="field-group sm:col-span-2">
+          <label>Penyelenggara</label>
+          <input type="text" id="f_penyelenggara_prestasi" placeholder="Contoh: Dinas Pendidikan Kota Banda Aceh"/>
+        </div>
+      </div>
+    </div>
+
+    <!-- JALUR AFIRMASI -->
+    <div id="jalurAfirmasiBox" class="section-card hidden border-l-4 border-orange-400">
+      <div class="section-title">🧡 Data Afirmasi</div>
+      <div class="text-xs text-gray-500 mb-4 bg-orange-50 rounded-lg p-2">Jalur afirmasi diperuntukkan bagi calon peserta didik dari keluarga kurang mampu yang terdaftar dalam program pemerintah.</div>
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div class="field-group sm:col-span-2">
+          <label>Jenis Program <span class="text-red-500">*</span></label>
+          <select id="f_jenis_afirmasi">
+            <option value="">-- Pilih Program --</option>
+            <option value="KIP">KIP (Kartu Indonesia Pintar)</option>
+            <option value="PKH">PKH (Program Keluarga Harapan)</option>
+            <option value="DTKS">DTKS (Data Terpadu Kesejahteraan Sosial)</option>
+            <option value="PIP">PIP (Program Indonesia Pintar)</option>
+            <option value="Yatim/Piatu">Yatim / Piatu</option>
+            <option value="Lainnya">Lainnya</option>
+          </select>
+        </div>
+        <div class="field-group sm:col-span-2">
+          <label>Nomor KIP / PKH / Kartu Program</label>
+          <input type="text" id="f_no_afirmasi" placeholder="Nomor kartu program bantuan (jika ada)"/>
+        </div>
+        <div class="field-group sm:col-span-2">
+          <label>Keterangan Tambahan</label>
+          <textarea id="f_ket_afirmasi" rows="2" placeholder="Keterangan kondisi keluarga atau alasan afirmasi"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- JALUR PERPINDAHAN TUGAS -->
+    <div id="jalurPindahanBox" class="section-card hidden border-l-4 border-blue-400">
+      <div class="section-title">🔄 Data Perpindahan Tugas</div>
+      <div class="text-xs text-gray-500 mb-4 bg-blue-50 rounded-lg p-2">Jalur ini untuk calon peserta didik yang mengikuti perpindahan tugas orang tua/wali dari luar daerah.</div>
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div class="field-group sm:col-span-2">
+          <label>Instansi / Lembaga Orang Tua <span class="text-red-500">*</span></label>
+          <input type="text" id="f_instansi_pindahan" placeholder="Contoh: TNI AD, Kemenag, PLN, dll"/>
+        </div>
+        <div class="field-group sm:col-span-2">
+          <label>Nomor SK Pindah Tugas <span class="text-red-500">*</span></label>
+          <input type="text" id="f_no_sk_pindahan" placeholder="Nomor Surat Keputusan Pindah Tugas"/>
+        </div>
+        <div class="field-group">
+          <label>Asal Daerah Sebelumnya <span class="text-red-500">*</span></label>
+          <input type="text" id="f_asal_daerah_pindahan" placeholder="Kota/Kabupaten asal"/>
+        </div>
+        <div class="field-group">
+          <label>Tahun Pindah</label>
+          <input type="number" id="f_tahun_pindahan" placeholder="Contoh: 2025" min="2010" max="2030"/>
+        </div>
+      </div>
+    </div>
+
     <button onclick="keStep2()" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-xl mt-2 text-base transition-colors">
       Lanjut →
     </button>
@@ -573,6 +666,10 @@ function setJalur(val) {
     el.classList.remove('border-gray-200','text-gray-500');
     el.classList.add('border-green-500','bg-green-50','text-green-700');
   }
+  // Show/hide section khusus per jalur
+  document.getElementById('jalurPrestasiBox').classList.toggle('hidden', val !== 'Prestasi');
+  document.getElementById('jalurAfirmasiBox').classList.toggle('hidden', val !== 'Afirmasi');
+  document.getElementById('jalurPindahanBox').classList.toggle('hidden', val !== 'Perpindahan Tugas');
 }
 
 // ─────────────────────────────────────────────
@@ -593,6 +690,22 @@ function keStep2() {
   if (!tmpt) { alert('Tempat lahir wajib diisi.'); return; }
   if (!asal) { alert('Asal sekolah wajib diisi.'); return; }
   if (!almt) { alert('Alamat wajib diisi.'); return; }
+
+  // Validasi jalur khusus
+  if (jalurDipilih === 'Prestasi') {
+    if (!document.getElementById('f_jenis_prestasi').value) { alert('Jenis prestasi wajib dipilih.'); return; }
+    if (!document.getElementById('f_nama_prestasi').value.trim()) { alert('Nama prestasi/lomba wajib diisi.'); return; }
+    if (!document.getElementById('f_tingkat_prestasi').value) { alert('Tingkat prestasi wajib dipilih.'); return; }
+    if (!document.getElementById('f_tahun_prestasi').value) { alert('Tahun prestasi wajib diisi.'); return; }
+  }
+  if (jalurDipilih === 'Afirmasi') {
+    if (!document.getElementById('f_jenis_afirmasi').value) { alert('Jenis program afirmasi wajib dipilih.'); return; }
+  }
+  if (jalurDipilih === 'Perpindahan Tugas') {
+    if (!document.getElementById('f_instansi_pindahan').value.trim()) { alert('Instansi orang tua wajib diisi.'); return; }
+    if (!document.getElementById('f_no_sk_pindahan').value.trim()) { alert('Nomor SK pindah tugas wajib diisi.'); return; }
+    if (!document.getElementById('f_asal_daerah_pindahan').value.trim()) { alert('Asal daerah wajib diisi.'); return; }
+  }
 
   currentStep = 2;
   document.getElementById('step1').classList.add('hidden');
@@ -694,6 +807,22 @@ async function submitForm() {
     berkas_kk         : document.getElementById('b_kk').checked,
     berkas_akta       : document.getElementById('b_akta').checked,
     berkas_foto       : document.getElementById('b_foto').checked,
+
+    // Data jalur khusus
+    jenis_prestasi        : document.getElementById('f_jenis_prestasi')?.value || null,
+    nama_prestasi         : document.getElementById('f_nama_prestasi')?.value.trim() || null,
+    tingkat_prestasi      : document.getElementById('f_tingkat_prestasi')?.value || null,
+    tahun_prestasi        : parseInt(document.getElementById('f_tahun_prestasi')?.value) || null,
+    penyelenggara_prestasi: document.getElementById('f_penyelenggara_prestasi')?.value.trim() || null,
+
+    jenis_afirmasi        : document.getElementById('f_jenis_afirmasi')?.value || null,
+    no_afirmasi           : document.getElementById('f_no_afirmasi')?.value.trim() || null,
+    ket_afirmasi          : document.getElementById('f_ket_afirmasi')?.value.trim() || null,
+
+    instansi_pindahan     : document.getElementById('f_instansi_pindahan')?.value.trim() || null,
+    no_sk_pindahan        : document.getElementById('f_no_sk_pindahan')?.value.trim() || null,
+    asal_daerah_pindahan  : document.getElementById('f_asal_daerah_pindahan')?.value.trim() || null,
+    tahun_pindahan        : parseInt(document.getElementById('f_tahun_pindahan')?.value) || null,
 
     status            : 'Mendaftar',
   };
