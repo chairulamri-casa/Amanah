@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Pendaftaran Online PMB</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<style>
+  body { font-family: 'Segoe UI', sans-serif; background: #f0f4f8; }
+  .step-dot { width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px; }
+  .step-line { flex:1;height:2px;margin:0 4px; }
+  input,select,textarea { transition: border-color .15s; }
+  input:focus,select:focus,textarea:focus { outline:none;border-color:#2563eb;box-shadow:0 0 0 3px rgba(37,99,235,.12); }
+  .field-group label { display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:4px; }
+  .field-group input, .field-group select, .field-group textarea {
+    width:100%;border:1.5px solid #d1d5db;border-radius:8px;padding:8px 12px;font-size:14px;background:#fff;
+  }
+  .field-group textarea { resize:vertical;min-height:70px; }
+  .section-card { background:#fff;border-radius:12px;padding:20px 24px;margin-bottom:16px;border:1px solid #e5e7eb; }
+  .section-title { font-size:15px;font-weight:700;color:#1e40af;margin-bottom:16px;padding-bottom:8px;border-bottom:2px solid #dbeafe; }
+  @media(max-width:640px){ .section-card{padding:14px 16px;} }
+  .spinner { display:inline-block;width:18px;height:18px;border:2.5px solid #fff;border-top-color:transparent;border-radius:50%;animation:spin .7s linear infinite; }
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .badge-mendaftar  { background:#dbeafe;color:#1d4ed8; }
+  .badge-diterima   { background:#dcfce7;color:#15803d; }
+  .badge-tidak      { background:#fee2e2;color:#b91c1c; }
+</style>
+</head>
+<body class="min-h-screen">
+
+<!-- HEADER -->
+<div id="header" class="bg-gradient-to-r from-green-700 to-emerald-600 text-white py-5 px-4 shadow-md">
+  <div class="max-w-2xl mx-auto flex items-center gap-3">
+    <div class="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center text-xl">🏫</div>
+    <div>
+      <div id="header-madrasah" class="font-bold text-lg leading-tight">Pendaftaran Online</div>
+      <div id="header-sub" class="text-green-100 text-sm">Penerimaan Murid Baru (PMB)</div>
+    </div>
+  </div>
+</div>
+
+<div class="max-w-2xl mx-auto px-4 py-6">
+
+  <!-- LOADING -->
+  <div id="loadingBox" class="text-center py-16 text-gray-500">
+    <div class="text-3xl mb-2">⏳</div>
+    <div>Memuat data madrasah…</div>
+  </div>
+
+  <!-- ERROR MADRASAH TIDAK DITEMUKAN -->
+  <div id="errorBox" class="hidden text-center py-16">
+    <div class="text-5xl mb-3">⚠️</div>
+    <div class="text-lg font-bold text-red-700 mb-2">Madrasah tidak ditemukan</div>
+    <div class="text-gray-500 text-sm">Pastikan link yang Anda gunakan sudah benar.</div>
+  </div>
+
+  <!-- PILIH MADRASAH (jika tidak ada slug) -->
+  <div id="pilihMadrasahBox" class="hidden section-card">
+    <div class="section-title">🏫 Pilih Madrasah</div>
+    <div class="field-group">
+      <label>Madrasah Tujuan</label>
+      <select id="selectMadrasah" onchange="pilihMadrasah(this.value)">
+        <option value="">-- Pilih madrasah --</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- STEPPER -->
+  <div id="stepperBox" class="hidden mb-6">
+    <div class="flex items-center justify-center">
+      <div id="dot1" class="step-dot bg-green-600 text-white">1</div>
+      <div id="line12" class="step-line bg-gray-300"></div>
+      <div id="dot2" class="step-dot bg-gray-200 text-gray-500">2</div>
+      <div id="line23" class="step-line bg-gray-300"></div>
+      <div id="dot3" class="step-dot bg-gray-200 text-gray-500">3</div>
+    </div>
+    <div class="flex justify-between text-xs text-gray-500 mt-1 px-1">
+      <span>Data Diri</span><span class="text-center">Data Keluarga</span><span class="text-right">Selesai</span>
+    </div>
+  </div>
+
+  <!-- CEK STATUS PENDAFTARAN -->
+  <div id="cekStatusBox" class="hidden mb-4">
+    <button onclick="toggleCekStatus()" class="text-sm text-blue-600 hover:underline">🔍 Sudah mendaftar? Cek status pendaftaran</button>
+    <div id="cekStatusForm" class="hidden mt-3 section-card">
+      <div class="section-title">🔍 Cek Status Pendaftaran</div>
+      <div class="flex gap-2">
+        <input id="inputNoPendaftaran" type="text" placeholder="Nomor pendaftaran (misal: PMB-2026-0001)" class="flex-1 border rounded-lg px-3 py-2 text-sm border-gray-300"/>
+        <button onclick="cekStatus()" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-700">Cek</button>
+      </div>
+      <div id="hasilCek" class="mt-3 hidden"></div>
+    </div>
+  </div>
+
+  <!-- STEP 1: DATA DIRI PESERTA -->
+  <div id="step1" class="hidden">
+
+    <!-- Info Madrasah -->
+    <div id="infoMadrasahCard" class="section-card bg-green-50 border-green-200 mb-4">
+      <div class="flex items-center gap-3">
+        <div class="text-3xl">🏫</div>
+        <div>
+          <div id="namaMadrasahDisplay" class="font-bold text-green-800 text-base"></div>
+          <div id="tahunAjaranDisplay" class="text-sm text-green-600"></div>
+        </div>
+      </div>
+      <div class="mt-2 text-sm text-gray-600 flex gap-4 flex-wrap">
+        <span id="jenjangDisplay"></span>
+        <span id="jalurDisplay"></span>
+      </div>
+    </div>
+
+    <!-- Jalur Pendaftaran -->
+    <div class="section-card">
+      <div class="section-title">📋 Jalur Pendaftaran</div>
+      <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <label id="jalur-reguler" class="jalur-btn flex flex-col items-center gap-1 p-3 border-2 rounded-xl cursor-pointer border-green-500 bg-green-50 text-green-700">
+          <input type="radio" name="jalur" value="Reguler" class="sr-only" checked onchange="setJalur('Reguler')"/>
+          <span class="text-2xl">📝</span><span class="text-xs font-semibold text-center">Reguler</span>
+        </label>
+        <label id="jalur-prestasi" class="jalur-btn flex flex-col items-center gap-1 p-3 border-2 rounded-xl cursor-pointer border-gray-200 text-gray-500">
+          <input type="radio" name="jalur" value="Prestasi" class="sr-only" onchange="setJalur('Prestasi')"/>
+          <span class="text-2xl">🏆</span><span class="text-xs font-semibold text-center">Prestasi</span>
+        </label>
+        <label id="jalur-afirmasi" class="jalur-btn flex flex-col items-center gap-1 p-3 border-2 rounded-xl cursor-pointer border-gray-200 text-gray-500">
+          <input type="radio" name="jalur" value="Afirmasi" class="sr-only" onchange="setJalur('Afirmasi')"/>
+          <span class="text-2xl">💛</span><span class="text-xs font-semibold text-center">Afirmasi</span>
+        </label>
+        <label id="jalur-pindahan" class="jalur-btn flex flex-col items-center gap-1 p-3 border-2 rounded-xl cursor-pointer border-gray-200 text-gray-500">
+          <input type="radio" name="jalur" value="Perpindahan Tugas" class="sr-only" onchange="setJalur('Perpindahan Tugas')"/>
+          <span class="text-2xl">🔄</span><span class="text-xs font-semibold text-center leading-tight">Perpindahan Tugas</span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Data Pribadi -->
+    <div class="section-card">
+      <div class="section-title">👤 Data Pribadi Calon Peserta Didik</div>
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div class="field-group sm:col-span-2">
+          <label>Nama Lengkap <span class="text-red-500">*</span></label>
+          <input type="text" id="f_nama" placeholder="Nama sesuai akta/ijazah" required/>
+        </div>
+        <div class="field-group">
+          <label>NISN</label>
+          <input type="text" id="f_nisn" placeholder="10 digit NISN" maxlength="10"/>
+        </div>
+        <div class="field-group">
+          <label>NIK</label>
+          <input type="text" id="f_nik" placeholder="16 digit NIK" maxlength="16"/>
+        </div>
+        <div class="field-group">
+          <label>Jenis Kelamin <span class="text-red-500">*</span></label>
+          <select id="f_jk" required>
+            <option value="">-- Pilih --</option>
+            <option value="L">Laki-laki</option>
+            <option value="P">Perempuan</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label>Agama</label>
+          <select id="f_agama">
+            <option value="Islam" selected>Islam</option>
+            <option value="Kristen">Kristen</option>
+            <option value="Katolik">Katolik</option>
+            <option value="Hindu">Hindu</option>
+            <option value="Buddha">Buddha</option>
+            <option value="Konghucu">Konghucu</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label>Tempat Lahir <span class="text-red-500">*</span></label>
+          <input type="text" id="f_tempat_lahir" placeholder="Kota/Kabupaten"/>
+        </div>
+        <div class="field-group">
+          <label>Tanggal Lahir <span class="text-red-500">*</span></label>
+          <input type="date" id="f_tgl_lahir"/>
+        </div>
+        <div class="field-group">
+          <label>Anak ke-</label>
+          <input type="number" id="f_anak_ke" min="1" max="20" placeholder="1"/>
+        </div>
+        <div class="field-group">
+          <label>Jumlah Saudara Kandung</label>
+          <input type="number" id="f_saudara" min="0" max="20" placeholder="0"/>
+        </div>
+        <div class="field-group">
+          <label>Golongan Darah</label>
+          <select id="f_gol_darah">
+            <option value="">-- Pilih --</option>
+            <option>A</option><option>B</option><option>AB</option><option>O</option>
+            <option>Tidak Tahu</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label>Kebutuhan Khusus</label>
+          <select id="f_kebutuhan_khusus">
+            <option value="Tidak Ada">Tidak Ada</option>
+            <option value="Tunanetra">Tunanetra</option>
+            <option value="Tunarungu">Tunarungu</option>
+            <option value="Tunadaksa">Tunadaksa</option>
+            <option value="Tunagrahita">Tunagrahita</option>
+            <option value="Autis">Autis</option>
+            <option value="Lainnya">Lainnya</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label>Hobby</label>
+          <input type="text" id="f_hobby" placeholder="Membaca, Olahraga, dll"/>
+        </div>
+        <div class="field-group">
+          <label>Cita-cita</label>
+          <input type="text" id="f_cita" placeholder="Dokter, Guru, dll"/>
+        </div>
+      </div>
+    </div>
+
+    <!-- Alamat -->
+    <div class="section-card">
+      <div class="section-title">📍 Alamat Tempat Tinggal</div>
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div class="field-group sm:col-span-2">
+          <label>Alamat Lengkap <span class="text-red-500">*</span></label>
+          <textarea id="f_alamat" placeholder="Jl. / Gampong / RT/RW" rows="2"></textarea>
+        </div>
+        <div class="field-group">
+          <label>Kelurahan/Desa</label>
+          <input type="text" id="f_kelurahan" placeholder="Nama gampong/desa"/>
+        </div>
+        <div class="field-group">
+          <label>Kecamatan</label>
+          <input type="text" id="f_kecamatan"/>
+        </div>
+        <div class="field-group">
+          <label>Kabupaten/Kota</label>
+          <input type="text" id="f_kabupaten"/>
+        </div>
+        <div class="field-group">
+          <label>Nomor HP / WhatsApp</label>
+          <input type="tel" id="f_hp" placeholder="08xxxxxxxxxx"/>
+        </div>
+      </div>
+    </div>
+
+    <!-- Asal Sekolah -->
+    <div class="section-card">
+      <div class="section-title">🏫 Asal Sekolah</div>
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div class="field-group sm:col-span-2">
+          <label>Nama Sekolah Asal <span class="text-red-500">*</span></label>
+          <input type="text" id="f_asal_sekolah" placeholder="SD/MI/SMP/MTs asal"/>
+        </div>
+        <div class="field-group">
+          <label>NPSN Sekolah Asal</label>
+          <input type="text" id="f_npsn_asal" placeholder="8 digit NPSN"/>
+        </div>
+        <div class="field-group">
+          <label>Tahun Lulus</label>
+          <input type="text" id="f_tahun_lulus_sd" placeholder="2025"/>
+        </div>
+        <div class="field-group">
+          <label>No. Ijazah</label>
+          <input type="text" id="f_no_ijazah"/>
+        </div>
+        <div class="field-group">
+          <label>No. SKHUN</label>
+          <input type="text" id="f_no_skhun"/>
+        </div>
+      </div>
+    </div>
+
+    <!-- Jurusan (MA/MAK) -->
+    <div id="jurusanBox" class="section-card hidden">
+      <div class="section-title">📚 Pilihan Jurusan</div>
+      <div class="field-group">
+        <label>Pilihan Jurusan</label>
+        <select id="f_jurusan">
+          <option value="">-- Pilih Jurusan --</option>
+          <option value="IPA">IPA (Ilmu Pengetahuan Alam)</option>
+          <option value="IPS">IPS (Ilmu Pengetahuan Sosial)</option>
+          <option value="Bahasa">Bahasa</option>
+          <option value="Keagamaan">Keagamaan</option>
+        </select>
+      </div>
+    </div>
+
+    <button onclick="keStep2()" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-xl mt-2 text-base transition-colors">
+      Lanjut →
+    </button>
+  </div>
+
+  <!-- STEP 2: DATA KELUARGA + BERKAS -->
+  <div id="step2" class="hidden">
+
+    <!-- Data Orang Tua -->
+    <div class="section-card">
+      <div class="section-title">👨‍👩‍👧 Data Orang Tua / Wali</div>
+      <div class="text-xs text-gray-500 mb-4 bg-blue-50 rounded-lg p-2">Isi data sesuai Kartu Keluarga (KK). Jika anak yatim/piatu, isi data wali.</div>
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div class="field-group sm:col-span-2 font-semibold text-gray-700 text-sm pt-1">— Ayah —</div>
+        <div class="field-group sm:col-span-2">
+          <label>Nama Ayah</label>
+          <input type="text" id="f_nama_ayah" placeholder="Nama lengkap ayah"/>
+        </div>
+        <div class="field-group">
+          <label>Pendidikan Terakhir Ayah</label>
+          <select id="f_pend_ayah">
+            <option value="">-- Pilih --</option>
+            <option>Tidak Sekolah</option><option>SD/MI</option><option>SMP/MTs</option>
+            <option>SMA/MA/SMK</option><option>D3</option><option>S1</option><option>S2</option><option>S3</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label>Pekerjaan Ayah</label>
+          <input type="text" id="f_kerja_ayah" placeholder="PNS, Petani, Wiraswasta, dll"/>
+        </div>
+
+        <div class="field-group sm:col-span-2 font-semibold text-gray-700 text-sm pt-1 border-t pt-3">— Ibu —</div>
+        <div class="field-group sm:col-span-2">
+          <label>Nama Ibu</label>
+          <input type="text" id="f_nama_ibu" placeholder="Nama lengkap ibu"/>
+        </div>
+        <div class="field-group">
+          <label>Pendidikan Terakhir Ibu</label>
+          <select id="f_pend_ibu">
+            <option value="">-- Pilih --</option>
+            <option>Tidak Sekolah</option><option>SD/MI</option><option>SMP/MTs</option>
+            <option>SMA/MA/SMK</option><option>D3</option><option>S1</option><option>S2</option><option>S3</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label>Pekerjaan Ibu</label>
+          <input type="text" id="f_kerja_ibu" placeholder="IRT, PNS, Petani, dll"/>
+        </div>
+
+        <div class="field-group sm:col-span-2 border-t pt-3">
+          <label>Penghasilan Orang Tua per Bulan</label>
+          <select id="f_penghasilan">
+            <option value="">-- Pilih --</option>
+            <option value="< 500rb">Di bawah Rp 500.000</option>
+            <option value="500rb-1jt">Rp 500.000 – 1.000.000</option>
+            <option value="1jt-2jt">Rp 1.000.000 – 2.000.000</option>
+            <option value="2jt-5jt">Rp 2.000.000 – 5.000.000</option>
+            <option value="> 5jt">Di atas Rp 5.000.000</option>
+          </select>
+        </div>
+        <div class="field-group sm:col-span-2">
+          <label>No. HP / WhatsApp Orang Tua</label>
+          <input type="tel" id="f_hp_ortu" placeholder="08xxxxxxxxxx"/>
+        </div>
+
+        <div class="field-group sm:col-span-2 border-t pt-3">
+          <label>Nama Wali (jika berbeda dengan orang tua)</label>
+          <input type="text" id="f_nama_wali" placeholder="Kosongkan jika sama dengan orang tua"/>
+        </div>
+        <div class="field-group">
+          <label>Pekerjaan Wali</label>
+          <input type="text" id="f_kerja_wali" placeholder="Jika ada wali"/>
+        </div>
+      </div>
+    </div>
+
+    <!-- Kelengkapan Berkas -->
+    <div class="section-card">
+      <div class="section-title">📂 Kelengkapan Berkas</div>
+      <div class="text-xs text-gray-500 mb-4 bg-yellow-50 border border-yellow-200 rounded-lg p-2">
+        ⚠️ Centang berkas yang sudah disiapkan. Berkas fisik diserahkan ke madrasah saat verifikasi.
+      </div>
+      <div class="space-y-3">
+        <label class="flex items-center gap-3 cursor-pointer">
+          <input type="checkbox" id="b_ijazah" class="w-4 h-4 accent-green-600"/>
+          <span class="text-sm">Fotokopi Ijazah / SKL yang dilegalisir</span>
+        </label>
+        <label class="flex items-center gap-3 cursor-pointer">
+          <input type="checkbox" id="b_skhun" class="w-4 h-4 accent-green-600"/>
+          <span class="text-sm">Fotokopi SKHUN / Transkrip Nilai</span>
+        </label>
+        <label class="flex items-center gap-3 cursor-pointer">
+          <input type="checkbox" id="b_kk" class="w-4 h-4 accent-green-600"/>
+          <span class="text-sm">Fotokopi Kartu Keluarga (KK)</span>
+        </label>
+        <label class="flex items-center gap-3 cursor-pointer">
+          <input type="checkbox" id="b_akta" class="w-4 h-4 accent-green-600"/>
+          <span class="text-sm">Fotokopi Akta Kelahiran</span>
+        </label>
+        <label class="flex items-center gap-3 cursor-pointer">
+          <input type="checkbox" id="b_foto" class="w-4 h-4 accent-green-600"/>
+          <span class="text-sm">Pas Foto terbaru (3×4 dan 4×6)</span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Navigasi -->
+    <div class="flex gap-3 mt-2">
+      <button onclick="keStep1()" class="flex-1 border-2 border-gray-300 text-gray-700 font-semibold py-3 rounded-xl hover:bg-gray-50 transition-colors">
+        ← Kembali
+      </button>
+      <button onclick="submitForm()" id="btnSubmit" class="flex-2 flex-grow bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-xl transition-colors flex items-center justify-center gap-2">
+        <span id="btnSubmitText">✅ Daftar Sekarang</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- STEP 3: SUKSES -->
+  <div id="step3" class="hidden text-center py-8">
+    <div class="section-card">
+      <div class="text-6xl mb-4">🎉</div>
+      <h2 class="text-2xl font-bold text-green-700 mb-2">Pendaftaran Berhasil!</h2>
+      <p class="text-gray-600 mb-6">Data Anda telah berhasil dikirimkan. Simpan nomor pendaftaran Anda:</p>
+
+      <div class="bg-green-50 border-2 border-green-300 rounded-xl p-4 mb-4">
+        <div class="text-sm text-gray-500 mb-1">Nomor Pendaftaran</div>
+        <div id="noPendaftaranResult" class="text-3xl font-bold text-green-700 tracking-wider"></div>
+      </div>
+
+      <div id="ringkasanPendaftar" class="text-left bg-gray-50 rounded-xl p-4 mb-6 text-sm text-gray-700 space-y-1"></div>
+
+      <div class="bg-yellow-50 border border-yellow-200 rounded-xl p-3 text-sm text-yellow-800 text-left mb-6">
+        <b>📋 Langkah Selanjutnya:</b>
+        <ol class="list-decimal list-inside mt-1 space-y-1">
+          <li>Screenshot/catat nomor pendaftaran di atas</li>
+          <li>Siapkan berkas fisik yang sudah dicentang</li>
+          <li>Datang ke madrasah untuk verifikasi berkas</li>
+          <li>Cek status penerimaan melalui link ini</li>
+        </ol>
+      </div>
+
+      <div class="flex gap-3 flex-wrap justify-center">
+        <button onclick="cetakBukti()" class="bg-blue-600 text-white px-5 py-2.5 rounded-xl font-semibold text-sm hover:bg-blue-700">
+          🖨️ Cetak Bukti Pendaftaran
+        </button>
+        <button onclick="daftarLagi()" class="border-2 border-green-600 text-green-700 px-5 py-2.5 rounded-xl font-semibold text-sm hover:bg-green-50">
+          ➕ Daftar Lagi (Adik/Saudara)
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="text-center text-xs text-gray-400 mt-8 pb-6">
+    Sistem PMB Digital · Amanah Madrasah
+  </div>
+</div>
+
+<!-- PRINT AREA -->
+<div id="printArea" class="hidden">
+  <style>
+    @media print {
+      body > *:not(#printArea) { display: none !important; }
+      #printArea { display: block !important; font-family: 'Times New Roman', serif; }
+      .no-print { display: none; }
+    }
+  </style>
+  <div style="border:2px solid #000;padding:20px;max-width:700px;margin:auto;">
+    <div style="text-align:center;border-bottom:2px solid #000;padding-bottom:12px;margin-bottom:12px;">
+      <b style="font-size:18px;" id="printMadrasah"></b><br/>
+      <span style="font-size:13px;">BUKTI PENDAFTARAN PMB</span>
+    </div>
+    <table style="width:100%;font-size:13px;border-collapse:collapse;" id="printTable"></table>
+    <div style="margin-top:20px;display:flex;justify-content:space-between;font-size:12px;">
+      <div>Calon Peserta Didik,<br/><br/><br/><hr style="width:150px;"/><span id="printNama"></span></div>
+      <div style="text-align:right;">Diterima oleh,<br/><br/><br/><hr style="width:150px;"/><span>Petugas PMB</span></div>
+    </div>
+    <button onclick="window.print()" class="no-print mt-4 bg-blue-600 text-white px-4 py-2 rounded">🖨️ Print</button>
+  </div>
+</div>
+
+<script>
+// ─────────────────────────────────────────────
+// CONFIG
+// ─────────────────────────────────────────────
+const SUPABASE_URL = 'https://djnbttyjyzknujrepdfe.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_2NM4R5w9VxxHITH8GZ642w_ADTYV1sW';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// State
+let madrasah = null;
+let jalurDipilih = 'Reguler';
+let currentStep = 1;
+let submittedData = null;
+
+// ─────────────────────────────────────────────
+// INIT
+// ─────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', async () => {
+  const params = new URLSearchParams(window.location.search);
+  const slug = params.get('s');
+
+  if (!slug) {
+    // Tidak ada slug → tampilkan dropdown pilih madrasah
+    document.getElementById('loadingBox').classList.add('hidden');
+    document.getElementById('pilihMadrasahBox').classList.remove('hidden');
+    await muatSemuaMadrasah();
+    return;
+  }
+
+  await muatMadrasah(slug);
+});
+
+async function muatMadrasah(slug) {
+  const { data, error } = await sb
+    .from('madrasah')
+    .select('id, nama, jenjang, slug, kota, provinsi')
+    .eq('slug', slug)
+    .single();
+
+  document.getElementById('loadingBox').classList.add('hidden');
+
+  if (error || !data) {
+    document.getElementById('errorBox').classList.remove('hidden');
+    return;
+  }
+
+  madrasah = data;
+  tampilkanMadrasah();
+}
+
+async function muatSemuaMadrasah() {
+  const { data } = await sb.from('madrasah').select('id, nama, slug, jenjang').order('nama');
+  const sel = document.getElementById('selectMadrasah');
+  (data || []).forEach(m => {
+    const opt = document.createElement('option');
+    opt.value = m.slug;
+    opt.textContent = `${m.nama} (${m.jenjang})`;
+    sel.appendChild(opt);
+  });
+}
+
+function pilihMadrasah(slug) {
+  if (!slug) return;
+  document.getElementById('pilihMadrasahBox').classList.add('hidden');
+  document.getElementById('loadingBox').classList.remove('hidden');
+  muatMadrasah(slug);
+}
+
+function tampilkanMadrasah() {
+  // Header
+  document.getElementById('header-madrasah').textContent = madrasah.nama;
+  document.getElementById('header-sub').textContent = `PMB ${madrasah.jenjang} · ${new Date().getFullYear()}`;
+
+  // Info card
+  document.getElementById('namaMadrasahDisplay').textContent = madrasah.nama;
+  const tahunAjaran = `${new Date().getFullYear()}/${new Date().getFullYear()+1}`;
+  document.getElementById('tahunAjaranDisplay').textContent = `Tahun Ajaran ${tahunAjaran}`;
+  document.getElementById('jenjangDisplay').textContent = `🏫 ${madrasah.jenjang}`;
+  document.getElementById('jalurDisplay').textContent = `📍 ${madrasah.kota || madrasah.provinsi || ''}`;
+
+  // Jurusan hanya MA/MAK
+  if (['MA','MAK'].includes(madrasah.jenjang)) {
+    document.getElementById('jurusanBox').classList.remove('hidden');
+  }
+
+  // Tampilkan UI
+  document.getElementById('stepperBox').classList.remove('hidden');
+  document.getElementById('cekStatusBox').classList.remove('hidden');
+  document.getElementById('step1').classList.remove('hidden');
+  document.title = `Pendaftaran PMB ${madrasah.nama}`;
+}
+
+// ─────────────────────────────────────────────
+// JALUR
+// ─────────────────────────────────────────────
+function setJalur(val) {
+  jalurDipilih = val;
+  const jalurMap = { 'Reguler':'reguler','Prestasi':'prestasi','Afirmasi':'afirmasi','Perpindahan Tugas':'pindahan' };
+  document.querySelectorAll('.jalur-btn').forEach(el => {
+    el.classList.remove('border-green-500','bg-green-50','text-green-700');
+    el.classList.add('border-gray-200','text-gray-500');
+  });
+  const key = jalurMap[val];
+  const el = document.getElementById(`jalur-${key}`);
+  if (el) {
+    el.classList.remove('border-gray-200','text-gray-500');
+    el.classList.add('border-green-500','bg-green-50','text-green-700');
+  }
+}
+
+// ─────────────────────────────────────────────
+// NAVIGASI STEP
+// ─────────────────────────────────────────────
+function keStep2() {
+  // Validasi wajib
+  const nama = document.getElementById('f_nama').value.trim();
+  const jk   = document.getElementById('f_jk').value;
+  const tgl  = document.getElementById('f_tgl_lahir').value;
+  const tmpt = document.getElementById('f_tempat_lahir').value.trim();
+  const asal = document.getElementById('f_asal_sekolah').value.trim();
+  const almt = document.getElementById('f_alamat').value.trim();
+
+  if (!nama) { alert('Nama lengkap wajib diisi.'); document.getElementById('f_nama').focus(); return; }
+  if (!jk)   { alert('Jenis kelamin wajib dipilih.'); return; }
+  if (!tgl)  { alert('Tanggal lahir wajib diisi.'); return; }
+  if (!tmpt) { alert('Tempat lahir wajib diisi.'); return; }
+  if (!asal) { alert('Asal sekolah wajib diisi.'); return; }
+  if (!almt) { alert('Alamat wajib diisi.'); return; }
+
+  currentStep = 2;
+  document.getElementById('step1').classList.add('hidden');
+  document.getElementById('step2').classList.remove('hidden');
+  updateStepper(2);
+  window.scrollTo(0, 0);
+}
+
+function keStep1() {
+  currentStep = 1;
+  document.getElementById('step2').classList.add('hidden');
+  document.getElementById('step1').classList.remove('hidden');
+  updateStepper(1);
+  window.scrollTo(0, 0);
+}
+
+function updateStepper(step) {
+  const aktif = 'bg-green-600 text-white';
+  const selesai = 'bg-green-300 text-white';
+  const nonaktif = 'bg-gray-200 text-gray-500';
+
+  const dot1 = document.getElementById('dot1');
+  const dot2 = document.getElementById('dot2');
+  const dot3 = document.getElementById('dot3');
+  const line12 = document.getElementById('line12');
+  const line23 = document.getElementById('line23');
+
+  if (step === 1) {
+    dot1.className = `step-dot ${aktif}`; dot2.className = `step-dot ${nonaktif}`; dot3.className = `step-dot ${nonaktif}`;
+    line12.className = 'step-line bg-gray-300'; line23.className = 'step-line bg-gray-300';
+  } else if (step === 2) {
+    dot1.className = `step-dot ${selesai}`; dot2.className = `step-dot ${aktif}`; dot3.className = `step-dot ${nonaktif}`;
+    line12.className = 'step-line bg-green-400'; line23.className = 'step-line bg-gray-300';
+  } else {
+    dot1.className = `step-dot ${selesai}`; dot2.className = `step-dot ${selesai}`; dot3.className = `step-dot ${aktif}`;
+    line12.className = 'step-line bg-green-400'; line23.className = 'step-line bg-green-400';
+  }
+}
+
+// ─────────────────────────────────────────────
+// SUBMIT
+// ─────────────────────────────────────────────
+async function submitForm() {
+  if (!madrasah) return;
+
+  const btn = document.getElementById('btnSubmit');
+  const txt = document.getElementById('btnSubmitText');
+  btn.disabled = true;
+  txt.innerHTML = '<span class="spinner"></span> Mengirim…';
+
+  const tahunAjaran = `${new Date().getFullYear()}/${new Date().getFullYear()+1}`;
+
+  const payload = {
+    madrasah_id       : madrasah.id,
+    tahun_ajaran      : tahunAjaran,
+    jalur_pendaftaran : jalurDipilih,
+
+    nama_lengkap      : document.getElementById('f_nama').value.trim(),
+    nisn              : document.getElementById('f_nisn').value.trim() || null,
+    nik               : document.getElementById('f_nik').value.trim() || null,
+    jenis_kelamin     : document.getElementById('f_jk').value,
+    agama             : document.getElementById('f_agama').value,
+    tempat_lahir      : document.getElementById('f_tempat_lahir').value.trim(),
+    tanggal_lahir     : document.getElementById('f_tgl_lahir').value || null,
+    anak_ke           : parseInt(document.getElementById('f_anak_ke').value) || null,
+    jumlah_saudara    : parseInt(document.getElementById('f_saudara').value) || null,
+    golongan_darah    : document.getElementById('f_gol_darah').value || null,
+    kebutuhan_khusus  : document.getElementById('f_kebutuhan_khusus').value,
+    hobby             : document.getElementById('f_hobby').value.trim() || null,
+    cita_cita         : document.getElementById('f_cita').value.trim() || null,
+
+    alamat            : document.getElementById('f_alamat').value.trim(),
+    kelurahan         : document.getElementById('f_kelurahan').value.trim() || null,
+    kecamatan         : document.getElementById('f_kecamatan').value.trim() || null,
+    kabupaten         : document.getElementById('f_kabupaten').value.trim() || null,
+    provinsi          : 'Aceh',
+    nomor_hp          : document.getElementById('f_hp').value.trim() || null,
+
+    asal_sekolah      : document.getElementById('f_asal_sekolah').value.trim(),
+    npsn_asal         : document.getElementById('f_npsn_asal').value.trim() || null,
+    tahun_lulus_sd    : document.getElementById('f_tahun_lulus_sd').value.trim() || null,
+    no_ijazah         : document.getElementById('f_no_ijazah').value.trim() || null,
+    no_skhun          : document.getElementById('f_no_skhun').value.trim() || null,
+    pilihan_jurusan   : document.getElementById('f_jurusan')?.value || null,
+
+    nama_ayah         : document.getElementById('f_nama_ayah').value.trim() || null,
+    pendidikan_ayah   : document.getElementById('f_pend_ayah').value || null,
+    pekerjaan_ayah    : document.getElementById('f_kerja_ayah').value.trim() || null,
+    nama_ibu          : document.getElementById('f_nama_ibu').value.trim() || null,
+    pendidikan_ibu    : document.getElementById('f_pend_ibu').value || null,
+    pekerjaan_ibu     : document.getElementById('f_kerja_ibu').value.trim() || null,
+    nama_wali         : document.getElementById('f_nama_wali').value.trim() || null,
+    pekerjaan_wali    : document.getElementById('f_kerja_wali').value.trim() || null,
+    penghasilan_ortu  : document.getElementById('f_penghasilan').value || null,
+    hp_ortu           : document.getElementById('f_hp_ortu').value.trim() || null,
+
+    berkas_ijazah     : document.getElementById('b_ijazah').checked,
+    berkas_skhun      : document.getElementById('b_skhun').checked,
+    berkas_kk         : document.getElementById('b_kk').checked,
+    berkas_akta       : document.getElementById('b_akta').checked,
+    berkas_foto       : document.getElementById('b_foto').checked,
+
+    status            : 'Mendaftar',
+  };
+
+  const { data, error } = await sb.from('pendaftar_pmb').insert(payload).select().single();
+
+  btn.disabled = false;
+  txt.textContent = '✅ Daftar Sekarang';
+
+  if (error) {
+    alert('Gagal menyimpan data: ' + error.message);
+    return;
+  }
+
+  submittedData = data;
+  tampilkanSukses(data);
+}
+
+// ─────────────────────────────────────────────
+// SUKSES
+// ─────────────────────────────────────────────
+function tampilkanSukses(data) {
+  currentStep = 3;
+  document.getElementById('step2').classList.add('hidden');
+  document.getElementById('step3').classList.remove('hidden');
+  updateStepper(3);
+
+  document.getElementById('noPendaftaranResult').textContent = data.no_pendaftaran || 'Tersimpan';
+
+  const ringkasan = [
+    ['Nama', data.nama_lengkap],
+    ['NISN', data.nisn || '-'],
+    ['Jenis Kelamin', data.jenis_kelamin === 'L' ? 'Laki-laki' : 'Perempuan'],
+    ['Tempat, Tgl Lahir', `${data.tempat_lahir}, ${data.tanggal_lahir ? new Date(data.tanggal_lahir).toLocaleDateString('id-ID') : '-'}`],
+    ['Asal Sekolah', data.asal_sekolah],
+    ['Jalur', data.jalur_pendaftaran],
+    ['Status', data.status],
+  ];
+
+  const box = document.getElementById('ringkasanPendaftar');
+  box.innerHTML = ringkasan.map(([k,v]) =>
+    `<div class="flex gap-2"><span class="text-gray-400 w-36 shrink-0">${k}</span><span class="font-medium">${v || '-'}</span></div>`
+  ).join('');
+
+  window.scrollTo(0, 0);
+}
+
+function daftarLagi() {
+  submittedData = null;
+  currentStep = 1;
+  document.getElementById('step3').classList.add('hidden');
+  document.getElementById('step1').classList.remove('hidden');
+  updateStepper(1);
+  // Reset form
+  document.querySelectorAll('input[type=text], input[type=date], input[type=tel], input[type=number], textarea').forEach(el => el.value = '');
+  document.querySelectorAll('select').forEach(el => el.selectedIndex = 0);
+  document.querySelectorAll('input[type=checkbox]').forEach(el => el.checked = false);
+  setJalur('Reguler');
+  window.scrollTo(0, 0);
+}
+
+// ─────────────────────────────────────────────
+// CEK STATUS
+// ─────────────────────────────────────────────
+function toggleCekStatus() {
+  const box = document.getElementById('cekStatusForm');
+  box.classList.toggle('hidden');
+}
+
+async function cekStatus() {
+  const no = document.getElementById('inputNoPendaftaran').value.trim().toUpperCase();
+  const box = document.getElementById('hasilCek');
+  if (!no) return;
+
+  box.innerHTML = '<div class="text-gray-400 text-sm">Mencari…</div>';
+  box.classList.remove('hidden');
+
+  const { data, error } = await sb
+    .from('pendaftar_pmb')
+    .select('no_pendaftaran, nama_lengkap, status, jalur_pendaftaran, created_at, catatan_admin')
+    .eq('no_pendaftaran', no)
+    .single();
+
+  if (error || !data) {
+    box.innerHTML = '<div class="text-red-500 text-sm">Nomor pendaftaran tidak ditemukan.</div>';
+    return;
+  }
+
+  const statusColor = {
+    'Mendaftar'      : 'badge-mendaftar',
+    'Verifikasi'     : 'bg-yellow-100 text-yellow-800',
+    'Diterima'       : 'badge-diterima',
+    'Tidak Diterima' : 'badge-tidak',
+    'Cadangan'       : 'bg-purple-100 text-purple-800',
+  }[data.status] || 'badge-mendaftar';
+
+  box.innerHTML = `
+    <div class="bg-white border rounded-xl p-4 text-sm space-y-2">
+      <div class="flex justify-between items-start">
+        <div>
+          <div class="font-bold text-gray-800 text-base">${data.nama_lengkap}</div>
+          <div class="text-gray-500">${data.no_pendaftaran} · Jalur ${data.jalur_pendaftaran}</div>
+        </div>
+        <span class="px-3 py-1 rounded-full text-xs font-bold ${statusColor}">${data.status}</span>
+      </div>
+      ${data.catatan_admin ? `<div class="bg-blue-50 rounded p-2 text-blue-700"><b>Catatan:</b> ${data.catatan_admin}</div>` : ''}
+      <div class="text-gray-400 text-xs">Terdaftar: ${new Date(data.created_at).toLocaleString('id-ID')}</div>
+    </div>`;
+}
+
+// ─────────────────────────────────────────────
+// CETAK BUKTI
+// ─────────────────────────────────────────────
+function cetakBukti() {
+  if (!submittedData) return;
+  const d = submittedData;
+  document.getElementById('printMadrasah').textContent = madrasah?.nama || '';
+  document.getElementById('printNama').textContent = d.nama_lengkap;
+
+  const rows = [
+    ['No. Pendaftaran', d.no_pendaftaran],
+    ['Nama Lengkap', d.nama_lengkap],
+    ['NISN', d.nisn || '-'],
+    ['Jenis Kelamin', d.jenis_kelamin === 'L' ? 'Laki-laki' : 'Perempuan'],
+    ['Tempat, Tgl Lahir', `${d.tempat_lahir}, ${d.tanggal_lahir ? new Date(d.tanggal_lahir).toLocaleDateString('id-ID') : '-'}`],
+    ['Asal Sekolah', d.asal_sekolah],
+    ['Jalur Pendaftaran', d.jalur_pendaftaran],
+    ['Alamat', d.alamat],
+    ['No. HP', d.nomor_hp || '-'],
+    ['Status', d.status],
+    ['Tanggal Daftar', new Date(d.created_at).toLocaleString('id-ID')],
+  ];
+
+  document.getElementById('printTable').innerHTML = rows.map(([k,v]) =>
+    `<tr><td style="padding:4px 8px;border:1px solid #ccc;width:200px;font-weight:600;">${k}</td><td style="padding:4px 8px;border:1px solid #ccc;">${v || '-'}</td></tr>`
+  ).join('');
+
+  document.getElementById('printArea').classList.remove('hidden');
+  window.print();
+}
+</script>
+</body>
+</html>
