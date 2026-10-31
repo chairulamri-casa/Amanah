@@ -529,9 +529,8 @@ async function muatSemuaMadrasah() {
 
 function pilihMadrasah(slug) {
   if (!slug) return;
-  document.getElementById('pilihMadrasahBox').classList.add('hidden');
-  document.getElementById('loadingBox').classList.remove('hidden');
-  muatMadrasah(slug);
+  // Redirect ke URL yang sama dengan ?s=slug agar URL benar
+  window.location.href = window.location.pathname + '?s=' + encodeURIComponent(slug);
 }
 
 function tampilkanMadrasah() {
