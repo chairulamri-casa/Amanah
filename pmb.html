@@ -1012,6 +1012,54 @@ function cetakKartu() {
   w.document.close();
 }
 
+function cetakKartuDariCekStatus() {
+  const data = window._cekStatusData;
+  if (!data) return;
+
+  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(data.no_pendaftaran)}`;
+  const fotoEl = data.foto_url
+    ? `<img src="${data.foto_url}" style="width:90px;height:110px;object-fit:cover;border-radius:4px;border:2px solid #fff;" />`
+    : `<div style="width:90px;height:110px;background:#e5e7eb;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px;color:#6b7280;border:2px solid #fff;">Foto</div>`;
+
+  const kartuHtml = `
+  <div style="width:340px;border:2px solid #16a34a;border-radius:12px;overflow:hidden;font-family:'Segoe UI',sans-serif;box-shadow:0 2px 8px rgba(0,0,0,0.12);">
+    <div style="background:#16a34a;color:#fff;padding:10px 14px;text-align:center;">
+      <div style="font-size:13px;font-weight:700;letter-spacing:0.5px;">KARTU PESERTA PMB</div>
+      <div style="font-size:11px;opacity:0.85;">${madrasah ? madrasah.jenjang + ' ' + madrasah.nama : ''}</div>
+      <div style="font-size:10px;opacity:0.75;">Tahun Ajaran ${data.tahun_ajaran || new Date().getFullYear() + '/' + (new Date().getFullYear()+1)}</div>
+    </div>
+    <div style="background:#fff;padding:12px;display:flex;gap:12px;align-items:flex-start;">
+      ${fotoEl}
+      <div style="flex:1;font-size:11px;color:#1f2937;line-height:1.7;">
+        <table style="width:100%;border-collapse:collapse;">
+          <tr><td style="color:#6b7280;width:90px;">Nama</td><td>: <b>${data.nama_lengkap}</b></td></tr>
+          <tr><td style="color:#6b7280;">NISN</td><td>: ${data.nisn || '-'}</td></tr>
+          <tr><td style="color:#6b7280;">L/P</td><td>: ${data.jenis_kelamin || '-'}</td></tr>
+          <tr><td style="color:#6b7280;">Tgl Lahir</td><td>: ${data.tanggal_lahir ? new Date(data.tanggal_lahir).toLocaleDateString('id-ID') : '-'}</td></tr>
+          <tr><td style="color:#6b7280;">Asal Sekolah</td><td>: ${data.asal_sekolah || '-'}</td></tr>
+          <tr><td style="color:#6b7280;">Jalur</td><td>: ${data.jalur_pendaftaran || '-'}</td></tr>
+        </table>
+      </div>
+    </div>
+    <div style="background:#f0fdf4;border-top:1px dashed #bbf7d0;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;">
+      <div>
+        <div style="font-size:9px;color:#6b7280;margin-bottom:2px;">No. Pendaftaran</div>
+        <div style="font-size:16px;font-weight:800;color:#15803d;letter-spacing:1px;">${data.no_pendaftaran}</div>
+      </div>
+      <img src="${qrUrl}" style="width:60px;height:60px;" alt="QR" />
+    </div>
+  </div>`;
+
+  const w = window.open('', '_blank', 'width=420,height=620');
+  w.document.write(`<!DOCTYPE html><html><head><title>Kartu Peserta - ${data.no_pendaftaran}</title>
+  <style>body{margin:20px;display:flex;flex-direction:column;align-items:center;font-family:'Segoe UI',sans-serif;}
+  @media print{body{margin:0;}button{display:none!important;}}</style></head>
+  <body>${kartuHtml}
+  <button onclick="window.print()" style="margin-top:16px;background:#16a34a;color:#fff;border:none;padding:10px 24px;border-radius:8px;font-size:14px;cursor:pointer;">🖨️ Print Kartu</button>
+  </body></html>`);
+  w.document.close();
+}
+
 function daftarLagi() {
   submittedData = null;
   currentStep = 1;
@@ -1050,7 +1098,7 @@ async function cekStatus() {
 
   const { data, error } = await sb
     .from('pendaftar_pmb')
-    .select('no_pendaftaran, nama_lengkap, status, jalur_pendaftaran, created_at, catatan_admin')
+    .select('no_pendaftaran, nama_lengkap, nisn, jenis_kelamin, tempat_lahir, tanggal_lahir, asal_sekolah, status, jalur_pendaftaran, tahun_ajaran, created_at, catatan_admin, foto_url')
     .eq('no_pendaftaran', no)
     .single();
 
@@ -1067,6 +1115,9 @@ async function cekStatus() {
     'Cadangan'       : 'bg-purple-100 text-purple-800',
   }[data.status] || 'badge-mendaftar';
 
+  // Simpan data untuk cetak kartu
+  window._cekStatusData = data;
+
   box.innerHTML = `
     <div class="bg-white border rounded-xl p-4 text-sm space-y-2">
       <div class="flex justify-between items-start">
@@ -1078,6 +1129,9 @@ async function cekStatus() {
       </div>
       ${data.catatan_admin ? `<div class="bg-blue-50 rounded p-2 text-blue-700"><b>Catatan:</b> ${data.catatan_admin}</div>` : ''}
       <div class="text-gray-400 text-xs">Terdaftar: ${new Date(data.created_at).toLocaleString('id-ID')}</div>
+      <button onclick="cetakKartuDariCekStatus()" class="w-full mt-2 bg-green-600 text-white py-2 rounded-lg text-sm font-semibold hover:bg-green-700">
+        🪪 Cetak Kartu Peserta
+      </button>
     </div>`;
 }
 
