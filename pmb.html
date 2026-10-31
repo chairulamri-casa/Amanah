@@ -138,6 +138,27 @@
     <div class="section-card">
       <div class="section-title">👤 Data Pribadi Calon Peserta Didik</div>
       <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+
+        <!-- Upload Foto -->
+        <div class="field-group sm:col-span-2">
+          <label>Foto Terbaru <span class="text-red-500">*</span></label>
+          <div class="flex flex-col sm:flex-row gap-4 items-start">
+            <div id="fotoPreviewBox" class="w-28 h-36 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center bg-gray-50 shrink-0 overflow-hidden">
+              <span class="text-gray-400 text-xs text-center px-2" id="fotoPlaceholder">Belum ada foto</span>
+              <img id="fotoPreview" class="hidden w-full h-full object-cover" alt="Preview foto"/>
+            </div>
+            <div class="flex-1">
+              <input type="file" id="f_foto" accept="image/jpeg,image/png,image/webp" class="hidden" onchange="previewFoto(this)"/>
+              <button type="button" onclick="document.getElementById('f_foto').click()"
+                class="bg-blue-50 border border-blue-300 text-blue-700 px-4 py-2 rounded-lg text-sm hover:bg-blue-100 transition-colors">
+                📷 Pilih Foto
+              </button>
+              <p class="text-xs text-gray-500 mt-2">• Format: JPG, PNG, WEBP<br>• Ukuran max: 2 MB<br>• Foto formal, latar biru/merah<br>• Tampak wajah jelas</p>
+              <p id="fotoNama" class="text-xs text-green-600 mt-1 hidden"></p>
+            </div>
+          </div>
+        </div>
+
         <div class="field-group sm:col-span-2">
           <label>Nama Lengkap <span class="text-red-500">*</span></label>
           <input type="text" id="f_nama" placeholder="Nama sesuai akta/ijazah" required/>
@@ -509,10 +530,16 @@
 
       <div id="ringkasanPendaftar" class="text-left bg-gray-50 rounded-xl p-4 mb-6 text-sm text-gray-700 space-y-1"></div>
 
+      <!-- Kartu Peserta -->
+      <div class="mb-6">
+        <div class="text-sm font-semibold text-gray-600 mb-3">🪪 Kartu Peserta PMB</div>
+        <div id="kartuPesertaBox" class="flex justify-center"></div>
+      </div>
+
       <div class="bg-yellow-50 border border-yellow-200 rounded-xl p-3 text-sm text-yellow-800 text-left mb-6">
         <b>📋 Langkah Selanjutnya:</b>
         <ol class="list-decimal list-inside mt-1 space-y-1">
-          <li>Screenshot/catat nomor pendaftaran di atas</li>
+          <li>Cetak kartu peserta di bawah dan simpan baik-baik</li>
           <li>Siapkan berkas fisik yang sudah dicentang</li>
           <li>Datang ke madrasah untuk verifikasi berkas</li>
           <li>Cek status penerimaan melalui link ini</li>
@@ -520,6 +547,9 @@
       </div>
 
       <div class="flex gap-3 flex-wrap justify-center">
+        <button onclick="cetakKartu()" class="bg-green-600 text-white px-5 py-2.5 rounded-xl font-semibold text-sm hover:bg-green-700">
+          🪪 Cetak Kartu Peserta
+        </button>
         <button onclick="cetakBukti()" class="bg-blue-600 text-white px-5 py-2.5 rounded-xl font-semibold text-sm hover:bg-blue-700">
           🖨️ Cetak Bukti Pendaftaran
         </button>
@@ -651,6 +681,41 @@ function tampilkanMadrasah() {
 }
 
 // ─────────────────────────────────────────────
+// FOTO
+// ─────────────────────────────────────────────
+function previewFoto(input) {
+  const file = input.files[0];
+  if (!file) return;
+  if (file.size > 2 * 1024 * 1024) {
+    alert('Ukuran foto maksimal 2 MB. Silakan pilih foto yang lebih kecil.');
+    input.value = '';
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = e => {
+    document.getElementById('fotoPlaceholder').classList.add('hidden');
+    const img = document.getElementById('fotoPreview');
+    img.src = e.target.result;
+    img.classList.remove('hidden');
+    document.getElementById('fotoNama').textContent = '✅ ' + file.name;
+    document.getElementById('fotoNama').classList.remove('hidden');
+  };
+  reader.readAsDataURL(file);
+}
+
+async function uploadFoto(madrasahId) {
+  const input = document.getElementById('f_foto');
+  if (!input.files[0]) return null;
+  const file = input.files[0];
+  const ext = file.name.split('.').pop();
+  const path = `${madrasahId}/${Date.now()}.${ext}`;
+  const { data, error } = await sb.storage.from('pmb-foto').upload(path, file, { upsert: true });
+  if (error) { console.error('Upload foto gagal:', error.message); return null; }
+  const { data: urlData } = sb.storage.from('pmb-foto').getPublicUrl(path);
+  return urlData.publicUrl;
+}
+
+// ─────────────────────────────────────────────
 // JALUR
 // ─────────────────────────────────────────────
 function setJalur(val) {
@@ -684,6 +749,7 @@ function keStep2() {
   const asal = document.getElementById('f_asal_sekolah').value.trim();
   const almt = document.getElementById('f_alamat').value.trim();
 
+  if (!document.getElementById('f_foto').files[0]) { alert('Foto wajib diunggah.'); return; }
   if (!nama) { alert('Nama lengkap wajib diisi.'); document.getElementById('f_nama').focus(); return; }
   if (!jk)   { alert('Jenis kelamin wajib dipilih.'); return; }
   if (!tgl)  { alert('Tanggal lahir wajib diisi.'); return; }
@@ -754,7 +820,12 @@ async function submitForm() {
   const btn = document.getElementById('btnSubmit');
   const txt = document.getElementById('btnSubmitText');
   btn.disabled = true;
-  txt.innerHTML = '<span class="spinner"></span> Mengirim…';
+  txt.innerHTML = '<span class="spinner"></span> Mengunggah foto…';
+
+  // Upload foto dulu
+  const fotoUrl = await uploadFoto(madrasah.id);
+
+  txt.innerHTML = '<span class="spinner"></span> Mengirim data…';
 
   const tahunAjaran = `${new Date().getFullYear()}/${new Date().getFullYear()+1}`;
 
@@ -762,6 +833,7 @@ async function submitForm() {
     madrasah_id       : madrasah.id,
     tahun_ajaran      : tahunAjaran,
     jalur_pendaftaran : jalurDipilih,
+    foto_url          : fotoUrl,
 
     nama_lengkap      : document.getElementById('f_nama').value.trim(),
     nisn              : document.getElementById('f_nisn').value.trim() || null,
@@ -867,7 +939,77 @@ function tampilkanSukses(data) {
     `<div class="flex gap-2"><span class="text-gray-400 w-36 shrink-0">${k}</span><span class="font-medium">${v || '-'}</span></div>`
   ).join('');
 
+  // Render kartu peserta
+  renderKartuPeserta(data);
+
   window.scrollTo(0, 0);
+}
+
+function renderKartuPeserta(data) {
+  const tgl = data.tanggal_lahir ? new Date(data.tanggal_lahir).toLocaleDateString('id-ID',{day:'2-digit',month:'long',year:'numeric'}) : '-';
+  const jk  = data.jenis_kelamin === 'L' ? 'Laki-laki' : 'Perempuan';
+  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=90x90&data=${encodeURIComponent(data.no_pendaftaran)}`;
+  const fotoEl = data.foto_url
+    ? `<img src="${data.foto_url}" class="w-full h-full object-cover" onerror="this.parentElement.innerHTML='<span class=\\'text-gray-400 text-xs\\'>Foto</span>'" />`
+    : `<span class="text-gray-400 text-xs">Foto</span>`;
+
+  const kartu = `
+  <div id="kartuPeserta" style="width:340px;border:2px solid #166534;border-radius:12px;overflow:hidden;font-family:'Segoe UI',sans-serif;background:#fff;margin:0 auto;">
+    <!-- Header -->
+    <div style="background:linear-gradient(135deg,#166534,#15803d);padding:10px 14px;display:flex;align-items:center;gap:10px;">
+      <span style="font-size:28px;">🏫</span>
+      <div>
+        <div style="color:#fff;font-weight:700;font-size:13px;line-height:1.2;">${madrasah.nama}</div>
+        <div style="color:#bbf7d0;font-size:10px;">Kartu Peserta PMB ${madrasah.jenjang} · TA ${data.tahun_ajaran}</div>
+      </div>
+    </div>
+    <!-- Body -->
+    <div style="padding:12px 14px;display:flex;gap:12px;align-items:flex-start;">
+      <!-- Foto -->
+      <div style="width:72px;height:90px;border:1.5px solid #d1d5db;border-radius:6px;overflow:hidden;shrink:0;display:flex;align-items:center;justify-content:center;background:#f9fafb;">
+        ${fotoEl}
+      </div>
+      <!-- Info -->
+      <div style="flex:1;min-width:0;">
+        <div style="font-weight:700;font-size:13px;color:#111827;margin-bottom:2px;word-break:break-word;">${data.nama_lengkap}</div>
+        <table style="font-size:10.5px;color:#374151;border-collapse:collapse;width:100%;">
+          <tr><td style="color:#6b7280;width:80px;padding:1px 0;">NISN</td><td>${data.nisn || '-'}</td></tr>
+          <tr><td style="color:#6b7280;">Tgl Lahir</td><td>${tgl}</td></tr>
+          <tr><td style="color:#6b7280;">Jenis Kelamin</td><td>${jk}</td></tr>
+          <tr><td style="color:#6b7280;">Asal Sekolah</td><td style="word-break:break-word;">${data.asal_sekolah || '-'}</td></tr>
+          <tr><td style="color:#6b7280;">Jalur</td><td><span style="background:#dcfce7;color:#166534;padding:1px 6px;border-radius:4px;font-weight:600;">${data.jalur_pendaftaran}</span></td></tr>
+        </table>
+      </div>
+    </div>
+    <!-- No Pendaftaran + QR -->
+    <div style="background:#f0fdf4;border-top:1px solid #bbf7d0;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;">
+      <div>
+        <div style="font-size:9px;color:#6b7280;margin-bottom:2px;">NOMOR PENDAFTARAN</div>
+        <div style="font-size:18px;font-weight:800;color:#166534;letter-spacing:1px;">${data.no_pendaftaran}</div>
+        <div style="font-size:9px;color:#6b7280;margin-top:2px;">Status: <strong>${data.status}</strong></div>
+      </div>
+      <img src="${qrUrl}" width="70" height="70" style="border-radius:4px;" alt="QR Code"/>
+    </div>
+    <!-- Footer -->
+    <div style="background:#166534;padding:5px 14px;text-align:center;">
+      <span style="color:#bbf7d0;font-size:9px;">Sistem PMB Digital · Amanah Madrasah</span>
+    </div>
+  </div>`;
+
+  document.getElementById('kartuPesertaBox').innerHTML = kartu;
+}
+
+function cetakKartu() {
+  const kartu = document.getElementById('kartuPeserta');
+  if (!kartu) return;
+  const w = window.open('', '_blank', 'width=420,height=600');
+  w.document.write(`<!DOCTYPE html><html><head><title>Kartu Peserta PMB</title>
+  <style>body{margin:20px;display:flex;flex-direction:column;align-items:center;font-family:'Segoe UI',sans-serif;}
+  @media print{body{margin:0;}button{display:none!important;}}</style></head>
+  <body>${kartu.outerHTML}
+  <button onclick="window.print()" style="margin-top:16px;background:#166534;color:#fff;border:none;padding:10px 24px;border-radius:8px;font-size:14px;cursor:pointer;">🖨️ Print Kartu</button>
+  </body></html>`);
+  w.document.close();
 }
 
 function daftarLagi() {
@@ -880,6 +1022,12 @@ function daftarLagi() {
   document.querySelectorAll('input[type=text], input[type=date], input[type=tel], input[type=number], textarea').forEach(el => el.value = '');
   document.querySelectorAll('select').forEach(el => el.selectedIndex = 0);
   document.querySelectorAll('input[type=checkbox]').forEach(el => el.checked = false);
+  // Reset foto
+  document.getElementById('f_foto').value = '';
+  document.getElementById('fotoPreview').classList.add('hidden');
+  document.getElementById('fotoPreview').src = '';
+  document.getElementById('fotoPlaceholder').classList.remove('hidden');
+  document.getElementById('fotoNama').classList.add('hidden');
   setJalur('Reguler');
   window.scrollTo(0, 0);
 }
