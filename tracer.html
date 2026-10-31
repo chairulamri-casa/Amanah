@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tracer Study Alumni — AMANAH</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.js"></script>
+  <style>
+    :root {
+      --accent: #8B2020;
+      --accent-light: #f5eded;
+      --ink: #1a1a1a;
+      --muted: #6b7280;
+      --border: #d1d5db;
+      --canvas: #f9f6f0;
+      --white: #ffffff;
+      --green: #16a34a;
+      --yellow: #d97706;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: var(--canvas);
+      color: var(--ink);
+      min-height: 100vh;
+    }
+    /* Header */
+    .header {
+      background: linear-gradient(135deg, #1a3a1a 0%, #2d5a2d 50%, #1a3a1a 100%);
+      color: white;
+      padding: 20px 24px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .header-logo {
+      width: 52px; height: 52px;
+      background: rgba(255,255,255,0.15);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 24px; flex-shrink: 0;
+    }
+    .header-text h1 { font-size: 18px; font-weight: 700; }
+    .header-text p  { font-size: 12px; opacity: 0.8; margin-top: 2px; }
+
+    /* Container */
+    .container { max-width: 680px; margin: 0 auto; padding: 24px 16px 60px; }
+
+    /* Card */
+    .card {
+      background: var(--white);
+      border-radius: 10px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+      overflow: hidden;
+      margin-bottom: 16px;
+    }
+    .card-header {
+      background: var(--accent-light);
+      padding: 14px 20px;
+      border-bottom: 1px solid #e8d5d5;
+      display: flex; align-items: center; gap-8: 0;
+    }
+    .card-header h2 { font-size: 15px; font-weight: 600; color: var(--accent); }
+    .card-header p  { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .card-body { padding: 20px; }
+
+    /* Form elements */
+    label { display: block; font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 6px; margin-top: 14px; }
+    label:first-child { margin-top: 0; }
+    input, select, textarea {
+      width: 100%; padding: 10px 12px;
+      border: 1px solid var(--border); border-radius: 6px;
+      font-size: 14px; color: var(--ink); background: var(--white);
+      outline: none; transition: border-color .15s;
+    }
+    input:focus, select:focus, textarea:focus { border-color: var(--accent); }
+    textarea { resize: vertical; min-height: 80px; }
+
+    /* Grid */
+    .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    @media (max-width: 480px) { .grid2 { grid-template-columns: 1fr; } }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+      padding: 11px 22px; border-radius: 6px; font-size: 14px; font-weight: 600;
+      cursor: pointer; border: none; transition: opacity .15s;
+    }
+    .btn:disabled { opacity: .5; cursor: not-allowed; }
+    .btn-primary { background: var(--accent); color: white; width: 100%; }
+    .btn-primary:hover:not(:disabled) { opacity: .9; }
+    .btn-secondary { background: var(--white); color: var(--ink); border: 1px solid var(--border); }
+
+    /* Star rating */
+    .stars { display: flex; gap: 6px; margin-top: 4px; }
+    .star {
+      font-size: 28px; cursor: pointer; color: #d1d5db;
+      transition: color .1s, transform .1s;
+      user-select: none; line-height: 1;
+    }
+    .star.active { color: #f59e0b; }
+    .star:hover { transform: scale(1.15); }
+    .star-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f3f4f6; }
+    .star-row:last-child { border-bottom: none; }
+    .star-label { font-size: 13px; color: var(--ink); display: flex; align-items: center; gap: 6px; }
+
+    /* Alumni info box */
+    .alumni-box {
+      background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px;
+      padding: 14px 16px; display: flex; align-items: center; gap: 12px;
+    }
+    .alumni-box .icon { font-size: 28px; }
+    .alumni-box h3 { font-size: 15px; font-weight: 700; color: #15803d; }
+    .alumni-box p  { font-size: 12px; color: #16a34a; margin-top: 2px; }
+
+    /* Alert */
+    .alert {
+      padding: 12px 16px; border-radius: 8px; font-size: 13px;
+      display: flex; align-items: flex-start; gap: 10px; margin-top: 12px;
+    }
+    .alert-error   { background: #fef2f2; border: 1px solid #fecaca; color: #dc2626; }
+    .alert-success { background: #f0fdf4; border: 1px solid #bbf7d0; color: #16a34a; }
+    .alert-info    { background: #eff6ff; border: 1px solid #bfdbfe; color: #1d4ed8; }
+
+    /* Step indicator */
+    .steps { display: flex; align-items: center; gap: 0; margin-bottom: 24px; }
+    .step { flex: 1; text-align: center; position: relative; }
+    .step-circle {
+      width: 32px; height: 32px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 700; margin: 0 auto 4px;
+      border: 2px solid var(--border); background: var(--white); color: var(--muted);
+      position: relative; z-index: 1;
+    }
+    .step.active .step-circle   { border-color: var(--accent); background: var(--accent); color: white; }
+    .step.done .step-circle     { border-color: var(--green); background: var(--green); color: white; }
+    .step-label { font-size: 11px; color: var(--muted); }
+    .step.active .step-label    { color: var(--accent); font-weight: 600; }
+    .step::before {
+      content: ''; position: absolute; top: 15px; right: 50%; left: -50%;
+      height: 2px; background: var(--border); z-index: 0;
+    }
+    .step:first-child::before { display: none; }
+    .step.done::before { background: var(--green); }
+
+    /* Madrasah pill */
+    .madrasah-pill {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: var(--accent-light); border: 1px solid #e8d5d5;
+      border-radius: 20px; padding: 6px 14px; font-size: 13px; font-weight: 600;
+      color: var(--accent); margin-bottom: 16px;
+    }
+
+    /* Loading spinner */
+    .spinner {
+      display: inline-block; width: 18px; height: 18px;
+      border: 2px solid rgba(255,255,255,.3); border-top-color: white;
+      border-radius: 50%; animation: spin .7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .hidden { display: none !important; }
+    .mt-3 { margin-top: 12px; }
+    .mt-4 { margin-top: 16px; }
+    .text-center { text-align: center; }
+    .text-muted { color: var(--muted); font-size: 13px; }
+
+    /* Success screen */
+    .success-screen { text-align: center; padding: 40px 20px; }
+    .success-screen .icon { font-size: 64px; margin-bottom: 16px; }
+    .success-screen h2 { font-size: 22px; font-weight: 700; color: var(--green); margin-bottom: 8px; }
+    .success-screen p  { color: var(--muted); font-size: 14px; line-height: 1.6; }
+  </style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <div class="header-logo">🎓</div>
+  <div class="header-text">
+    <h1>Tracer Study Alumni</h1>
+    <p>AMANAH · Sistem Informasi Madrasah</p>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- Step indicator -->
+  <div class="steps" id="stepIndicator">
+    <div class="step active" id="step1ind">
+      <div class="step-circle">1</div>
+      <div class="step-label">Verifikasi</div>
+    </div>
+    <div class="step" id="step2ind">
+      <div class="step-circle">2</div>
+      <div class="step-label">Isi Form</div>
+    </div>
+    <div class="step" id="step3ind">
+      <div class="step-circle">3</div>
+      <div class="step-label">Selesai</div>
+    </div>
+  </div>
+
+  <!-- ======= STEP 1: VERIFIKASI ======= -->
+  <div id="stepVerifikasi">
+    <div class="card">
+      <div class="card-header">
+        <h2>🔍 Verifikasi Data Alumni</h2>
+        <p>Masukkan NISN dan tahun lulus untuk memulai</p>
+      </div>
+      <div class="card-body">
+        <!-- Nama madrasah (dari slug URL) -->
+        <div id="madrasahInfo" class="hidden"></div>
+
+        <label>NISN (Nomor Induk Siswa Nasional)</label>
+        <input type="text" id="inputNisn" placeholder="Contoh: 0123456789" inputmode="numeric" maxlength="20" />
+
+        <label>Tahun Lulus</label>
+        <select id="inputTahun">
+          <option value="">-- Pilih Tahun --</option>
+        </select>
+
+        <div id="verifikasiError" class="hidden"></div>
+
+        <div class="mt-4">
+          <button class="btn btn-primary" id="btnVerifikasi" onclick="verifikasi()">
+            🔍 Cari Data Saya
+          </button>
+        </div>
+
+        <p class="text-muted mt-3 text-center">
+          Tidak punya NISN? Hubungi operator madrasah untuk mendaftarkan data alumni Anda.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======= STEP 2: FORM TRACER ======= -->
+  <div id="stepForm" class="hidden">
+    <div id="alumniInfoBox" class="alumni-box" style="margin-bottom:16px"></div>
+
+    <div class="card">
+      <div class="card-header">
+        <h2>📋 Formulir Tracer Study</h2>
+        <p>Semua informasi bersifat rahasia dan hanya digunakan untuk kepentingan madrasah</p>
+      </div>
+      <div class="card-body">
+
+        <label>Status Setelah Lulus *</label>
+        <select id="fStatus">
+          <option value="Lanjut Sekolah">Lanjut Sekolah (SMP/MTs)</option>
+          <option value="Lanjut Kuliah">Lanjut Kuliah / Perguruan Tinggi</option>
+          <option value="Bekerja">Bekerja</option>
+          <option value="Wirausaha">Wirausaha / Usaha Mandiri</option>
+          <option value="Pesantren">Pesantren / Pendidikan Agama</option>
+          <option value="Belum Diketahui">Belum Diketahui</option>
+        </select>
+
+        <div class="grid2">
+          <div>
+            <label id="labelInstansi">Nama Sekolah / Instansi</label>
+            <input type="text" id="fInstansi" placeholder="Contoh: SMPN 1 Banda Aceh" />
+          </div>
+          <div>
+            <label>Kota</label>
+            <input type="text" id="fKota" placeholder="Contoh: Banda Aceh" />
+          </div>
+        </div>
+
+        <label id="labelJurusan">Jurusan / Bidang</label>
+        <input type="text" id="fJurusan" placeholder="Opsional" />
+
+        <!-- Penilaian bintang -->
+        <div style="margin-top: 20px; padding: 16px; background: var(--canvas); border-radius: 8px; border: 1px solid var(--border);">
+          <p style="font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing:.04em; margin-bottom: 12px;">
+            Penilaian Terhadap Madrasah (1–5 Bintang)
+          </p>
+
+          <div class="star-row">
+            <span class="star-label">🎓 Kualitas Akademik</span>
+            <div class="stars" id="starsAkademik">
+              <span class="star" data-field="akademik" data-val="1" onclick="setStar('akademik',1)">★</span>
+              <span class="star" data-field="akademik" data-val="2" onclick="setStar('akademik',2)">★</span>
+              <span class="star" data-field="akademik" data-val="3" onclick="setStar('akademik',3)">★</span>
+              <span class="star" data-field="akademik" data-val="4" onclick="setStar('akademik',4)">★</span>
+              <span class="star" data-field="akademik" data-val="5" onclick="setStar('akademik',5)">★</span>
+            </div>
+          </div>
+
+          <div class="star-row">
+            <span class="star-label">🌱 Pembentukan Karakter</span>
+            <div class="stars" id="starsKarakter">
+              <span class="star" data-field="karakter" data-val="1" onclick="setStar('karakter',1)">★</span>
+              <span class="star" data-field="karakter" data-val="2" onclick="setStar('karakter',2)">★</span>
+              <span class="star" data-field="karakter" data-val="3" onclick="setStar('karakter',3)">★</span>
+              <span class="star" data-field="karakter" data-val="4" onclick="setStar('karakter',4)">★</span>
+              <span class="star" data-field="karakter" data-val="5" onclick="setStar('karakter',5)">★</span>
+            </div>
+          </div>
+
+          <div class="star-row">
+            <span class="star-label">🏫 Fasilitas & Sarana</span>
+            <div class="stars" id="starsFasilitas">
+              <span class="star" data-field="fasilitas" data-val="1" onclick="setStar('fasilitas',1)">★</span>
+              <span class="star" data-field="fasilitas" data-val="2" onclick="setStar('fasilitas',2)">★</span>
+              <span class="star" data-field="fasilitas" data-val="3" onclick="setStar('fasilitas',3)">★</span>
+              <span class="star" data-field="fasilitas" data-val="4" onclick="setStar('fasilitas',4)">★</span>
+              <span class="star" data-field="fasilitas" data-val="5" onclick="setStar('fasilitas',5)">★</span>
+            </div>
+          </div>
+
+          <div class="star-row">
+            <span class="star-label">👨‍🏫 Kualitas Guru</span>
+            <div class="stars" id="starsGuru">
+              <span class="star" data-field="guru" data-val="1" onclick="setStar('guru',1)">★</span>
+              <span class="star" data-field="guru" data-val="2" onclick="setStar('guru',2)">★</span>
+              <span class="star" data-field="guru" data-val="3" onclick="setStar('guru',3)">★</span>
+              <span class="star" data-field="guru" data-val="4" onclick="setStar('guru',4)">★</span>
+              <span class="star" data-field="guru" data-val="5" onclick="setStar('guru',5)">★</span>
+            </div>
+          </div>
+        </div>
+
+        <label>Kesan Selama di Madrasah</label>
+        <textarea id="fKesan" placeholder="Ceritakan pengalaman berkesan selama belajar di sini…"></textarea>
+
+        <label>Saran untuk Madrasah</label>
+        <textarea id="fSaran" placeholder="Masukan atau harapan untuk kemajuan madrasah…"></textarea>
+
+        <label>Prestasi Setelah Lulus (opsional)</label>
+        <input type="text" id="fPrestasi" placeholder="Contoh: Juara 1 OSN Kota 2025" />
+
+        <div id="formError" class="hidden"></div>
+
+        <div class="mt-4" style="display:flex; gap:10px;">
+          <button class="btn btn-secondary" onclick="kembali()" style="flex:0 0 auto; padding: 11px 18px;">
+            ← Kembali
+          </button>
+          <button class="btn btn-primary" id="btnSubmit" onclick="submitTracer()" style="flex:1">
+            📨 Kirim Tracer Study
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======= STEP 3: SUKSES ======= -->
+  <div id="stepSukses" class="hidden">
+    <div class="card">
+      <div class="success-screen">
+        <div class="icon">🎉</div>
+        <h2>Terima Kasih!</h2>
+        <p>
+          Tracer study Anda telah berhasil dikirim.<br/>
+          Data ini sangat berharga untuk peningkatan kualitas madrasah.<br/><br/>
+          <strong id="sukseNama"></strong>
+        </p>
+        <div class="mt-4">
+          <button class="btn btn-secondary" onclick="isiBaru()" style="margin: 0 auto;">
+            Isi untuk alumni lain
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="alert alert-info mt-3">
+      ℹ️ Jika Anda sudah pernah mengisi tracer study untuk alumni ini, data terbaru akan ditambahkan sebagai entri baru.
+    </div>
+  </div>
+
+</div><!-- /container -->
+
+<script>
+  // ======================================================
+  // KONFIGURASI SUPABASE
+  // ======================================================
+  const SUPABASE_URL     = "https://djnbttyjyzknujrepdfe.supabase.co";
+  const SUPABASE_ANON_KEY = "sb_publishable_2NM4R5w9VxxHITH8GZ642w_ADTYV1sW";
+  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  // ======================================================
+  // STATE
+  // ======================================================
+  let madrasahData  = null;  // row madrasah dari DB
+  let alumniData    = null;  // row alumni yang terverifikasi
+  const starValues  = { akademik: 0, karakter: 0, fasilitas: 0, guru: 0 };
+
+  // ======================================================
+  // INISIALISASI
+  // ======================================================
+  (async function init() {
+    // Isi dropdown tahun (10 tahun ke belakang + tahun ini)
+    const now = new Date().getFullYear();
+    const sel = document.getElementById("inputTahun");
+    for (let y = now; y >= now - 12; y--) {
+      const opt = document.createElement("option");
+      opt.value = y; opt.textContent = y;
+      sel.appendChild(opt);
+    }
+
+    // Baca slug dari URL  ?s=...
+    const params = new URLSearchParams(location.search);
+    const slug   = params.get("s");
+    if (slug) {
+      await loadMadrasah(slug);
+    } else {
+      // Tidak ada slug → tampilkan dropdown pilih madrasah
+      await tampilkanPilihMadrasah();
+    }
+  })();
+
+  async function loadMadrasah(slug) {
+    const { data, error } = await sb.from("madrasah")
+      .select("id, nama, jenjang, kota, logo_url, slug")
+      .eq("slug", slug)
+      .maybeSingle();
+
+    if (error || !data) {
+      showMadrasahError("Madrasah tidak ditemukan. Pastikan link yang Anda gunakan benar.");
+      return;
+    }
+    madrasahData = data;
+    const box = document.getElementById("madrasahInfo");
+    box.innerHTML = `
+      <div class="madrasah-pill">
+        🏫 <span>${data.nama}${data.kota ? ' — ' + data.kota : ''}</span>
+      </div>
+    `;
+    box.classList.remove("hidden");
+  }
+
+  async function tampilkanPilihMadrasah() {
+    const { data } = await sb.from("madrasah")
+      .select("id, nama, kota, slug, jenjang")
+      .order("nama");
+    const box = document.getElementById("madrasahInfo");
+    const opts = (data||[]).map(m =>
+      `<option value="${m.slug}">${m.nama}${m.kota ? ' — ' + m.kota : ''}</option>`
+    ).join("");
+    box.innerHTML = `
+      <label>Pilih Madrasah</label>
+      <select id="selectMadrasah" onchange="pilihMadrasah(this.value)">
+        <option value="">-- Pilih Madrasah --</option>
+        ${opts}
+      </select>
+    `;
+    box.classList.remove("hidden");
+  }
+
+  async function pilihMadrasah(slug) {
+    if (!slug) { madrasahData = null; return; }
+    await loadMadrasah(slug);
+  }
+
+  function showMadrasahError(msg) {
+    const box = document.getElementById("madrasahInfo");
+    box.innerHTML = `<div class="alert alert-error">⚠️ ${msg}</div>`;
+    box.classList.remove("hidden");
+  }
+
+  // ======================================================
+  // STEP 1: VERIFIKASI
+  // ======================================================
+  async function verifikasi() {
+    const nisn  = document.getElementById("inputNisn").value.trim();
+    const tahun = document.getElementById("inputTahun").value;
+    const errEl = document.getElementById("verifikasiError");
+
+    errEl.className = "hidden";
+
+    if (!madrasahData) {
+      showAlert(errEl, "error", "Silakan pilih madrasah terlebih dahulu.");
+      return;
+    }
+    if (!nisn) {
+      showAlert(errEl, "error", "Masukkan NISN Anda.");
+      return;
+    }
+    if (!tahun) {
+      showAlert(errEl, "error", "Pilih tahun lulus Anda.");
+      return;
+    }
+
+    const btn = document.getElementById("btnVerifikasi");
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> Mencari…';
+
+    const { data, error } = await sb.from("alumni")
+      .select("*")
+      .eq("madrasah_id", madrasahData.id)
+      .eq("nisn", nisn)
+      .eq("tahun_lulus", parseInt(tahun))
+      .maybeSingle();
+
+    btn.disabled = false;
+    btn.innerHTML = "🔍 Cari Data Saya";
+
+    if (error) {
+      showAlert(errEl, "error", "Terjadi kesalahan. Coba lagi.");
+      return;
+    }
+    if (!data) {
+      showAlert(errEl, "error",
+        `Data alumni dengan NISN <strong>${nisn}</strong> dan tahun lulus <strong>${tahun}</strong> tidak ditemukan di ${madrasahData.nama}. ` +
+        `Pastikan NISN dan tahun lulus benar, atau hubungi operator madrasah.`
+      );
+      return;
+    }
+
+    alumniData = data;
+    tampilkanForm();
+  }
+
+  function tampilkanForm() {
+    // Update step
+    setStep(2);
+
+    // Info alumni
+    const box = document.getElementById("alumniInfoBox");
+    box.innerHTML = `
+      <div class="icon">🎓</div>
+      <div>
+        <h3>${alumniData.nama}</h3>
+        <p>Angkatan Lulus: ${alumniData.tahun_lulus} · ${alumniData.kelas_terakhir || ''} · ${madrasahData.nama}</p>
+      </div>
+    `;
+
+    // Tampilkan/sembunyikan
+    document.getElementById("stepVerifikasi").classList.add("hidden");
+    document.getElementById("stepForm").classList.remove("hidden");
+
+    // Update label instansi sesuai status default
+    updateLabelInstansi();
+    document.getElementById("fStatus").addEventListener("change", updateLabelInstansi);
+  }
+
+  function updateLabelInstansi() {
+    const status = document.getElementById("fStatus").value;
+    const lbl    = document.getElementById("labelInstansi");
+    const lblJur = document.getElementById("labelJurusan");
+    const inpJur = document.getElementById("fJurusan");
+    if (status === "Lanjut Sekolah") {
+      lbl.textContent    = "Nama Sekolah";
+      lblJur.textContent = "Program / Fokus Belajar";
+      inpJur.placeholder = "Opsional";
+    } else if (status === "Lanjut Kuliah") {
+      lbl.textContent    = "Nama Perguruan Tinggi";
+      lblJur.textContent = "Program Studi / Jurusan";
+      inpJur.placeholder = "Contoh: Pendidikan Agama Islam";
+    } else if (status === "Bekerja") {
+      lbl.textContent    = "Nama Perusahaan / Instansi";
+      lblJur.textContent = "Bidang / Posisi";
+      inpJur.placeholder = "Contoh: Staff Administrasi";
+    } else if (status === "Wirausaha") {
+      lbl.textContent    = "Jenis Usaha";
+      lblJur.textContent = "Lokasi Usaha";
+      inpJur.placeholder = "Opsional";
+    } else if (status === "Pesantren") {
+      lbl.textContent    = "Nama Pesantren";
+      lblJur.textContent = "Program / Kitab";
+      inpJur.placeholder = "Opsional";
+    } else {
+      lbl.textContent    = "Nama Instansi (jika ada)";
+      lblJur.textContent = "Keterangan";
+      inpJur.placeholder = "Opsional";
+    }
+  }
+
+  // ======================================================
+  // STAR RATING
+  // ======================================================
+  function setStar(field, val) {
+    starValues[field] = val;
+    const container = document.getElementById("stars" + capitalize(field));
+    container.querySelectorAll(".star").forEach(s => {
+      s.classList.toggle("active", parseInt(s.dataset.val) <= val);
+    });
+  }
+
+  function capitalize(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
+  // ======================================================
+  // STEP 2: SUBMIT TRACER
+  // ======================================================
+  async function submitTracer() {
+    const errEl = document.getElementById("formError");
+    errEl.className = "hidden";
+
+    if (!document.getElementById("fStatus").value) {
+      showAlert(errEl, "error", "Pilih status setelah lulus.");
+      return;
+    }
+
+    const btn = document.getElementById("btnSubmit");
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> Mengirim…';
+
+    const payload = {
+      alumni_id:       alumniData.id,
+      madrasah_id:     madrasahData.id,
+      tahun_isi:       new Date().getFullYear(),
+      status_lanjut:   document.getElementById("fStatus").value,
+      nama_instansi:   document.getElementById("fInstansi").value.trim() || null,
+      kota_instansi:   document.getElementById("fKota").value.trim()     || null,
+      jurusan_prodi:   document.getElementById("fJurusan").value.trim()  || null,
+      nilai_akademik:  starValues.akademik  || null,
+      nilai_karakter:  starValues.karakter  || null,
+      nilai_fasilitas: starValues.fasilitas || null,
+      nilai_guru:      starValues.guru      || null,
+      kesan:           document.getElementById("fKesan").value.trim()    || null,
+      saran:           document.getElementById("fSaran").value.trim()    || null,
+      prestasi:        document.getElementById("fPrestasi").value.trim() || null,
+    };
+
+    const { error } = await sb.from("tracer_study").insert(payload);
+
+    btn.disabled = false;
+    btn.innerHTML = "📨 Kirim Tracer Study";
+
+    if (error) {
+      showAlert(errEl, "error", "Gagal mengirim: " + error.message);
+      return;
+    }
+
+    // Sukses
+    setStep(3);
+    document.getElementById("stepForm").classList.add("hidden");
+    document.getElementById("stepSukses").classList.remove("hidden");
+    document.getElementById("sukseNama").textContent =
+      `Alumni: ${alumniData.nama} · Angkatan ${alumniData.tahun_lulus}`;
+  }
+
+  // ======================================================
+  // NAVIGASI
+  // ======================================================
+  function kembali() {
+    document.getElementById("stepForm").classList.add("hidden");
+    document.getElementById("stepVerifikasi").classList.remove("hidden");
+    setStep(1);
+    alumniData = null;
+  }
+
+  function isiBaru() {
+    alumniData = null;
+    // Reset form
+    document.getElementById("inputNisn").value = "";
+    document.getElementById("inputTahun").value = "";
+    document.getElementById("verifikasiError").className = "hidden";
+    Object.keys(starValues).forEach(k => { starValues[k] = 0; });
+    document.querySelectorAll(".star").forEach(s => s.classList.remove("active"));
+    ["fInstansi","fKota","fJurusan","fKesan","fSaran","fPrestasi"].forEach(id => {
+      document.getElementById(id).value = "";
+    });
+    document.getElementById("fStatus").value = "Lanjut Sekolah";
+    document.getElementById("stepSukses").classList.add("hidden");
+    document.getElementById("stepVerifikasi").classList.remove("hidden");
+    setStep(1);
+  }
+
+  // ======================================================
+  // HELPERS
+  // ======================================================
+  function setStep(n) {
+    [1,2,3].forEach(i => {
+      const el = document.getElementById("step" + i + "ind");
+      el.className = "step" + (i < n ? " done" : i === n ? " active" : "");
+    });
+  }
+
+  function showAlert(el, type, html) {
+    el.className = "alert alert-" + type;
+    el.innerHTML = (type === "error" ? "⚠️ " : "✅ ") + html;
+  }
+</script>
+</body>
+</html>
