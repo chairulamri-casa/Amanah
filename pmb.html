@@ -501,7 +501,7 @@ window.addEventListener('DOMContentLoaded', async () => {
 async function muatMadrasah(slug) {
   const { data, error } = await sb
     .from('madrasah')
-    .select('id, nama, jenjang, slug, kota, provinsi')
+    .select('id,nama,jenjang,slug')
     .eq('slug', slug)
     .single();
 
@@ -543,7 +543,7 @@ function tampilkanMadrasah() {
   const tahunAjaran = `${new Date().getFullYear()}/${new Date().getFullYear()+1}`;
   document.getElementById('tahunAjaranDisplay').textContent = `Tahun Ajaran ${tahunAjaran}`;
   document.getElementById('jenjangDisplay').textContent = `🏫 ${madrasah.jenjang}`;
-  document.getElementById('jalurDisplay').textContent = `📍 ${madrasah.kota || madrasah.provinsi || ''}`;
+  document.getElementById('jalurDisplay').textContent = `📍 ${madrasah.nama || ''}`;
 
   // Jurusan hanya MA/MAK
   if (['MA','MAK'].includes(madrasah.jenjang)) {
