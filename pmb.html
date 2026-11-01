@@ -1087,18 +1087,16 @@ window.addEventListener('DOMContentLoaded', async () => {
   // Ada slug → tampilkan landing dulu, init JS, lalu muat data
   document.getElementById('loadingBox').classList.add('hidden');
 
-  try { lpInit(); } catch(e) { console.warn('lpInit error:', e); }
-
-  // Muat data madrasah di background (tidak block tampilan landing)
+  // Muat data madrasah + config landing page secara paralel
   muatMadrasah(slug).catch(e => console.warn('muatMadrasah error:', e));
 });
 
 async function muatMadrasah(slug) {
-  const { data, error } = await sb
-    .from('madrasah')
-    .select('id,nama,jenjang,slug,jalur_aktif')
-    .eq('slug', slug)
-    .single();
+  // Muat madrasah + pmb_config secara paralel
+  const [{ data, error }, { data: cfgArr }] = await Promise.all([
+    sb.from('madrasah').select('id,nama,jenjang,slug,jalur_aktif').eq('slug', slug).single(),
+    sb.from('pmb_config').select('*').eq('tahun_ajaran','2026/2027')
+  ]);
 
   document.getElementById('loadingBox').classList.add('hidden');
 
@@ -1108,6 +1106,13 @@ async function muatMadrasah(slug) {
   }
 
   madrasah = data;
+
+  // Ambil config untuk madrasah ini (jika ada)
+  const cfg = (cfgArr || []).find(c => c.madrasah_id === data.id) || null;
+  lpTerapkanConfig(cfg);
+
+  try { lpInit(cfg); } catch(e) { console.warn('lpInit error:', e); }
+
   // Update landing page dengan data madrasah
   lpTampilkanMadrasah(data);
   // Siapkan form (masih tersembunyi, tampil setelah klik Daftar)
@@ -1862,7 +1867,25 @@ const LP_TAHAPAN = [
   { tgl:'2 – 10 Jan 2027',     judul:'Daftar Ulang & Pembayaran',  ket:'Peserta diterima wajib daftar ulang', status:'mendatang' },
 ];
 
-function lpInit() {
+// Terapkan config dari Supabase ke variabel LP_ (override default)
+function lpTerapkanConfig(cfg) {
+  if (!cfg) return;
+  if (cfg.pengumuman && cfg.pengumuman.length) {
+    // Replace LP_PENGUMUMAN dengan data dari Supabase
+    LP_PENGUMUMAN.length = 0;
+    cfg.pengumuman.forEach(p => LP_PENGUMUMAN.push(p));
+  }
+  if (cfg.tahapan && cfg.tahapan.length) {
+    LP_TAHAPAN.length = 0;
+    cfg.tahapan.forEach(t => LP_TAHAPAN.push(t));
+  }
+  if (cfg.tanggal_tutup) window._lpTanggalTutup = new Date(cfg.tanggal_tutup);
+  if (cfg.kuota)         window._lpKuota         = cfg.kuota;
+  if (cfg.kontak)        window._lpKontak        = cfg.kontak;
+  if (cfg.tagline)       window._lpTagline       = cfg.tagline;
+}
+
+function lpInit(cfg) {
   lpRenderPengumuman();
   lpRenderTimeline();
   lpStartCountdown();
@@ -1876,7 +1899,9 @@ function lpTampilkanMadrasah(data) {
   document.getElementById('lpTagline').textContent  = `Bergabunglah bersama ${data.nama} — cetak generasi Qurani berakhlak mulia dan berprestasi.`;
   document.getElementById('lpJenjang').textContent  = data.jenjang || '–';
   document.getElementById('lpTA').textContent       = '2026/2027';
-  document.getElementById('lpKuota').textContent    = '60 Siswa (Estimasi)';
+  document.getElementById('lpKuota').textContent    = (window._lpKuota || 60) + ' Siswa';
+  document.getElementById('lpKontak').textContent   = window._lpKontak || 'Hubungi madrasah';
+  if (window._lpTagline) document.getElementById('lpTagline').textContent = window._lpTagline;
   document.getElementById('lpShareInput').value     = location.href;
   lpRenderJalur(data.jalur_aktif);
   lpMuatStatistik(data.id);
@@ -1905,7 +1930,7 @@ async function lpMuatStatistik(madrasahId) {
   document.getElementById('lpStatTotal').textContent   = total;
   document.getElementById('lpStatDiterima').textContent= diterima;
   document.getElementById('lpStatProses').textContent  = proses;
-  document.getElementById('lpStatSisa').textContent    = Math.max(0, 60 - diterima);
+  document.getElementById('lpStatSisa').textContent    = Math.max(0, (window._lpKuota||60) - diterima);
   document.getElementById('lpStats').style.display     = '';
 }
 
@@ -1934,8 +1959,8 @@ function lpRenderTimeline() {
 
 let _lpCdInterval = null;
 function lpStartCountdown() {
-  // Countdown ke penutupan pendaftaran: 30 Nov 2026 pukul 23:59 WIB
-  const target = new Date('2026-11-30T16:59:00Z');
+  // Gunakan tanggal dari config Supabase, fallback ke default
+  const target = window._lpTanggalTutup || new Date('2026-11-30T16:59:00Z');
   function tick() {
     const diff = target - new Date();
     if (diff <= 0) {
