@@ -733,7 +733,7 @@ window.addEventListener('DOMContentLoaded', async () => {
 async function muatMadrasah(slug) {
   const { data, error } = await sb
     .from('madrasah')
-    .select('id,nama,jenjang,slug')
+    .select('id,nama,jenjang,slug,jalur_aktif')
     .eq('slug', slug)
     .single();
 
@@ -746,6 +746,7 @@ async function muatMadrasah(slug) {
 
   madrasah = data;
   tampilkanMadrasah();
+  filterTombolJalur();
 }
 
 async function muatSemuaMadrasah() {
@@ -787,6 +788,40 @@ function tampilkanMadrasah() {
   document.getElementById('cekStatusBox').classList.remove('hidden');
   document.getElementById('step1').classList.remove('hidden');
   document.title = `Pendaftaran PMB ${madrasah.nama}`;
+}
+
+// ─────────────────────────────────────────────
+// FILTER JALUR AKTIF
+// ─────────────────────────────────────────────
+function filterTombolJalur() {
+  // Ambil jalur_aktif dari data madrasah (default: semua aktif)
+  const jalurAktif = Array.isArray(madrasah?.jalur_aktif)
+    ? madrasah.jalur_aktif
+    : ['Reguler', 'Prestasi', 'Afirmasi', 'Perpindahan Tugas'];
+
+  // Map nama jalur ke id elemen tombol
+  const jalurMap = {
+    'Reguler'           : 'jalur-reguler',
+    'Prestasi'          : 'jalur-prestasi',
+    'Afirmasi'          : 'jalur-afirmasi',
+    'Perpindahan Tugas' : 'jalur-pindahan',
+  };
+
+  // Sembunyikan tombol jalur yang tidak aktif
+  Object.entries(jalurMap).forEach(([nama, elId]) => {
+    const el = document.getElementById(elId);
+    if (!el) return;
+    if (jalurAktif.includes(nama)) {
+      el.style.display = '';
+    } else {
+      el.style.display = 'none';
+    }
+  });
+
+  // Jika jalur yang sedang dipilih tidak aktif, pilihkan jalur aktif pertama
+  if (!jalurAktif.includes(jalurDipilih) && jalurAktif.length > 0) {
+    setJalur(jalurAktif[0]);
+  }
 }
 
 // ─────────────────────────────────────────────
