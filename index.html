@@ -721,6 +721,7 @@ img { max-width: 100%; }
   <div class="footer-links">
     <a href="#" class="footer-link" onclick="scrollToCek();return false">Cek Status</a>
     <a href="#" class="footer-link" id="footerDaftar">Daftar</a>
+    <a href="#" class="footer-link" id="footerBeranda">🏠 Beranda Sekolah</a>
   </div>
 </div>
 
@@ -850,6 +851,10 @@ document.addEventListener('DOMContentLoaded', () => {
   countdownTarget = new Date('2026-11-30T16:59:00Z');
 
   if (slug) {
+    // Set link beranda sekolah
+    const berandaUrl = location.origin + '/index8.html?sekolah=' + encodeURIComponent(slug);
+    const elBeranda = document.getElementById('footerBeranda');
+    if (elBeranda) { elBeranda.href = berandaUrl; elBeranda.target = '_blank'; }
     // Render UI kosong dulu, muat data asli dari Supabase
     muatMadrasah(slug);
   } else {
