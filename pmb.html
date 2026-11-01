@@ -93,6 +93,115 @@
     </div>
   </div>
 
+  <!-- MODAL EDIT DATA PENDAFTAR -->
+  <div id="modalEdit" class="hidden fixed inset-0 bg-black/50 z-50 flex items-start justify-center p-4 overflow-y-auto">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg my-6">
+      <div class="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-5 py-4 rounded-t-2xl flex justify-between items-center">
+        <div>
+          <div class="font-bold text-base">✏️ Edit Data Pendaftaran</div>
+          <div id="editNoPendaftaran" class="text-blue-100 text-xs mt-0.5"></div>
+        </div>
+        <button onclick="tutupModalEdit()" class="text-white/80 hover:text-white text-xl font-bold">✕</button>
+      </div>
+      <div class="p-5 space-y-4">
+        <!-- Data Pribadi -->
+        <div>
+          <div class="text-sm font-bold text-blue-700 mb-3 pb-1 border-b border-blue-100">👤 Data Pribadi</div>
+          <div class="grid grid-cols-1 gap-3">
+            <div class="field-group">
+              <label>Nama Lengkap <span class="text-red-500">*</span></label>
+              <input id="edit_nama" type="text" placeholder="Nama lengkap tanpa singkatan"/>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <div class="field-group">
+                <label>NISN</label>
+                <input id="edit_nisn" type="text" placeholder="10 digit NISN"/>
+              </div>
+              <div class="field-group">
+                <label>Jenis Kelamin <span class="text-red-500">*</span></label>
+                <select id="edit_jk">
+                  <option value="">-- Pilih --</option>
+                  <option value="L">Laki-laki</option>
+                  <option value="P">Perempuan</option>
+                </select>
+              </div>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <div class="field-group">
+                <label>Tempat Lahir <span class="text-red-500">*</span></label>
+                <input id="edit_tempat_lahir" type="text" placeholder="Kota tempat lahir"/>
+              </div>
+              <div class="field-group">
+                <label>Tanggal Lahir <span class="text-red-500">*</span></label>
+                <input id="edit_tgl_lahir" type="date"/>
+              </div>
+            </div>
+            <div class="field-group">
+              <label>Asal Sekolah <span class="text-red-500">*</span></label>
+              <input id="edit_asal_sekolah" type="text" placeholder="Nama sekolah asal"/>
+            </div>
+          </div>
+        </div>
+        <!-- Data Orang Tua -->
+        <div>
+          <div class="text-sm font-bold text-blue-700 mb-3 pb-1 border-b border-blue-100">👨‍👩‍👧 Data Orang Tua / Wali</div>
+          <div class="grid grid-cols-1 gap-3">
+            <div class="grid grid-cols-2 gap-3">
+              <div class="field-group">
+                <label>Nama Ayah</label>
+                <input id="edit_nama_ayah" type="text"/>
+              </div>
+              <div class="field-group">
+                <label>Nama Ibu</label>
+                <input id="edit_nama_ibu" type="text"/>
+              </div>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <div class="field-group">
+                <label>No. HP Orang Tua <span class="text-red-500">*</span></label>
+                <input id="edit_hp_ortu" type="tel" placeholder="08xx-xxxx-xxxx"/>
+              </div>
+              <div class="field-group">
+                <label>No. HP Peserta</label>
+                <input id="edit_hp_peserta" type="tel" placeholder="08xx-xxxx-xxxx"/>
+              </div>
+            </div>
+            <div class="field-group">
+              <label>Alamat Lengkap <span class="text-red-500">*</span></label>
+              <textarea id="edit_alamat" rows="2" placeholder="Alamat lengkap peserta"></textarea>
+            </div>
+          </div>
+        </div>
+        <!-- Upload Foto -->
+        <div>
+          <div class="text-sm font-bold text-blue-700 mb-3 pb-1 border-b border-blue-100">📸 Foto Peserta</div>
+          <div class="flex gap-4 items-start">
+            <div id="editFotoWrap" class="w-20 h-24 border-2 border-dashed border-gray-300 rounded-lg overflow-hidden flex items-center justify-content:center bg-gray-50 flex-shrink-0">
+              <img id="editFotoPreview" src="" class="w-full h-full object-cover object-top hidden"/>
+              <span id="editFotoPlaceholder" class="text-gray-400 text-xs text-center p-1 w-full">Belum ada foto</span>
+            </div>
+            <div class="flex-1">
+              <label class="block text-xs text-gray-500 mb-1">Ganti foto (maks. 2 MB, JPG/PNG)</label>
+              <input id="edit_foto" type="file" accept="image/jpeg,image/png,image/jpg"
+                onchange="previewEditFoto(this)"
+                class="block w-full text-xs text-gray-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"/>
+              <p id="editFotoNama" class="text-xs text-green-600 mt-1 hidden"></p>
+              <p class="text-xs text-gray-400 mt-1">Kosongkan jika tidak ingin mengganti foto</p>
+            </div>
+          </div>
+        </div>
+        <!-- Tombol -->
+        <div class="flex gap-3 pt-2">
+          <button onclick="tutupModalEdit()" class="flex-1 border border-gray-300 text-gray-600 py-2.5 rounded-xl text-sm font-semibold hover:bg-gray-50">Batal</button>
+          <button onclick="simpanEditData()" id="btnSimpanEdit" class="flex-1 bg-blue-600 text-white py-2.5 rounded-xl text-sm font-semibold hover:bg-blue-700">
+            💾 Simpan Perubahan
+          </button>
+        </div>
+        <div id="editMsg" class="hidden text-sm text-center rounded-lg py-2 px-3"></div>
+      </div>
+    </div>
+  </div>
+
   <!-- STEP 1: DATA DIRI PESERTA -->
   <div id="step1" class="hidden">
 
@@ -683,36 +792,68 @@ function tampilkanMadrasah() {
 // ─────────────────────────────────────────────
 // FOTO
 // ─────────────────────────────────────────────
-function previewFoto(input) {
-  const file = input.files[0];
-  if (!file) return;
-  if (file.size > 2 * 1024 * 1024) {
-    alert('Ukuran foto maksimal 2 MB. Silakan pilih foto yang lebih kecil.');
-    input.value = '';
-    return;
-  }
+// Kompres gambar via Canvas — maks 800px, kualitas 80%
+function kompresGambar(file, callback) {
   const reader = new FileReader();
   reader.onload = e => {
-    document.getElementById('fotoPlaceholder').classList.add('hidden');
-    const img = document.getElementById('fotoPreview');
+    const img = new Image();
+    img.onload = () => {
+      const MAX = 400;
+      let w = img.width, h = img.height;
+      if (w > MAX || h > MAX) {
+        if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
+        else        { w = Math.round(w * MAX / h); h = MAX; }
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      canvas.toBlob(blob => callback(blob), 'image/jpeg', 0.6);
+    };
     img.src = e.target.result;
-    img.classList.remove('hidden');
-    document.getElementById('fotoNama').textContent = '✅ ' + file.name;
-    document.getElementById('fotoNama').classList.remove('hidden');
   };
   reader.readAsDataURL(file);
 }
 
-async function uploadFoto(madrasahId) {
-  const input = document.getElementById('f_foto');
-  if (!input.files[0]) return null;
+function previewFoto(input) {
   const file = input.files[0];
-  const ext = file.name.split('.').pop();
-  const path = `${madrasahId}/${Date.now()}.${ext}`;
-  const { data, error } = await sb.storage.from('pmb-foto').upload(path, file, { upsert: true });
+  if (!file) return;
+  kompresGambar(file, blob => {
+    // Simpan blob terkompresi ke input (via DataTransfer)
+    try {
+      const dt = new DataTransfer();
+      dt.items.add(new File([blob], file.name.replace(/\.[^.]+$/, '.jpg'), { type: 'image/jpeg' }));
+      input.files = dt.files;
+    } catch(e) { /* fallback: upload blob langsung */ input._kompresBlob = blob; }
+
+    const url = URL.createObjectURL(blob);
+    document.getElementById('fotoPlaceholder').classList.add('hidden');
+    const img = document.getElementById('fotoPreview');
+    img.src = url;
+    img.classList.remove('hidden');
+    const kb = Math.round(blob.size / 1024);
+    document.getElementById('fotoNama').textContent = `✅ ${file.name} (${kb} KB)`;
+    document.getElementById('fotoNama').classList.remove('hidden');
+  });
+}
+
+async function uploadFotoBlob(blob, madrasahId) {
+  const path = `${madrasahId}/${Date.now()}.jpg`;
+  const { error } = await sb.storage.from('pmb-foto').upload(path, blob, { upsert: true, contentType: 'image/jpeg' });
   if (error) { console.error('Upload foto gagal:', error.message); return null; }
   const { data: urlData } = sb.storage.from('pmb-foto').getPublicUrl(path);
   return urlData.publicUrl;
+}
+
+async function uploadFoto(madrasahId) {
+  const input = document.getElementById('f_foto');
+  if (!input.files[0] && !input._kompresBlob) return null;
+  return new Promise(resolve => {
+    const file = input.files[0];
+    kompresGambar(file, async blob => {
+      const url = await uploadFotoBlob(blob, madrasahId);
+      resolve(url);
+    });
+  });
 }
 
 // ─────────────────────────────────────────────
@@ -1012,6 +1153,151 @@ function cetakKartu() {
   w.document.close();
 }
 
+function bukaModalEdit() {
+  const data = window._cekStatusData;
+  if (!data) return;
+
+  // Isi form dengan data yang ada
+  document.getElementById('editNoPendaftaran').textContent = data.no_pendaftaran;
+  document.getElementById('edit_nama').value          = data.nama_lengkap || '';
+  document.getElementById('edit_nisn').value          = data.nisn || '';
+  document.getElementById('edit_jk').value            = data.jenis_kelamin || '';
+  document.getElementById('edit_tempat_lahir').value  = data.tempat_lahir || '';
+  document.getElementById('edit_tgl_lahir').value     = data.tanggal_lahir || '';
+  document.getElementById('edit_asal_sekolah').value  = data.asal_sekolah || '';
+  document.getElementById('edit_nama_ayah').value     = data.nama_ayah || '';
+  document.getElementById('edit_nama_ibu').value      = data.nama_ibu || '';
+  document.getElementById('edit_hp_ortu').value       = data.no_hp_ortu || '';
+  document.getElementById('edit_hp_peserta').value    = data.no_hp_peserta || '';
+  document.getElementById('edit_alamat').value        = data.alamat || '';
+
+  // Tampilkan foto yang sudah ada
+  const prevImg = document.getElementById('editFotoPreview');
+  const prevPh  = document.getElementById('editFotoPlaceholder');
+  if (data.foto_url) {
+    prevImg.src = data.foto_url;
+    prevImg.classList.remove('hidden');
+    prevPh.classList.add('hidden');
+  } else {
+    prevImg.classList.add('hidden');
+    prevImg.src = '';
+    prevPh.classList.remove('hidden');
+  }
+  document.getElementById('edit_foto').value = '';
+  document.getElementById('editFotoNama').classList.add('hidden');
+
+  document.getElementById('editMsg').classList.add('hidden');
+  document.getElementById('modalEdit').classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+}
+
+function previewEditFoto(input) {
+  const file = input.files[0];
+  if (!file) return;
+  kompresGambar(file, blob => {
+    input._kompresBlob = blob; // simpan untuk upload
+    const url = URL.createObjectURL(blob);
+    const img = document.getElementById('editFotoPreview');
+    const ph  = document.getElementById('editFotoPlaceholder');
+    img.src = url;
+    img.classList.remove('hidden');
+    ph.classList.add('hidden');
+    const kb = Math.round(blob.size / 1024);
+    const nm = document.getElementById('editFotoNama');
+    nm.textContent = `✅ ${file.name} → ${kb} KB (sudah dikompresi)`;
+    nm.classList.remove('hidden');
+  });
+}
+
+function tutupModalEdit() {
+  document.getElementById('modalEdit').classList.add('hidden');
+  document.body.style.overflow = '';
+}
+
+async function simpanEditData() {
+  const data = window._cekStatusData;
+  if (!data) return;
+
+  const nama = document.getElementById('edit_nama').value.trim();
+  const jk   = document.getElementById('edit_jk').value;
+  const tl   = document.getElementById('edit_tempat_lahir').value.trim();
+  const tgl  = document.getElementById('edit_tgl_lahir').value;
+  const as   = document.getElementById('edit_asal_sekolah').value.trim();
+  const hp   = document.getElementById('edit_hp_ortu').value.trim();
+  const alm  = document.getElementById('edit_alamat').value.trim();
+
+  if (!nama || !jk || !tl || !tgl || !as || !hp || !alm) {
+    const msg = document.getElementById('editMsg');
+    msg.textContent = '⚠️ Mohon lengkapi semua field wajib.';
+    msg.className = 'text-sm text-center rounded-lg py-2 px-3 bg-red-50 text-red-600';
+    msg.classList.remove('hidden');
+    return;
+  }
+
+  const btn = document.getElementById('btnSimpanEdit');
+  btn.disabled = true;
+
+  // Upload foto baru jika ada
+  let fotoUrl = data.foto_url || null;
+  const fotoInput = document.getElementById('edit_foto');
+  if (fotoInput.files[0] || fotoInput._kompresBlob) {
+    btn.innerHTML = '<span class="spinner"></span> Mengunggah foto…';
+    const blob = fotoInput._kompresBlob || await new Promise(resolve =>
+      kompresGambar(fotoInput.files[0], resolve)
+    );
+    const newUrl = await uploadFotoBlob(blob, data.madrasah_id || madrasah.id);
+    if (newUrl) fotoUrl = newUrl;
+  }
+
+  btn.innerHTML = '<span class="spinner"></span> Menyimpan…';
+
+  const payload = {
+    foto_url        : fotoUrl,
+    nama_lengkap    : nama,
+    nisn            : document.getElementById('edit_nisn').value.trim() || null,
+    jenis_kelamin   : jk,
+    tempat_lahir    : tl,
+    tanggal_lahir   : tgl,
+    asal_sekolah    : as,
+    nama_ayah       : document.getElementById('edit_nama_ayah').value.trim() || null,
+    nama_ibu        : document.getElementById('edit_nama_ibu').value.trim() || null,
+    no_hp_ortu      : hp,
+    no_hp_peserta   : document.getElementById('edit_hp_peserta').value.trim() || null,
+    alamat          : alm,
+  };
+
+  const { error } = await sb
+    .from('pendaftar_pmb')
+    .update(payload)
+    .eq('no_pendaftaran', data.no_pendaftaran)
+    .eq('status', 'Mendaftar'); // double-check status aman
+
+  btn.disabled = false;
+  btn.innerHTML = '💾 Simpan Perubahan';
+
+  const msg = document.getElementById('editMsg');
+  if (error) {
+    msg.textContent = '❌ Gagal menyimpan: ' + error.message;
+    msg.className = 'text-sm text-center rounded-lg py-2 px-3 bg-red-50 text-red-600';
+    msg.classList.remove('hidden');
+    return;
+  }
+
+  // Update local data cache
+  Object.assign(window._cekStatusData, payload);
+
+  msg.textContent = '✅ Data berhasil diperbarui!';
+  msg.className = 'text-sm text-center rounded-lg py-2 px-3 bg-green-50 text-green-700';
+  msg.classList.remove('hidden');
+
+  setTimeout(() => {
+    tutupModalEdit();
+    // Refresh hasil cek
+    document.getElementById('inputNoPendaftaran').value = data.no_pendaftaran;
+    cekStatus();
+  }, 1500);
+}
+
 function cetakKartuDariCekStatus() {
   const data = window._cekStatusData;
   if (!data) return;
@@ -1112,7 +1398,7 @@ async function cekStatus() {
 
   const { data, error } = await sb
     .from('pendaftar_pmb')
-    .select('no_pendaftaran, nama_lengkap, nisn, jenis_kelamin, tempat_lahir, tanggal_lahir, asal_sekolah, status, jalur_pendaftaran, tahun_ajaran, created_at, catatan_admin, foto_url')
+    .select('no_pendaftaran, nama_lengkap, nisn, jenis_kelamin, tempat_lahir, tanggal_lahir, asal_sekolah, nama_ayah, nama_ibu, no_hp_ortu, no_hp_peserta, alamat, status, jalur_pendaftaran, tahun_ajaran, created_at, catatan_admin, foto_url')
     .eq('no_pendaftaran', no)
     .single();
 
@@ -1143,9 +1429,10 @@ async function cekStatus() {
       </div>
       ${data.catatan_admin ? `<div class="bg-blue-50 rounded p-2 text-blue-700"><b>Catatan:</b> ${data.catatan_admin}</div>` : ''}
       <div class="text-gray-400 text-xs">Terdaftar: ${new Date(data.created_at).toLocaleString('id-ID')}</div>
-      <button onclick="cetakKartuDariCekStatus()" class="w-full mt-2 bg-green-600 text-white py-2 rounded-lg text-sm font-semibold hover:bg-green-700">
-        🪪 Cetak Kartu Peserta
-      </button>
+      <div class="flex gap-2 mt-2">
+        ${data.status === 'Mendaftar' ? `<button onclick="bukaModalEdit()" class="flex-1 bg-blue-600 text-white py-2 rounded-lg text-sm font-semibold hover:bg-blue-700">✏️ Edit Data</button>` : ''}
+        <button onclick="cetakKartuDariCekStatus()" class="${data.status === 'Mendaftar' ? 'flex-1' : 'w-full'} bg-green-600 text-white py-2 rounded-lg text-sm font-semibold hover:bg-green-700">🪪 Cetak Kartu</button>
+      </div>
     </div>`;
 }
 
