@@ -950,8 +950,8 @@ function renderKartuPeserta(data) {
   const jk  = data.jenis_kelamin === 'L' ? 'Laki-laki' : 'Perempuan';
   const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=90x90&data=${encodeURIComponent(data.no_pendaftaran)}`;
   const fotoEl = data.foto_url
-    ? `<img src="${data.foto_url}" class="w-full h-full object-cover" onerror="this.parentElement.innerHTML='<span class=\\'text-gray-400 text-xs\\'>Foto</span>'" />`
-    : `<span class="text-gray-400 text-xs">Foto</span>`;
+    ? `<img src="${data.foto_url}" style="width:100%;height:100%;object-fit:cover;object-position:center top;display:block;" onerror="this.parentElement.innerHTML='<span style=\\'font-size:10px;color:#9ca3af;\\'>Foto</span>'" />`
+    : `<span style="font-size:10px;color:#9ca3af;">Foto</span>`;
 
   const kartu = `
   <div id="kartuPeserta" style="width:340px;border:2px solid #166534;border-radius:12px;overflow:hidden;font-family:'Segoe UI',sans-serif;background:#fff;margin:0 auto;">
@@ -966,7 +966,7 @@ function renderKartuPeserta(data) {
     <!-- Body -->
     <div style="padding:12px 14px;display:flex;gap:12px;align-items:flex-start;">
       <!-- Foto -->
-      <div style="width:72px;height:90px;border:1.5px solid #d1d5db;border-radius:6px;overflow:hidden;shrink:0;display:flex;align-items:center;justify-content:center;background:#f9fafb;">
+      <div style="width:72px;min-width:72px;height:90px;border:1.5px solid #d1d5db;border-radius:6px;overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:#f9fafb;">
         ${fotoEl}
       </div>
       <!-- Info -->
@@ -1018,35 +1018,49 @@ function cetakKartuDariCekStatus() {
 
   const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(data.no_pendaftaran)}`;
   const fotoEl = data.foto_url
-    ? `<img src="${data.foto_url}" style="width:90px;height:110px;object-fit:cover;border-radius:4px;border:2px solid #fff;" />`
-    : `<div style="width:90px;height:110px;background:#e5e7eb;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px;color:#6b7280;border:2px solid #fff;">Foto</div>`;
+    ? `<div style="width:72px;min-width:72px;height:90px;border:1.5px solid #d1d5db;border-radius:6px;overflow:hidden;flex-shrink:0;background:#f9fafb;"><img src="${data.foto_url}" style="width:100%;height:100%;object-fit:cover;object-position:center top;display:block;" /></div>`
+    : `<div style="width:72px;min-width:72px;height:90px;border:1.5px solid #d1d5db;border-radius:6px;overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:#f9fafb;font-size:10px;color:#9ca3af;">Foto</div>`;
+
+  const jk  = data.jenis_kelamin === 'L' ? 'Laki-laki' : data.jenis_kelamin === 'P' ? 'Perempuan' : (data.jenis_kelamin || '-');
+  const tgl = data.tanggal_lahir ? new Date(data.tanggal_lahir).toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'}) : '-';
+  const namaM = madrasah ? madrasah.nama : (data.nama_madrasah || '');
+  const jenjM = madrasah ? madrasah.jenjang : '';
+  const taM   = data.tahun_ajaran || (new Date().getFullYear() + '/' + (new Date().getFullYear()+1));
 
   const kartuHtml = `
-  <div style="width:340px;border:2px solid #16a34a;border-radius:12px;overflow:hidden;font-family:'Segoe UI',sans-serif;box-shadow:0 2px 8px rgba(0,0,0,0.12);">
-    <div style="background:#16a34a;color:#fff;padding:10px 14px;text-align:center;">
-      <div style="font-size:13px;font-weight:700;letter-spacing:0.5px;">KARTU PESERTA PMB</div>
-      <div style="font-size:11px;opacity:0.85;">${madrasah ? madrasah.jenjang + ' ' + madrasah.nama : ''}</div>
-      <div style="font-size:10px;opacity:0.75;">Tahun Ajaran ${data.tahun_ajaran || new Date().getFullYear() + '/' + (new Date().getFullYear()+1)}</div>
+  <div id="kartuPeserta" style="width:340px;border:2px solid #166534;border-radius:12px;overflow:hidden;font-family:'Segoe UI',sans-serif;background:#fff;margin:0 auto;">
+    <div style="background:linear-gradient(135deg,#166534,#15803d);padding:10px 14px;display:flex;align-items:center;gap:10px;">
+      <span style="font-size:28px;">🏫</span>
+      <div>
+        <div style="color:#fff;font-weight:700;font-size:13px;line-height:1.2;">${namaM}</div>
+        <div style="color:#bbf7d0;font-size:10px;">Kartu Peserta PMB ${jenjM} · TA ${taM}</div>
+      </div>
     </div>
-    <div style="background:#fff;padding:12px;display:flex;gap:12px;align-items:flex-start;">
-      ${fotoEl}
-      <div style="flex:1;font-size:11px;color:#1f2937;line-height:1.7;">
-        <table style="width:100%;border-collapse:collapse;">
-          <tr><td style="color:#6b7280;width:90px;">Nama</td><td>: <b>${data.nama_lengkap}</b></td></tr>
-          <tr><td style="color:#6b7280;">NISN</td><td>: ${data.nisn || '-'}</td></tr>
-          <tr><td style="color:#6b7280;">L/P</td><td>: ${data.jenis_kelamin || '-'}</td></tr>
-          <tr><td style="color:#6b7280;">Tgl Lahir</td><td>: ${data.tanggal_lahir ? new Date(data.tanggal_lahir).toLocaleDateString('id-ID') : '-'}</td></tr>
-          <tr><td style="color:#6b7280;">Asal Sekolah</td><td>: ${data.asal_sekolah || '-'}</td></tr>
-          <tr><td style="color:#6b7280;">Jalur</td><td>: ${data.jalur_pendaftaran || '-'}</td></tr>
+    <div style="padding:12px 14px;display:flex;gap:12px;align-items:flex-start;">
+      <div style="width:72px;min-width:72px;height:90px;border:1.5px solid #d1d5db;border-radius:6px;overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:#f9fafb;">
+        ${fotoEl}
+      </div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-weight:700;font-size:13px;color:#111827;margin-bottom:2px;word-break:break-word;">${data.nama_lengkap}</div>
+        <table style="font-size:10.5px;color:#374151;border-collapse:collapse;width:100%;">
+          <tr><td style="color:#6b7280;width:80px;padding:1px 0;">NISN</td><td>${data.nisn || '-'}</td></tr>
+          <tr><td style="color:#6b7280;">Tgl Lahir</td><td>${tgl}</td></tr>
+          <tr><td style="color:#6b7280;">Jenis Kelamin</td><td>${jk}</td></tr>
+          <tr><td style="color:#6b7280;">Asal Sekolah</td><td style="word-break:break-word;">${data.asal_sekolah || '-'}</td></tr>
+          <tr><td style="color:#6b7280;">Jalur</td><td><span style="background:#dcfce7;color:#166534;padding:1px 6px;border-radius:4px;font-weight:600;">${data.jalur_pendaftaran}</span></td></tr>
         </table>
       </div>
     </div>
-    <div style="background:#f0fdf4;border-top:1px dashed #bbf7d0;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;">
+    <div style="background:#f0fdf4;border-top:1px solid #bbf7d0;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;">
       <div>
-        <div style="font-size:9px;color:#6b7280;margin-bottom:2px;">No. Pendaftaran</div>
-        <div style="font-size:16px;font-weight:800;color:#15803d;letter-spacing:1px;">${data.no_pendaftaran}</div>
+        <div style="font-size:9px;color:#6b7280;margin-bottom:2px;">NOMOR PENDAFTARAN</div>
+        <div style="font-size:18px;font-weight:800;color:#166534;letter-spacing:1px;">${data.no_pendaftaran}</div>
+        <div style="font-size:9px;color:#6b7280;margin-top:2px;">Status: <strong>${data.status}</strong></div>
       </div>
-      <img src="${qrUrl}" style="width:60px;height:60px;" alt="QR" />
+      <img src="${qrUrl}" width="70" height="70" style="border-radius:4px;" alt="QR Code"/>
+    </div>
+    <div style="background:#166534;padding:5px 14px;text-align:center;">
+      <span style="color:#bbf7d0;font-size:9px;">Sistem PMB Digital · Amanah Madrasah</span>
     </div>
   </div>`;
 
