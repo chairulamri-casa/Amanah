@@ -25,12 +25,356 @@
   .badge-mendaftar  { background:#dbeafe;color:#1d4ed8; }
   .badge-diterima   { background:#dcfce7;color:#15803d; }
   .badge-tidak      { background:#fee2e2;color:#b91c1c; }
+
+/* ═══ LANDING PAGE ════════════════════════════════════ */
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
+#landingPage { font-family:'Plus Jakarta Sans',system-ui,sans-serif; display:none; }
+/* HERO */
+.lp-hero {
+  background:linear-gradient(135deg,#0f3d25 0%,#1a5c38 55%,#2d7a50 100%);
+  color:#fff; position:relative; overflow:hidden;
+}
+.lp-hero-pattern {
+  position:absolute;inset:0;
+  background:radial-gradient(circle at 20% 50%,rgba(255,255,255,.04) 0%,transparent 50%),
+             radial-gradient(circle at 80% 20%,rgba(184,135,11,.15) 0%,transparent 40%);
+  pointer-events:none;
+}
+.lp-hero-inner { position:relative;max-width:680px;margin:0 auto;padding:44px 20px 32px; }
+.lp-badge {
+  display:inline-flex;align-items:center;gap:6px;
+  background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);
+  border-radius:100px;padding:4px 14px;font-size:12px;font-weight:700;
+  letter-spacing:.05em;text-transform:uppercase;color:rgba(255,255,255,.9);margin-bottom:20px;
+}
+.lp-badge-dot { width:7px;height:7px;border-radius:50%;background:#4ade80;animation:lpPulse 1.6s ease-in-out infinite; }
+@keyframes lpPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(1.5)}}
+.lp-logo-row { display:flex;align-items:center;gap:14px;margin-bottom:14px; }
+.lp-logo-box {
+  width:54px;height:54px;border-radius:14px;flex-shrink:0;
+  background:rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;font-size:26px;
+}
+.lp-madrasah-name { font-size:clamp(18px,4.5vw,26px);font-weight:800;line-height:1.2; }
+.lp-madrasah-sub  { font-size:13px;color:rgba(255,255,255,.7);margin-top:2px; }
+.lp-tagline       { font-size:13px;color:rgba(255,255,255,.65);margin-bottom:24px;line-height:1.6; }
+/* COUNTDOWN */
+.lp-cd-wrap {
+  background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);
+  border-radius:12px;padding:16px 18px;margin-bottom:22px;
+}
+.lp-cd-label { font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.6);margin-bottom:10px; }
+.lp-cd-grid { display:flex;gap:6px;align-items:flex-start; }
+.lp-cd-unit { flex:1;text-align:center; }
+.lp-cd-num  { font-size:clamp(28px,7vw,42px);font-weight:800;line-height:1;font-variant-numeric:tabular-nums;color:#fff; }
+.lp-cd-lbl  { font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.5);margin-top:3px; }
+.lp-cd-sep  { font-size:30px;font-weight:800;color:rgba(255,255,255,.35);padding-top:2px;line-height:1; }
+.lp-cd-status { font-size:12px;color:rgba(255,255,255,.65);margin-top:8px; }
+.lp-cd-open   { color:#4ade80;font-weight:700; }
+.lp-cd-closed { color:#fca5a5;font-weight:700; }
+/* CTA */
+.lp-cta { display:flex;flex-wrap:wrap;gap:10px; }
+.lp-btn-daftar {
+  display:inline-flex;align-items:center;gap:8px;
+  background:#b8870b;color:#fff;font-weight:700;font-size:15px;
+  padding:13px 24px;border-radius:100px;border:none;cursor:pointer;
+  font-family:inherit;box-shadow:0 4px 16px rgba(184,135,11,.45);
+  transition:transform .15s,box-shadow .15s;
+}
+.lp-btn-daftar:hover { transform:translateY(-2px);box-shadow:0 8px 24px rgba(184,135,11,.55); }
+.lp-btn-cek {
+  display:inline-flex;align-items:center;gap:8px;
+  background:rgba(255,255,255,.15);border:1.5px solid rgba(255,255,255,.3);
+  color:#fff;font-weight:600;font-size:14px;padding:12px 20px;
+  border-radius:100px;cursor:pointer;font-family:inherit;
+  transition:background .15s;
+}
+.lp-btn-cek:hover { background:rgba(255,255,255,.22); }
+/* STATS */
+.lp-stats {
+  background:#b8870b;padding:13px 20px;
+  display:none;
+}
+.lp-stats-inner { max-width:680px;margin:0 auto;display:flex;justify-content:space-around;flex-wrap:wrap; }
+.lp-stat-item { text-align:center;padding:4px 10px;border-right:1px solid rgba(255,255,255,.3); }
+.lp-stat-item:last-child { border-right:none; }
+.lp-stat-num { font-size:22px;font-weight:800;color:#fff;font-variant-numeric:tabular-nums; }
+.lp-stat-lbl { font-size:10px;font-weight:700;color:rgba(255,255,255,.8);letter-spacing:.05em;text-transform:uppercase; }
+/* MAIN CONTENT */
+.lp-main { max-width:680px;margin:0 auto;padding:24px 16px 0;display:grid;grid-template-columns:1fr 290px;gap:18px;align-items:start; }
+@media(max-width:640px){ .lp-main{grid-template-columns:1fr;} }
+/* CARD */
+.lp-card { background:#fff;border:1px solid #e2ddd1;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,.06);overflow:hidden;margin-bottom:14px; }
+.lp-card-head { display:flex;align-items:center;gap:10px;padding:13px 16px;border-bottom:1px solid #e2ddd1;background:#f7f5ef; }
+.lp-card-icon { width:30px;height:30px;border-radius:8px;background:#e6f4ec;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0; }
+.lp-card-title { font-size:12px;font-weight:800;color:#1a1a14;text-transform:uppercase;letter-spacing:.05em; }
+.lp-card-body { padding:14px 16px; }
+/* JALUR */
+.lp-jalur-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px; }
+.lp-jalur-card {
+  border:1.5px solid #e2ddd1;border-radius:10px;padding:12px 8px;text-align:center;
+  background:#fff;transition:border-color .15s,transform .12s,background .15s;cursor:pointer;
+}
+.lp-jalur-card:hover { border-color:#2e7d54;transform:translateY(-2px);background:#e6f4ec; }
+.lp-jalur-card.aktif { border-color:#2e7d54;background:#e6f4ec; }
+.lp-jalur-icon { font-size:26px;margin-bottom:5px; }
+.lp-jalur-name { font-size:11px;font-weight:800;color:#1a1a14; }
+.lp-jalur-desc { font-size:10px;color:#8a877e;margin-top:2px;line-height:1.4; }
+.lp-jalur-badge { display:inline-block;margin-top:5px;font-size:9px;font-weight:800;letter-spacing:.04em;padding:2px 8px;border-radius:100px; }
+.lp-jalur-badge.buka  { background:#e6f4ec;color:#2e7d54; }
+.lp-jalur-badge.tutup { background:#fee2e2;color:#b91c1c; }
+/* PENGUMUMAN */
+.lp-peng-item {
+  display:flex;gap:10px;align-items:flex-start;padding:11px;border-radius:8px;
+  background:#f7f5ef;border:1px solid #e2ddd1;margin-bottom:8px;cursor:pointer;transition:background .12s;
+}
+.lp-peng-item:last-child { margin-bottom:0; }
+.lp-peng-item:hover { background:#e6f4ec;border-color:#2e7d54; }
+.lp-peng-icon { width:34px;height:34px;border-radius:8px;background:#e6f4ec;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0; }
+.lp-peng-date  { font-size:10px;color:#8a877e;font-weight:600; }
+.lp-peng-title { font-size:13px;font-weight:700;color:#1a1a14;line-height:1.35; }
+.lp-peng-exc   { font-size:11px;color:#8a877e;margin-top:2px; }
+.lp-peng-new   { font-size:9px;font-weight:800;background:#b91c1c;color:#fff;padding:2px 6px;border-radius:100px;margin-left:5px; }
+/* TIMELINE */
+.lp-timeline { list-style:none;padding:0; }
+.lp-tl-item { display:flex;gap:10px;padding:9px 0;border-bottom:1px solid #e2ddd1; }
+.lp-tl-item:last-child { border-bottom:none; }
+.lp-tl-dot { width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:4px;border:2px solid #fff; }
+.lp-tl-dot.aktif    { background:#2e7d54;box-shadow:0 0 0 2px #e6f4ec; }
+.lp-tl-dot.mendatang{ background:#b8870b;box-shadow:0 0 0 2px #fdf3d6; }
+.lp-tl-dot.selesai  { background:#8a877e;box-shadow:0 0 0 2px #f0ede4; }
+.lp-tl-date  { font-size:10px;color:#8a877e;font-weight:600; }
+.lp-tl-title { font-size:12px;font-weight:700;color:#1a1a14;margin:1px 0; }
+.lp-tl-note  { font-size:11px;color:#8a877e; }
+.lp-tl-chip  { font-size:9px;font-weight:700;padding:2px 7px;border-radius:100px;display:inline-block;margin-top:2px; }
+.chip-aktif    { background:#e6f4ec;color:#2e7d54; }
+.chip-mendatang{ background:#fdf3d6;color:#8a6408; }
+.chip-selesai  { background:#f0ede4;color:#8a877e; }
+/* SIDEBAR */
+.lp-infobox {
+  background:linear-gradient(135deg,#0f3d25,#1a5c38);
+  border-radius:12px;padding:18px;color:#fff;margin-bottom:14px;
+}
+.lp-infobox h3 { font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;opacity:.65;margin-bottom:10px; }
+.lp-info-row { display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.12); }
+.lp-info-row:last-child { border-bottom:none; }
+.lp-info-icon { font-size:17px;width:26px;text-align:center;flex-shrink:0; }
+.lp-info-label { font-size:10px;opacity:.6;font-weight:700;letter-spacing:.04em;text-transform:uppercase; }
+.lp-info-val   { font-size:13px;font-weight:700; }
+.lp-syarat { list-style:none;padding:0; }
+.lp-syarat li { display:flex;gap:8px;align-items:flex-start;padding:7px 0;border-bottom:1px solid #e2ddd1;font-size:12px;color:#4a4740; }
+.lp-syarat li:last-child { border-bottom:none; }
+.lp-syarat li::before { content:"✓";color:#2e7d54;font-weight:800;flex-shrink:0;margin-top:1px; }
+/* CEK STATUS */
+.lp-cek-wrap { display:flex;gap:8px; }
+.lp-cek-input {
+  flex:1;min-width:0;border:1.5px solid #e2ddd1;border-radius:8px;padding:9px 12px;
+  font-size:13px;font-family:inherit;background:#fff;transition:border-color .15s;
+}
+.lp-cek-input:focus { outline:none;border-color:#2e7d54;box-shadow:0 0 0 3px #e6f4ec; }
+.lp-cek-btn { background:#2e7d54;color:#fff;border:none;border-radius:8px;padding:9px 16px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit; }
+.lp-cek-btn:hover { background:#1a5c38; }
+.lp-cek-result { margin-top:10px;padding:12px;border-radius:8px;font-size:12px;display:none; }
+.lp-cek-result.show { display:block; }
+.lp-cek-result.ok  { background:#e6f4ec;border:1px solid #2e7d54;color:#1a1a14; }
+.lp-cek-result.err { background:#fee2e2;border:1px solid #b91c1c;color:#b91c1c; }
+.lp-cek-name { font-size:14px;font-weight:800;color:#1a1a14;margin-bottom:4px; }
+.lp-cek-meta { display:flex;flex-wrap:wrap;gap:5px;margin-top:5px; }
+.lp-cek-chip { font-size:11px;font-weight:700;padding:3px 10px;border-radius:100px; }
+/* MODAL */
+.lp-modal-overlay {
+  position:fixed;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(4px);
+  display:flex;align-items:center;justify-content:center;z-index:200;padding:16px;
+  opacity:0;pointer-events:none;transition:opacity .2s;
+}
+.lp-modal-overlay.show { opacity:1;pointer-events:all; }
+.lp-modal {
+  background:#fff;border-radius:16px;padding:24px;max-width:460px;width:100%;
+  max-height:80vh;overflow-y:auto;transform:translateY(16px);transition:transform .2s;
+  box-shadow:0 8px 32px rgba(0,0,0,.2);
+}
+.lp-modal-overlay.show .lp-modal { transform:translateY(0); }
+.lp-modal-head { display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px; }
+.lp-modal-title { font-size:15px;font-weight:800;color:#1a1a14;line-height:1.3; }
+.lp-modal-date  { font-size:11px;color:#8a877e;margin-top:2px; }
+.lp-modal-close {
+  background:#f0ede4;border:none;border-radius:8px;width:30px;height:30px;
+  cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;
+  color:#8a877e;flex-shrink:0;
+}
+.lp-modal-close:hover { background:#e2ddd1; }
+.lp-modal-body { font-size:13px;color:#4a4740;line-height:1.7; }
+/* FOOTER */
+.lp-footer {
+  max-width:680px;margin:28px auto 0;padding:16px;
+  border-top:1px solid #e2ddd1;display:flex;justify-content:space-between;
+  align-items:center;flex-wrap:wrap;gap:10px;
+}
+.lp-footer-brand { font-size:11px;color:#8a877e; }
+.lp-footer-brand strong { color:#4a4740; }
 </style>
 </head>
 <body class="min-h-screen">
 
+<!-- ══════════════════════════════════════════ -->
+<!-- LANDING PAGE (tampil pertama)             -->
+<!-- ══════════════════════════════════════════ -->
+<div id="landingPage">
+
+  <!-- HERO -->
+  <div class="lp-hero">
+    <div class="lp-hero-pattern"></div>
+    <div class="lp-hero-inner">
+      <div class="lp-badge">
+        <span class="lp-badge-dot"></span>
+        <span id="lpBadgeText">Pendaftaran Dibuka</span>
+      </div>
+      <div class="lp-logo-row">
+        <div class="lp-logo-box">🏫</div>
+        <div>
+          <div class="lp-madrasah-name" id="lpNama">Memuat…</div>
+          <div class="lp-madrasah-sub" id="lpSub">Penerimaan Murid Baru (PMB)</div>
+        </div>
+      </div>
+      <p class="lp-tagline" id="lpTagline">Bergabunglah bersama kami — cetak generasi Qurani berakhlak mulia dan berprestasi.</p>
+
+      <!-- COUNTDOWN -->
+      <div class="lp-cd-wrap">
+        <div class="lp-cd-label" id="lpCdLabel">Pendaftaran ditutup dalam</div>
+        <div class="lp-cd-grid">
+          <div class="lp-cd-unit"><div class="lp-cd-num" id="lpCdHari">00</div><div class="lp-cd-lbl">Hari</div></div>
+          <div class="lp-cd-sep">:</div>
+          <div class="lp-cd-unit"><div class="lp-cd-num" id="lpCdJam">00</div><div class="lp-cd-lbl">Jam</div></div>
+          <div class="lp-cd-sep">:</div>
+          <div class="lp-cd-unit"><div class="lp-cd-num" id="lpCdMenit">00</div><div class="lp-cd-lbl">Menit</div></div>
+          <div class="lp-cd-sep">:</div>
+          <div class="lp-cd-unit"><div class="lp-cd-num" id="lpCdDetik">00</div><div class="lp-cd-lbl">Detik</div></div>
+        </div>
+        <div class="lp-cd-status" id="lpCdStatus"></div>
+      </div>
+
+      <div class="lp-cta">
+        <button class="lp-btn-daftar" onclick="tampilForm()">✏️ Daftar Sekarang</button>
+        <button class="lp-btn-cek" onclick="lpScrollCek()">🔍 Cek Status Pendaftaran</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- STATS STRIP -->
+  <div class="lp-stats" id="lpStats">
+    <div class="lp-stats-inner">
+      <div class="lp-stat-item"><div class="lp-stat-num" id="lpStatTotal">–</div><div class="lp-stat-lbl">Total Pendaftar</div></div>
+      <div class="lp-stat-item"><div class="lp-stat-num" id="lpStatDiterima">–</div><div class="lp-stat-lbl">Diterima</div></div>
+      <div class="lp-stat-item"><div class="lp-stat-num" id="lpStatProses">–</div><div class="lp-stat-lbl">Proses Verifikasi</div></div>
+      <div class="lp-stat-item"><div class="lp-stat-num" id="lpStatSisa">–</div><div class="lp-stat-lbl">Kuota Tersisa</div></div>
+    </div>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div class="lp-main">
+
+    <!-- KOLOM KIRI -->
+    <div>
+
+      <!-- JALUR -->
+      <div class="lp-card">
+        <div class="lp-card-head"><div class="lp-card-icon">🚪</div><div class="lp-card-title">Jalur Pendaftaran</div></div>
+        <div class="lp-card-body">
+          <div class="lp-jalur-grid" id="lpJalurGrid">
+            <div style="height:80px;border-radius:10px;background:#f0ede4;animation:lpShimmer 1.4s infinite"></div>
+            <div style="height:80px;border-radius:10px;background:#f0ede4;animation:lpShimmer 1.4s infinite"></div>
+            <div style="height:80px;border-radius:10px;background:#f0ede4;animation:lpShimmer 1.4s infinite"></div>
+            <style>@keyframes lpShimmer{0%{opacity:.6}50%{opacity:1}100%{opacity:.6}}</style>
+          </div>
+        </div>
+      </div>
+
+      <!-- PENGUMUMAN -->
+      <div class="lp-card" id="lpPengCard">
+        <div class="lp-card-head"><div class="lp-card-icon">📢</div><div class="lp-card-title">Pengumuman</div></div>
+        <div class="lp-card-body" id="lpPengList"></div>
+      </div>
+
+      <!-- JADWAL -->
+      <div class="lp-card">
+        <div class="lp-card-head"><div class="lp-card-icon">📅</div><div class="lp-card-title">Jadwal Tahapan PMB</div></div>
+        <div class="lp-card-body"><ul class="lp-timeline" id="lpTimeline"></ul></div>
+      </div>
+
+      <!-- CEK STATUS -->
+      <div class="lp-card" id="lpCekSection">
+        <div class="lp-card-head"><div class="lp-card-icon">🔍</div><div class="lp-card-title">Cek Status Pendaftaran</div></div>
+        <div class="lp-card-body">
+          <p style="font-size:12px;color:#8a877e;margin-bottom:10px">Masukkan nomor pendaftaran untuk melihat status terkini.</p>
+          <div class="lp-cek-wrap">
+            <input class="lp-cek-input" id="lpCekInput" placeholder="PMB-2026-XXXX" type="text" maxlength="20">
+            <button class="lp-cek-btn" id="lpCekBtn" onclick="lpCekStatus()">Cek</button>
+          </div>
+          <div class="lp-cek-result" id="lpCekResult"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SIDEBAR -->
+    <div>
+      <div class="lp-infobox">
+        <h3>Informasi PMB</h3>
+        <div class="lp-info-row"><div class="lp-info-icon">📅</div><div><div class="lp-info-label">Tahun Ajaran</div><div class="lp-info-val" id="lpTA">2026/2027</div></div></div>
+        <div class="lp-info-row"><div class="lp-info-icon">🏫</div><div><div class="lp-info-label">Jenjang</div><div class="lp-info-val" id="lpJenjang">–</div></div></div>
+        <div class="lp-info-row"><div class="lp-info-icon">👥</div><div><div class="lp-info-label">Kuota Penerimaan</div><div class="lp-info-val" id="lpKuota">–</div></div></div>
+        <div class="lp-info-row"><div class="lp-info-icon">📬</div><div><div class="lp-info-label">Kontak Panitia</div><div class="lp-info-val" id="lpKontak">Hubungi madrasah</div></div></div>
+      </div>
+
+      <div class="lp-card">
+        <div class="lp-card-head"><div class="lp-card-icon">📋</div><div class="lp-card-title">Persyaratan Berkas</div></div>
+        <div class="lp-card-body">
+          <ul class="lp-syarat">
+            <li>Akta kelahiran / kartu keluarga</li>
+            <li>Ijazah / SKL jenjang sebelumnya</li>
+            <li>SKHUN / Hasil Ujian</li>
+            <li>Foto terbaru ukuran 3×4 (2 lembar)</li>
+            <li>Piagam prestasi (jalur Prestasi)</li>
+            <li>Surat keterangan pindah (jalur Pindahan)</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="lp-card">
+        <div class="lp-card-head"><div class="lp-card-icon">🔗</div><div class="lp-card-title">Bagikan Link Pendaftaran</div></div>
+        <div class="lp-card-body">
+          <p style="font-size:11px;color:#8a877e;margin-bottom:8px">Bagikan link ini ke calon peserta didik.</p>
+          <div style="display:flex;gap:7px">
+            <input id="lpShareInput" class="lp-cek-input" readonly style="font-size:11px;padding:8px 10px">
+            <button class="lp-cek-btn" onclick="lpSalin()" id="lpSalinBtn" style="padding:8px 12px;font-size:12px">Salin</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="lp-footer">
+    <div class="lp-footer-brand">Formulir PMB oleh <strong>Amanah</strong> — Sistem Manajemen Madrasah</div>
+    <div style="display:flex;gap:14px">
+      <a href="#" style="font-size:11px;color:#8a877e;text-decoration:none" onclick="lpScrollCek();return false">Cek Status</a>
+      <a href="#" style="font-size:11px;color:#8a877e;text-decoration:none" onclick="tampilForm();return false">Daftar</a>
+    </div>
+  </div>
+</div>
+<!-- /LANDING PAGE -->
+
+<!-- MODAL PENGUMUMAN -->
+<div class="lp-modal-overlay" id="lpModalOverlay" onclick="lpTutupModal(event)">
+  <div class="lp-modal">
+    <div class="lp-modal-head">
+      <div><div class="lp-modal-title" id="lpModalTitle"></div><div class="lp-modal-date" id="lpModalDate"></div></div>
+      <button class="lp-modal-close" onclick="lpTutupModal()">✕</button>
+    </div>
+    <div class="lp-modal-body" id="lpModalBody"></div>
+  </div>
+</div>
+
 <!-- HEADER -->
-<div id="header" class="bg-gradient-to-r from-green-700 to-emerald-600 text-white py-5 px-4 shadow-md">
+<div id="header" class="bg-gradient-to-r from-green-700 to-emerald-600 text-white py-5 px-4 shadow-md" style="display:none">
   <div class="max-w-2xl mx-auto flex items-center gap-3">
     <div class="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center text-xl">🏫</div>
     <div>
@@ -719,13 +1063,21 @@ window.addEventListener('DOMContentLoaded', async () => {
   const params = new URLSearchParams(window.location.search);
   const slug = params.get('s');
 
+  // Inisialisasi landing page
+  lpInit();
+
   if (!slug) {
-    // Tidak ada slug → tampilkan dropdown pilih madrasah
+    // Tidak ada slug → tampilkan form dropdown langsung (tanpa landing)
     document.getElementById('loadingBox').classList.add('hidden');
+    document.getElementById('header').style.display = '';
     document.getElementById('pilihMadrasahBox').classList.remove('hidden');
     await muatSemuaMadrasah();
     return;
   }
+
+  // Tampilkan landing page dulu, sembunyikan form
+  document.getElementById('landingPage').style.display = '';
+  document.getElementById('loadingBox').classList.add('hidden');
 
   await muatMadrasah(slug);
 });
@@ -745,6 +1097,9 @@ async function muatMadrasah(slug) {
   }
 
   madrasah = data;
+  // Update landing page dengan data madrasah
+  lpTampilkanMadrasah(data);
+  // Siapkan form (masih tersembunyi, tampil setelah klik Daftar)
   tampilkanMadrasah();
   filterTombolJalur();
 }
@@ -783,11 +1138,8 @@ function tampilkanMadrasah() {
     document.getElementById('jurusanBox').classList.remove('hidden');
   }
 
-  // Tampilkan UI
-  document.getElementById('stepperBox').classList.remove('hidden');
-  document.getElementById('cekStatusBox').classList.remove('hidden');
-  document.getElementById('step1').classList.remove('hidden');
-  document.title = `Pendaftaran PMB ${madrasah.nama}`;
+  // Siapkan title — UI form ditampilkan oleh tampilForm()
+  document.title = `PMB ${madrasah.nama}`;
 }
 
 // ─────────────────────────────────────────────
@@ -1469,6 +1821,188 @@ async function cekStatus() {
         <button onclick="cetakKartuDariCekStatus()" class="${data.status === 'Mendaftar' ? 'flex-1' : 'w-full'} bg-green-600 text-white py-2 rounded-lg text-sm font-semibold hover:bg-green-700">🪪 Cetak Kartu</button>
       </div>
     </div>`;
+}
+
+// ═══════════════════════════════════════════════
+// LANDING PAGE JS
+// ═══════════════════════════════════════════════
+const LP_JALUR_INFO = {
+  'Reguler':           { icon:'📝', desc:'Seleksi akademik reguler' },
+  'Prestasi':          { icon:'🏆', desc:'Berbasis prestasi akademik/non-akademik' },
+  'Afirmasi':          { icon:'💛', desc:'Ekonomi tidak mampu / KIP' },
+  'Perpindahan Tugas': { icon:'🔄', desc:'Anak pindah tugas orang tua' },
+};
+const LP_PENGUMUMAN = [
+  { id:1, icon:'📣', title:'Pembukaan PMB Tahun Ajaran 2026/2027', date:'1 November 2026',
+    excerpt:'Penerimaan Murid Baru resmi dibuka mulai 1 November 2026.',
+    isi:'Dengan mengucap Bismillahirrahmanirrahim, kami mengumumkan pembukaan resmi PMB Tahun Ajaran 2026/2027.\n\nPendaftaran dibuka untuk semua jalur: Reguler, Prestasi, Afirmasi, dan Perpindahan Tugas.\n\nCalon peserta didik dapat mendaftar melalui tombol "Daftar Sekarang" di halaman ini. Pastikan semua berkas persyaratan telah disiapkan.', baru:true },
+  { id:2, icon:'📋', title:'Persyaratan Lengkap Jalur Prestasi', date:'28 Oktober 2026',
+    excerpt:'Detail berkas yang wajib disiapkan pendaftar jalur prestasi.',
+    isi:'Pendaftar melalui jalur Prestasi wajib melampirkan:\n\n• Piagam/sertifikat prestasi (minimal tingkat kabupaten/kota)\n• Foto piagam yang jelas dan terbaca\n• Surat rekomendasi dari kepala sekolah asal\n\nBidang prestasi yang diterima: Akademik, Seni, Olahraga, Keagamaan (MTQ, tahfiz, dll).\n\nPrestasi yang diakui maksimal 3 tahun terakhir.', baru:false },
+  { id:3, icon:'⚠️', title:'Jadwal Tes Seleksi dan Wawancara', date:'25 Oktober 2026',
+    excerpt:'Informasi teknis pelaksanaan seleksi akademik dan wawancara.',
+    isi:'📅 Tes Akademik: 15 Desember 2026\n📅 Wawancara: 16–17 Desember 2026\n📅 Pengumuman Hasil: 20 Desember 2026\n\nPeserta wajib hadir tepat waktu. Bawa kartu peserta dan fotokopi akta kelahiran.', baru:false },
+];
+const LP_TAHAPAN = [
+  { tgl:'1 Nov – 30 Nov 2026', judul:'Pendaftaran Online',        ket:'Pengisian formulir dan upload berkas', status:'aktif' },
+  { tgl:'1 – 5 Des 2026',      judul:'Verifikasi Berkas',          ket:'Panitia memeriksa kelengkapan berkas', status:'mendatang' },
+  { tgl:'15 – 17 Des 2026',    judul:'Tes Seleksi & Wawancara',    ket:'Datang sesuai jadwal yang ditetapkan', status:'mendatang' },
+  { tgl:'20 Des 2026',         judul:'Pengumuman Hasil Seleksi',   ket:'Cek status di halaman ini',           status:'mendatang' },
+  { tgl:'2 – 10 Jan 2027',     judul:'Daftar Ulang & Pembayaran',  ket:'Peserta diterima wajib daftar ulang', status:'mendatang' },
+];
+
+function lpInit() {
+  lpRenderPengumuman();
+  lpRenderTimeline();
+  lpStartCountdown();
+  document.getElementById('lpCekInput').addEventListener('keydown', e => { if(e.key==='Enter') lpCekStatus(); });
+  document.getElementById('lpShareInput').value = location.href;
+}
+
+function lpTampilkanMadrasah(data) {
+  document.getElementById('lpNama').textContent     = data.nama;
+  document.getElementById('lpSub').textContent      = `Penerimaan Murid Baru (PMB) · ${data.jenjang}`;
+  document.getElementById('lpTagline').textContent  = `Bergabunglah bersama ${data.nama} — cetak generasi Qurani berakhlak mulia dan berprestasi.`;
+  document.getElementById('lpJenjang').textContent  = data.jenjang || '–';
+  document.getElementById('lpTA').textContent       = '2026/2027';
+  document.getElementById('lpKuota').textContent    = '60 Siswa (Estimasi)';
+  document.getElementById('lpShareInput').value     = location.href;
+  lpRenderJalur(data.jalur_aktif);
+  lpMuatStatistik(data.id);
+}
+
+function lpRenderJalur(jalurAktif) {
+  const aktif = Array.isArray(jalurAktif) ? jalurAktif : ['Reguler','Prestasi','Afirmasi','Perpindahan Tugas'];
+  const semua = ['Reguler','Prestasi','Afirmasi','Perpindahan Tugas'];
+  document.getElementById('lpJalurGrid').innerHTML = semua.map(j => {
+    const info = LP_JALUR_INFO[j];
+    const ok   = aktif.includes(j);
+    return `<div class="lp-jalur-card${ok?' aktif':''}" style="${ok?'':'opacity:.45;cursor:default'}" onclick="${ok?`tampilForm()`:''}">
+      <div class="lp-jalur-icon">${info.icon}</div>
+      <div class="lp-jalur-name">${j}</div>
+      <div class="lp-jalur-desc">${info.desc}</div>
+      <span class="lp-jalur-badge ${ok?'buka':'tutup'}">${ok?'Dibuka':'Ditutup'}</span>
+    </div>`;
+  }).join('');
+}
+
+async function lpMuatStatistik(madrasahId) {
+  const { data } = await sb.from('pendaftar_pmb').select('status').eq('madrasah_id', madrasahId).eq('tahun_ajaran','2026/2027');
+  if (!data) return;
+  const total = data.length, diterima = data.filter(d=>d.status==='Diterima').length;
+  const proses = data.filter(d=>['Mendaftar','Verifikasi'].includes(d.status)).length;
+  document.getElementById('lpStatTotal').textContent   = total;
+  document.getElementById('lpStatDiterima').textContent= diterima;
+  document.getElementById('lpStatProses').textContent  = proses;
+  document.getElementById('lpStatSisa').textContent    = Math.max(0, 60 - diterima);
+  document.getElementById('lpStats').style.display     = '';
+}
+
+function lpRenderPengumuman() {
+  document.getElementById('lpPengList').innerHTML = LP_PENGUMUMAN.map(p =>
+    `<div class="lp-peng-item" onclick="lpBukaModal(${p.id})">
+      <div class="lp-peng-icon">${p.icon}</div>
+      <div><div class="lp-peng-date">${p.date}</div>
+      <div class="lp-peng-title">${p.title}${p.baru?'<span class="lp-peng-new">BARU</span>':''}</div>
+      <div class="lp-peng-exc">${p.excerpt}</div></div>
+    </div>`
+  ).join('');
+}
+
+function lpRenderTimeline() {
+  document.getElementById('lpTimeline').innerHTML = LP_TAHAPAN.map(t =>
+    `<li class="lp-tl-item">
+      <div class="lp-tl-dot ${t.status}"></div>
+      <div><div class="lp-tl-date">${t.tgl}</div>
+      <div class="lp-tl-title">${t.judul}</div>
+      <div class="lp-tl-note">${t.ket}</div>
+      <span class="lp-tl-chip chip-${t.status}">${t.status==='aktif'?'Sedang Berlangsung':t.status==='selesai'?'Selesai':'Akan Datang'}</span></div>
+    </li>`
+  ).join('');
+}
+
+let _lpCdInterval = null;
+function lpStartCountdown() {
+  // Countdown ke penutupan pendaftaran: 30 Nov 2026 pukul 23:59 WIB
+  const target = new Date('2026-11-30T16:59:00Z');
+  function tick() {
+    const diff = target - new Date();
+    if (diff <= 0) {
+      document.getElementById('lpCdLabel').textContent = 'Pendaftaran telah ditutup';
+      document.getElementById('lpCdStatus').innerHTML = '<span class="lp-cd-closed">⏹ Periode pendaftaran sudah berakhir</span>';
+      ['lpCdHari','lpCdJam','lpCdMenit','lpCdDetik'].forEach(id => document.getElementById(id).textContent = '00');
+      clearInterval(_lpCdInterval); return;
+    }
+    document.getElementById('lpCdHari').textContent   = String(Math.floor(diff/86400000)).padStart(2,'0');
+    document.getElementById('lpCdJam').textContent    = String(Math.floor((diff%86400000)/3600000)).padStart(2,'0');
+    document.getElementById('lpCdMenit').textContent  = String(Math.floor((diff%3600000)/60000)).padStart(2,'0');
+    document.getElementById('lpCdDetik').textContent  = String(Math.floor((diff%60000)/1000)).padStart(2,'0');
+    document.getElementById('lpCdStatus').innerHTML   = '<span class="lp-cd-open">● Pendaftaran sedang dibuka</span>';
+  }
+  tick(); _lpCdInterval = setInterval(tick, 1000);
+}
+
+async function lpCekStatus() {
+  const no  = document.getElementById('lpCekInput').value.trim().toUpperCase();
+  const res = document.getElementById('lpCekResult');
+  if (!no) return;
+  document.getElementById('lpCekBtn').textContent = '…';
+  res.className = 'lp-cek-result'; res.style.display = 'none';
+  const { data, error } = await sb.from('pendaftar_pmb').select('*').eq('no_pendaftaran', no).single();
+  document.getElementById('lpCekBtn').textContent = 'Cek';
+  if (error || !data) {
+    res.className = 'lp-cek-result err show';
+    res.innerHTML = `❌ Nomor <strong>${no}</strong> tidak ditemukan.`;
+    res.style.display = 'block'; return;
+  }
+  const stCls = {'Mendaftar':'background:#dbeafe;color:#1d4ed8','Verifikasi':'background:#fef9c3;color:#854d0e','Diterima':'background:#dcfce7;color:#15803d','Tidak Diterima':'background:#fee2e2;color:#b91c1c','Cadangan':'background:#ede9fe;color:#6d28d9'}[data.status]||'background:#dbeafe;color:#1d4ed8';
+  res.className = 'lp-cek-result ok show';
+  res.innerHTML = `<div class="lp-cek-name">${data.nama_lengkap}</div>
+    <div style="font-size:11px;color:#8a877e">No: <strong>${data.no_pendaftaran}</strong></div>
+    <div class="lp-cek-meta">
+      <span class="lp-cek-chip" style="${stCls}">${data.status}</span>
+      <span class="lp-cek-chip" style="background:#f0ede4;color:#4a4740">${data.jalur_pendaftaran||'Reguler'}</span>
+    </div>
+    ${data.catatan_admin?`<div style="margin-top:7px;font-size:11px;background:#f0ede4;border-radius:6px;padding:7px 9px;color:#4a4740">📝 ${data.catatan_admin}</div>`:''}`;
+  res.style.display = 'block';
+}
+
+function lpScrollCek() {
+  document.getElementById('lpCekSection').scrollIntoView({behavior:'smooth',block:'center'});
+  setTimeout(() => document.getElementById('lpCekInput').focus(), 500);
+}
+
+function lpBukaModal(id) {
+  const p = LP_PENGUMUMAN.find(x => x.id === id); if (!p) return;
+  document.getElementById('lpModalTitle').textContent = p.title;
+  document.getElementById('lpModalDate').textContent  = p.date;
+  document.getElementById('lpModalBody').innerHTML    = p.isi.split('\n').map(l => l ? `<p style="margin-bottom:8px">${l}</p>` : '<br>').join('');
+  document.getElementById('lpModalOverlay').classList.add('show');
+}
+function lpTutupModal(e) {
+  if (!e || e.target === document.getElementById('lpModalOverlay')) {
+    document.getElementById('lpModalOverlay').classList.remove('show');
+  }
+}
+
+function lpSalin() {
+  const val = document.getElementById('lpShareInput').value;
+  navigator.clipboard.writeText(val).then(() => {
+    const btn = document.getElementById('lpSalinBtn');
+    btn.textContent = '✓ Tersalin';
+    setTimeout(() => btn.textContent = 'Salin', 2000);
+  });
+}
+
+function tampilForm() {
+  clearInterval(_lpCdInterval);
+  document.getElementById('landingPage').style.display   = 'none';
+  document.getElementById('lpModalOverlay').classList.remove('show');
+  document.getElementById('header').style.display        = '';
+  document.getElementById('stepperBox').classList.remove('hidden');
+  document.getElementById('cekStatusBox').classList.remove('hidden');
+  document.getElementById('step1').classList.remove('hidden');
+  window.scrollTo({top:0, behavior:'smooth'});
 }
 
 // ─────────────────────────────────────────────
