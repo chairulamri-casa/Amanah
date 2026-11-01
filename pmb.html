@@ -1167,8 +1167,8 @@ function bukaModalEdit() {
   document.getElementById('edit_asal_sekolah').value  = data.asal_sekolah || '';
   document.getElementById('edit_nama_ayah').value     = data.nama_ayah || '';
   document.getElementById('edit_nama_ibu').value      = data.nama_ibu || '';
-  document.getElementById('edit_hp_ortu').value       = data.no_hp_ortu || '';
-  document.getElementById('edit_hp_peserta').value    = data.no_hp_peserta || '';
+  document.getElementById('edit_hp_ortu').value       = data.hp_ortu || '';
+  document.getElementById('edit_hp_peserta').value    = data.nomor_hp || '';
   document.getElementById('edit_alamat').value        = data.alamat || '';
 
   // Tampilkan foto yang sudah ada
@@ -1223,7 +1223,7 @@ async function simpanEditData() {
   const tl   = document.getElementById('edit_tempat_lahir').value.trim();
   const tgl  = document.getElementById('edit_tgl_lahir').value;
   const as   = document.getElementById('edit_asal_sekolah').value.trim();
-  const hp   = document.getElementById('edit_hp_ortu').value.trim();
+  const hp   = document.getElementById('edit_hp_ortu').value.trim(); // → hp_ortu
   const alm  = document.getElementById('edit_alamat').value.trim();
 
   if (!nama || !jk || !tl || !tgl || !as || !hp || !alm) {
@@ -1261,8 +1261,8 @@ async function simpanEditData() {
     asal_sekolah    : as,
     nama_ayah       : document.getElementById('edit_nama_ayah').value.trim() || null,
     nama_ibu        : document.getElementById('edit_nama_ibu').value.trim() || null,
-    no_hp_ortu      : hp,
-    no_hp_peserta   : document.getElementById('edit_hp_peserta').value.trim() || null,
+    hp_ortu         : hp,
+    nomor_hp        : document.getElementById('edit_hp_peserta').value.trim() || null,
     alamat          : alm,
   };
 
