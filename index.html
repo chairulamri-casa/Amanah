@@ -6,7 +6,6 @@
 
 <style>
 /* ─── DESIGN TOKENS ──────────────────────────────────── */
-/* Layout: full-bleed hero with stacked content cards */
 :root {
   --bg:       #f7f5ef;
   --surface:  #ffffff;
@@ -523,7 +522,7 @@ img { max-width: 100%; }
 
     <!-- COUNTDOWN -->
     <div class="countdown-wrap" id="countdownWrap">
-      <div class="countdown-label" id="countdownLabel">Pendaftaran dibuka dalam</div>
+      <div class="countdown-label" id="countdownLabel">Sisa waktu pendaftaran</div>
       <div class="countdown-grid">
         <div class="countdown-unit">
           <div class="countdown-num" id="cdHari">00</div>
@@ -595,7 +594,6 @@ img { max-width: 100%; }
       </div>
       <div class="card-body">
         <div class="jalur-grid" id="jalurGrid">
-          <!-- diisi JS -->
           <div class="skeleton" style="height:90px;border-radius:10px"></div>
           <div class="skeleton" style="height:90px;border-radius:10px"></div>
           <div class="skeleton" style="height:90px;border-radius:10px"></div>
@@ -747,11 +745,14 @@ const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsI
 const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
 // ── GLOBAL STATE ────────────────────────────────────────
-let madrasah = null;
+let madrasah      = null;
 let countdownTarget = null;
 let countdownInterval = null;
-let pmbUrl = '';
-let tahunAjaran = `${new Date().getFullYear()}/${new Date().getFullYear()+1}`;
+let pmbUrl        = '';
+let tahunAjaran   = `${new Date().getFullYear()}/${new Date().getFullYear()+1}`;
+
+// Kuota aktif (bisa dioverride dari pmb_config)
+let _kuota = 60;
 
 // ── JALUR DATA ──────────────────────────────────────────
 const JALUR_INFO = {
@@ -761,8 +762,8 @@ const JALUR_INFO = {
   'Perpindahan Tugas': { icon:'🔄', desc:'Anak pindah tugas orang tua', kuota: 'Sangat terbatas' },
 };
 
-// ── PENGUMUMAN DATA (statis / bisa dari Supabase nanti) ─
-const PENGUMUMAN_DATA = [
+// ── DATA DEFAULT (dipakai jika pmb_config tidak ada) ────
+const DEFAULT_PENGUMUMAN = [
   {
     id: 1,
     icon: '📣',
@@ -792,8 +793,7 @@ const PENGUMUMAN_DATA = [
   },
 ];
 
-// ── JADWAL TAHAPAN ──────────────────────────────────────
-const TAHAPAN = [
+const DEFAULT_TAHAPAN = [
   { tgl: '1 Nov – 30 Nov 2026',  judul: 'Pendaftaran Online',          ket: 'Pengisian formulir dan upload berkas', status: 'aktif' },
   { tgl: '1 – 5 Des 2026',       judul: 'Verifikasi Berkas',            ket: 'Panitia memeriksa kelengkapan berkas', status: 'mendatang' },
   { tgl: '15 – 17 Des 2026',     judul: 'Tes Seleksi & Wawancara',      ket: 'Datang sesuai jadwal yang ditetapkan', status: 'mendatang' },
@@ -802,66 +802,143 @@ const TAHAPAN = [
   { tgl: '13 Juli 2027',         judul: 'Tahun Ajaran Baru Dimulai',   ket: 'Hari pertama masuk sekolah', status: 'mendatang' },
 ];
 
+// Data aktif (akan diisi setelah pmb_config dimuat)
+let PENGUMUMAN_DATA = DEFAULT_PENGUMUMAN.slice();
+let TAHAPAN        = DEFAULT_TAHAPAN.slice();
+
+// ── TERAPKAN CONFIG DARI pmb_config ─────────────────────
+function terapkanConfig(cfg) {
+  if (!cfg) return;
+
+  // Pengumuman dari Supabase
+  if (cfg.pengumuman && Array.isArray(cfg.pengumuman) && cfg.pengumuman.length > 0) {
+    PENGUMUMAN_DATA = cfg.pengumuman;
+  }
+
+  // Tahapan dari Supabase
+  if (cfg.tahapan && Array.isArray(cfg.tahapan) && cfg.tahapan.length > 0) {
+    TAHAPAN = cfg.tahapan;
+  }
+
+  // Tanggal tutup pendaftaran
+  if (cfg.tanggal_tutup) {
+    countdownTarget = new Date(cfg.tanggal_tutup);
+  }
+
+  // Kuota
+  if (cfg.kuota) {
+    _kuota = cfg.kuota;
+  }
+
+  // Kontak
+  if (cfg.kontak) {
+    document.getElementById('infoKontak').textContent = cfg.kontak;
+  }
+
+  // Tagline hero
+  if (cfg.tagline) {
+    document.getElementById('heroTagline').textContent = cfg.tagline;
+  }
+}
+
 // ── INIT ────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
   const params = new URLSearchParams(location.search);
   const slug = params.get('s');
 
-  renderPengumuman();
-  renderTimeline();
+  // Set countdown default — akan dioverride oleh pmb_config jika ada
+  countdownTarget = new Date('2026-11-30T16:59:00Z');
 
   if (slug) {
+    // Render UI kosong dulu, muat data asli dari Supabase
     muatMadrasah(slug);
   } else {
-    // Demo mode — tampilkan data contoh
+    // Demo mode — pakai data default
+    renderPengumuman();
+    renderTimeline();
+    startCountdown();
     muatDemoMode();
   }
-
-  // Setup countdown target (contoh: 1 Desember 2026 00:00 WIB)
-  countdownTarget = new Date('2026-11-30T17:00:00Z'); // 30 Nov 2026 pk 00:00 WIB = 30 Nov 17:00 UTC-1... pakai saja tanggal tutup
-  startCountdown();
 });
 
-// ── MUAT MADRASAH ────────────────────────────────────────
+// ── MUAT MADRASAH + pmb_config (parallel) ───────────────
 async function muatMadrasah(slug) {
-  const { data, error } = await sb
-    .from('madrasah')
-    .select('id,nama,jenjang,slug,jalur_aktif')
-    .eq('slug', slug)
-    .single();
+  try {
+    // Fetch madrasah dan pmb_config secara bersamaan
+    const [{ data, error }, { data: cfgArr }] = await Promise.all([
+      sb.from('madrasah')
+        .select('id,nama,jenjang,slug,jalur_aktif')
+        .eq('slug', slug)
+        .single(),
+      sb.from('pmb_config')
+        .select('*')
+        .eq('tahun_ajaran', tahunAjaran),
+    ]);
 
-  if (error || !data) {
+    if (error || !data) {
+      renderPengumuman();
+      renderTimeline();
+      startCountdown();
+      muatDemoMode();
+      return;
+    }
+
+    madrasah = data;
+    pmbUrl = location.origin + location.pathname + '?s=' + encodeURIComponent(slug);
+
+    // Cari config untuk madrasah ini
+    const cfg = (cfgArr || []).find(c => c.madrasah_id === data.id) || null;
+
+    // Terapkan config (override PENGUMUMAN_DATA, TAHAPAN, countdownTarget, dll)
+    terapkanConfig(cfg);
+
+    // Render setelah config diterapkan
+    renderPengumuman();
+    renderTimeline();
+    startCountdown();
+
+    // Update hero
+    document.getElementById('heroNama').textContent = data.nama;
+    document.getElementById('heroSub').textContent = `Penerimaan Murid Baru (PMB) · ${data.jenjang}`;
+
+    // Tagline default jika tidak ada di config
+    if (!cfg || !cfg.tagline) {
+      document.getElementById('heroTagline').textContent =
+        `Bergabunglah bersama ${data.nama} — cetak generasi Qurani berakhlak mulia dan berprestasi.`;
+    }
+
+    // Info sidebar
+    document.getElementById('infoJenjang').textContent = data.jenjang || '–';
+    document.getElementById('infoTA').textContent = tahunAjaran;
+    document.getElementById('infoKuota').textContent = _kuota + ' Siswa';
+
+    // Kontak default jika tidak ada di config
+    if (!cfg || !cfg.kontak) {
+      document.getElementById('infoKontak').textContent = 'Hubungi madrasah';
+    }
+
+    // Link daftar & share
+    const formUrl = location.origin + '/pmb.html?s=' + encodeURIComponent(slug);
+    document.getElementById('btnDaftar').href = formUrl;
+    document.getElementById('footerDaftar').href = formUrl;
+    document.getElementById('shareInput').value = location.href;
+
+    // Jalur grid
+    renderJalurGrid(data.jalur_aktif);
+
+    // Muat statistik
+    muatStatistik(data.id);
+
+  } catch (err) {
+    console.error('muatMadrasah error:', err);
+    renderPengumuman();
+    renderTimeline();
+    startCountdown();
     muatDemoMode();
-    return;
   }
-  madrasah = data;
-  pmbUrl = location.origin + location.pathname + '?s=' + encodeURIComponent(slug);
-
-  // Update hero
-  document.getElementById('heroNama').textContent = data.nama;
-  document.getElementById('heroSub').textContent = `Penerimaan Murid Baru (PMB) · ${data.jenjang}`;
-  document.getElementById('heroTagline').textContent =
-    `Bergabunglah bersama ${data.nama} — cetak generasi Qurani berakhlak mulia dan berprestasi.`;
-
-  // Info sidebar
-  document.getElementById('infoJenjang').textContent = data.jenjang || '–';
-  document.getElementById('infoTA').textContent = tahunAjaran;
-  document.getElementById('infoKuota').textContent = '60 Siswa (Estimasi)';
-  document.getElementById('infoKontak').textContent = 'Hubungi madrasah';
-
-  // Link daftar & share
-  const formUrl = location.origin + '/pmb.html?s=' + encodeURIComponent(slug);
-  document.getElementById('btnDaftar').href = formUrl;
-  document.getElementById('footerDaftar').href = formUrl;
-  document.getElementById('shareInput').value = location.href;
-
-  // Jalur grid
-  renderJalurGrid(data.jalur_aktif);
-
-  // Muat statistik
-  muatStatistik(data.id);
 }
 
+// ── DEMO MODE ───────────────────────────────────────────
 function muatDemoMode() {
   document.getElementById('heroNama').textContent = 'MIN 8 Kota Banda Aceh';
   document.getElementById('heroSub').textContent = 'Penerimaan Murid Baru (PMB) · MI';
@@ -886,20 +963,18 @@ function muatDemoMode() {
 
 // ── STATISTIK ───────────────────────────────────────────
 async function muatStatistik(madrasahId) {
-  const ta = tahunAjaran;
   const { data } = await sb
     .from('pendaftar_pmb')
     .select('status')
     .eq('madrasah_id', madrasahId)
-    .eq('tahun_ajaran', ta);
+    .eq('tahun_ajaran', tahunAjaran);
 
   if (!data) return;
 
   const total    = data.length;
   const diterima = data.filter(d => d.status === 'Diterima').length;
   const proses   = data.filter(d => ['Mendaftar','Verifikasi'].includes(d.status)).length;
-  const kuota    = 60;
-  const sisa     = Math.max(0, kuota - diterima);
+  const sisa     = Math.max(0, _kuota - diterima);
 
   document.getElementById('statTotal').textContent    = total;
   document.getElementById('statDiterima').textContent = diterima;
@@ -949,7 +1024,6 @@ function renderPengumuman() {
 
 // ── TIMELINE ────────────────────────────────────────────
 function renderTimeline() {
-  const now = new Date();
   const html = TAHAPAN.map(t => `
     <li class="tl-item">
       <div class="tl-dot ${t.status}"></div>
@@ -969,13 +1043,12 @@ function renderTimeline() {
 
 // ── COUNTDOWN ───────────────────────────────────────────
 function startCountdown() {
+  if (countdownInterval) clearInterval(countdownInterval);
   function tick() {
-    const now   = new Date();
-    const diff  = countdownTarget - now;
+    const now  = new Date();
+    const diff = countdownTarget - now;
 
     if (diff <= 0) {
-      // Pendaftaran sudah ditutup — cek apakah masih dalam masa pendaftaran
-      // Jika diff < 0 artinya waktu target sudah lewat → tutup
       document.getElementById('cdHari').textContent  = '00';
       document.getElementById('cdJam').textContent   = '00';
       document.getElementById('cdMenit').textContent = '00';
@@ -983,20 +1056,22 @@ function startCountdown() {
       document.getElementById('countdownLabel').textContent  = 'Pendaftaran telah ditutup';
       document.getElementById('countdownStatus').innerHTML   =
         '<span class="countdown-closed">⏹ Periode pendaftaran sudah berakhir</span>';
+      document.getElementById('heroBadgeText').textContent = 'Pendaftaran Ditutup';
       clearInterval(countdownInterval);
       return;
     }
 
-    const hari   = Math.floor(diff / 86400000);
-    const jam    = Math.floor((diff % 86400000) / 3600000);
-    const menit  = Math.floor((diff % 3600000)  / 60000);
-    const detik  = Math.floor((diff % 60000)    / 1000);
+    const hari  = Math.floor(diff / 86400000);
+    const jam   = Math.floor((diff % 86400000) / 3600000);
+    const menit = Math.floor((diff % 3600000)  / 60000);
+    const detik = Math.floor((diff % 60000)    / 1000);
 
     document.getElementById('cdHari').textContent  = String(hari).padStart(2,'0');
     document.getElementById('cdJam').textContent   = String(jam).padStart(2,'0');
     document.getElementById('cdMenit').textContent = String(menit).padStart(2,'0');
     document.getElementById('cdDetik').textContent = String(detik).padStart(2,'0');
 
+    document.getElementById('countdownLabel').textContent = 'Sisa waktu pendaftaran';
     document.getElementById('countdownStatus').innerHTML =
       '<span class="countdown-open">● Pendaftaran sedang dibuka</span>';
     document.getElementById('heroBadgeText').textContent = 'Pendaftaran Dibuka';
