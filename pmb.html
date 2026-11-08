@@ -1062,6 +1062,7 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // State
 let madrasah = null;
+let pmbCfg   = null;
 let jalurDipilih = 'Reguler';
 let currentStep = 1;
 let submittedData = null;
@@ -1109,6 +1110,7 @@ async function muatMadrasah(slug) {
 
   // Ambil config untuk madrasah ini (jika ada)
   const cfg = (cfgArr || []).find(c => c.madrasah_id === data.id) || null;
+  pmbCfg = cfg;
   lpTerapkanConfig(cfg);
 
   try { lpInit(cfg); } catch(e) { console.warn('lpInit error:', e); }
@@ -1442,6 +1444,56 @@ async function submitForm() {
 
     status            : 'Mendaftar',
   };
+
+  // ── Validasi duplikat NISN / NIK ──────────────────────────────────
+  const isMI = madrasah.jenjang === 'MI';
+  const nisnVal = payload.nisn;
+  const nikVal  = payload.nik;
+
+  if (nisnVal) {
+    // Cek duplikat NISN (semua jenjang)
+    const { data: dupNisn } = await sb
+      .from('pendaftar_pmb')
+      .select('id,nama_lengkap')
+      .eq('madrasah_id', madrasah.id)
+      .eq('tahun_ajaran', tahunAjaran)
+      .eq('nisn', nisnVal)
+      .limit(1);
+    if (dupNisn && dupNisn.length > 0) {
+      btn.disabled = false;
+      txt.textContent = '✅ Daftar Sekarang';
+      alert(`❌ NISN ${nisnVal} sudah terdaftar atas nama "${dupNisn[0].nama_lengkap}". Pendaftaran tidak dapat dilanjutkan.`);
+      return;
+    }
+  } else if (isMI && nikVal) {
+    // MI tanpa NISN → gunakan NIK sebagai pengenal duplikat
+    const { data: dupNik } = await sb
+      .from('pendaftar_pmb')
+      .select('id,nama_lengkap')
+      .eq('madrasah_id', madrasah.id)
+      .eq('tahun_ajaran', tahunAjaran)
+      .eq('nik', nikVal)
+      .limit(1);
+    if (dupNik && dupNik.length > 0) {
+      btn.disabled = false;
+      txt.textContent = '✅ Daftar Sekarang';
+      alert(`❌ NIK ${nikVal} sudah terdaftar atas nama "${dupNik[0].nama_lengkap}". Pendaftaran tidak dapat dilanjutkan.`);
+      return;
+    }
+  }
+
+  // ── Validasi batas umur minimal ───────────────────────────────────
+  if (pmbCfg && pmbCfg.tanggal_lahir_maks && payload.tanggal_lahir) {
+    const tglLahir   = new Date(payload.tanggal_lahir);
+    const tglMaks    = new Date(pmbCfg.tanggal_lahir_maks);
+    if (tglLahir > tglMaks) {
+      btn.disabled = false;
+      txt.textContent = '✅ Daftar Sekarang';
+      const fmt = d => d.toLocaleDateString('id-ID', { day:'numeric', month:'long', year:'numeric' });
+      alert(`❌ Tanggal lahir calon siswa (${fmt(tglLahir)}) belum memenuhi batas umur minimal yang ditetapkan panitia.\n\nCalon siswa harus lahir pada atau sebelum ${fmt(tglMaks)}.`);
+      return;
+    }
+  }
 
   const { data, error } = await sb.from('pendaftar_pmb').insert(payload).select().single();
 
