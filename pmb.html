@@ -1871,9 +1871,17 @@ const LP_TAHAPAN = [
 function lpTerapkanConfig(cfg) {
   if (!cfg) return;
   // Simpan status buka/tutup secara global
-  window._lpStatusBuka = cfg.status_buka !== false; // default true jika tidak ada
+  window._lpStatusBuka = cfg.status_buka !== false;
+  // Bangun datetime buka & tutup dari tanggal + jam
+  if (cfg.tanggal_buka) {
+    const jam = cfg.jam_buka || '08:00';
+    window._lpTanggalBuka = new Date(`${cfg.tanggal_buka}T${jam}`);
+  }
+  if (cfg.tanggal_tutup) {
+    const jam = cfg.jam_tutup || '23:59';
+    window._lpTanggalTutup = new Date(`${cfg.tanggal_tutup}T${jam}`);
+  }
   if (cfg.pengumuman && cfg.pengumuman.length) {
-    // Replace LP_PENGUMUMAN dengan data dari Supabase
     LP_PENGUMUMAN.length = 0;
     cfg.pengumuman.forEach(p => LP_PENGUMUMAN.push(p));
   }
@@ -1881,10 +1889,9 @@ function lpTerapkanConfig(cfg) {
     LP_TAHAPAN.length = 0;
     cfg.tahapan.forEach(t => LP_TAHAPAN.push(t));
   }
-  if (cfg.tanggal_tutup) window._lpTanggalTutup = new Date(cfg.tanggal_tutup);
-  if (cfg.kuota)         window._lpKuota         = cfg.kuota;
-  if (cfg.kontak)        window._lpKontak        = cfg.kontak;
-  if (cfg.tagline)       window._lpTagline       = cfg.tagline;
+  if (cfg.kuota)   window._lpKuota  = cfg.kuota;
+  if (cfg.kontak)  window._lpKontak = cfg.kontak;
+  if (cfg.tagline) window._lpTagline = cfg.tagline;
 }
 
 function lpInit(cfg) {
@@ -1969,22 +1976,63 @@ function lpRenderTimeline() {
 }
 
 let _lpCdInterval = null;
+function lpFmtDiff(diff) {
+  const h = Math.floor(diff/3600000);
+  const m = Math.floor((diff%3600000)/60000);
+  const s = Math.floor((diff%60000)/1000);
+  const d = Math.floor(diff/86400000);
+  if (d > 0) return `${d} hari ${String(h%24).padStart(2,'0')} jam ${String(m).padStart(2,'0')} menit ${String(s).padStart(2,'0')} detik`;
+  if (h > 0) return `${String(h).padStart(2,'0')} jam ${String(m).padStart(2,'0')} menit ${String(s).padStart(2,'0')} detik`;
+  return `${String(m).padStart(2,'0')} menit ${String(s).padStart(2,'0')} detik`;
+}
 function lpStartCountdown() {
-  // Gunakan tanggal dari config Supabase, fallback ke default
-  const target = window._lpTanggalTutup || new Date('2026-11-30T16:59:00Z');
+  const buka  = window._lpTanggalBuka  || null;
+  const tutup = window._lpTanggalTutup || null;
+
   function tick() {
-    const diff = target - new Date();
-    if (diff <= 0) {
-      document.getElementById('lpCdLabel').textContent = 'Pendaftaran telah ditutup';
-      document.getElementById('lpCdStatus').innerHTML = '<span class="lp-cd-closed">⏹ Periode pendaftaran sudah berakhir</span>';
+    const now  = new Date();
+    const diffBuka  = buka  ? buka  - now : -1;
+    const diffTutup = tutup ? tutup - now : -1;
+
+    // ── KONDISI 1: Belum buka ──────────────────────────────────
+    if (buka && diffBuka > 0) {
+      document.getElementById('lpCdLabel').textContent = '⏳ Pendaftaran akan dibuka dalam';
+      document.getElementById('lpCdStatus').innerHTML  = `<span class="lp-cd-closed">🔒 Belum dibuka — ${new Date(buka).toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'})} pukul ${buka.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'})} WIB</span>`;
+      const diff = diffBuka;
+      document.getElementById('lpCdHari').textContent   = String(Math.floor(diff/86400000)).padStart(2,'0');
+      document.getElementById('lpCdJam').textContent    = String(Math.floor((diff%86400000)/3600000)).padStart(2,'0');
+      document.getElementById('lpCdMenit').textContent  = String(Math.floor((diff%3600000)/60000)).padStart(2,'0');
+      document.getElementById('lpCdDetik').textContent  = String(Math.floor((diff%60000)/1000)).padStart(2,'0');
+      // Blokir tombol daftar
+      window._lpStatusBuka = false;
+      return;
+    }
+
+    // ── KONDISI 3: Sudah tutup ─────────────────────────────────
+    if (tutup && diffTutup <= 0) {
+      document.getElementById('lpCdLabel').textContent = '🔒 Pendaftaran telah ditutup';
+      document.getElementById('lpCdStatus').innerHTML  = '<span class="lp-cd-closed">⏹ Periode pendaftaran sudah berakhir</span>';
       ['lpCdHari','lpCdJam','lpCdMenit','lpCdDetik'].forEach(id => document.getElementById(id).textContent = '00');
+      window._lpStatusBuka = false;
       clearInterval(_lpCdInterval); return;
     }
-    document.getElementById('lpCdHari').textContent   = String(Math.floor(diff/86400000)).padStart(2,'0');
-    document.getElementById('lpCdJam').textContent    = String(Math.floor((diff%86400000)/3600000)).padStart(2,'0');
-    document.getElementById('lpCdMenit').textContent  = String(Math.floor((diff%3600000)/60000)).padStart(2,'0');
-    document.getElementById('lpCdDetik').textContent  = String(Math.floor((diff%60000)/1000)).padStart(2,'0');
-    document.getElementById('lpCdStatus').innerHTML   = '<span class="lp-cd-open">● Pendaftaran sedang dibuka</span>';
+
+    // ── KONDISI 2: Masa pendaftaran berlangsung ─────────────────
+    if (tutup && diffTutup > 0) {
+      document.getElementById('lpCdLabel').textContent = '⏰ Pendaftaran ditutup dalam';
+      document.getElementById('lpCdStatus').innerHTML  = '<span class="lp-cd-open">● Pendaftaran sedang dibuka</span>';
+      const diff = diffTutup;
+      document.getElementById('lpCdHari').textContent   = String(Math.floor(diff/86400000)).padStart(2,'0');
+      document.getElementById('lpCdJam').textContent    = String(Math.floor((diff%86400000)/3600000)).padStart(2,'0');
+      document.getElementById('lpCdMenit').textContent  = String(Math.floor((diff%3600000)/60000)).padStart(2,'0');
+      document.getElementById('lpCdDetik').textContent  = String(Math.floor((diff%60000)/1000)).padStart(2,'0');
+      return;
+    }
+
+    // Fallback: tidak ada tanggal yang dikonfigurasi
+    document.getElementById('lpCdStatus').innerHTML = '<span class="lp-cd-open">● Pendaftaran sedang dibuka</span>';
+    document.getElementById('lpCdLabel').textContent = 'Status Pendaftaran';
+    ['lpCdHari','lpCdJam','lpCdMenit','lpCdDetik'].forEach(id => document.getElementById(id).textContent = '--');
   }
   tick(); _lpCdInterval = setInterval(tick, 1000);
 }
