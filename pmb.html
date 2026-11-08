@@ -1992,11 +1992,10 @@ function lpFmtDiff(diff) {
   return `${String(m).padStart(2,'0')} menit ${String(s).padStart(2,'0')} detik`;
 }
 function lpStartCountdown() {
-  const buka  = window._lpTanggalBuka  || null;
-  const tutup = window._lpTanggalTutup || null;
-
   function tick() {
     const now  = new Date();
+    const buka  = window._lpTanggalBuka  || null;
+    const tutup = window._lpTanggalTutup || null;
     const diffBuka  = buka  ? buka  - now : -1;
     const diffTutup = tutup ? tutup - now : -1;
 
