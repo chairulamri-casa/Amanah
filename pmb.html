@@ -1870,6 +1870,8 @@ const LP_TAHAPAN = [
 // Terapkan config dari Supabase ke variabel LP_ (override default)
 function lpTerapkanConfig(cfg) {
   if (!cfg) return;
+  // Simpan status buka/tutup secara global
+  window._lpStatusBuka = cfg.status_buka !== false; // default true jika tidak ada
   if (cfg.pengumuman && cfg.pengumuman.length) {
     // Replace LP_PENGUMUMAN dengan data dari Supabase
     LP_PENGUMUMAN.length = 0;
@@ -1905,6 +1907,15 @@ function lpTampilkanMadrasah(data) {
   document.getElementById('lpShareInput').value     = location.href;
   lpRenderJalur(data.jalur_aktif);
   lpMuatStatistik(data.id);
+  // Update badge dan tombol sesuai status_buka
+  if (window._lpStatusBuka === false) {
+    const badgeEl = document.getElementById('lpBadgeText');
+    if (badgeEl) { badgeEl.textContent = 'Pendaftaran Ditutup'; badgeEl.parentElement.style.background='rgba(239,68,68,.2)'; badgeEl.parentElement.style.borderColor='rgba(239,68,68,.4)'; }
+    const dotEl = document.querySelector('.lp-badge-dot');
+    if (dotEl) { dotEl.style.background='#f87171'; dotEl.style.animation='none'; }
+    const btnDaftar = document.querySelector('.lp-btn-daftar');
+    if (btnDaftar) { btnDaftar.style.opacity='0.5'; btnDaftar.style.cursor='not-allowed'; btnDaftar.textContent='⛔ Pendaftaran Ditutup'; }
+  }
 }
 
 function lpRenderJalur(jalurAktif) {
@@ -2031,6 +2042,11 @@ function lpSalin() {
 }
 
 function tampilForm() {
+  // Blokir jika pendaftaran ditutup
+  if (window._lpStatusBuka === false) {
+    alert('⛔ Pendaftaran saat ini sedang DITUTUP.\nSilakan pantau pengumuman untuk informasi pembukaan pendaftaran berikutnya.');
+    return;
+  }
   clearInterval(_lpCdInterval);
   document.getElementById('landingPage').classList.add('lp-hidden');
   document.getElementById('lpModalOverlay').classList.remove('show');

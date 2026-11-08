@@ -1,0 +1,2077 @@
+<!DOCTYPE html>
+<!-- PMB Amanah v2.1 -->
+<html lang="id">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
+<meta http-equiv="Pragma" content="no-cache"/>
+<meta http-equiv="Expires" content="0"/>
+<title>Pendaftaran Online PMB</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  // Matikan Tailwind preflight (CSS reset) agar tidak mengganggu landing page CSS
+  tailwind.config = { corePlugins: { preflight: false } };
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<style>
+  body { font-family: 'Segoe UI', sans-serif; background: #f0f4f8; }
+  .step-dot { width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px; }
+  .step-line { flex:1;height:2px;margin:0 4px; }
+  input,select,textarea { transition: border-color .15s; }
+  input:focus,select:focus,textarea:focus { outline:none;border-color:#2563eb;box-shadow:0 0 0 3px rgba(37,99,235,.12); }
+  .field-group label { display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:4px; }
+  .field-group input, .field-group select, .field-group textarea {
+    width:100%;border:1.5px solid #d1d5db;border-radius:8px;padding:8px 12px;font-size:14px;background:#fff;
+  }
+  .field-group textarea { resize:vertical;min-height:70px; }
+  .section-card { background:#fff;border-radius:12px;padding:20px 24px;margin-bottom:16px;border:1px solid #e5e7eb; }
+  .section-title { font-size:15px;font-weight:700;color:#1e40af;margin-bottom:16px;padding-bottom:8px;border-bottom:2px solid #dbeafe; }
+  @media(max-width:640px){ .section-card{padding:14px 16px;} }
+  .spinner { display:inline-block;width:18px;height:18px;border:2.5px solid #fff;border-top-color:transparent;border-radius:50%;animation:spin .7s linear infinite; }
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .badge-mendaftar  { background:#dbeafe;color:#1d4ed8; }
+  .badge-diterima   { background:#dcfce7;color:#15803d; }
+  .badge-tidak      { background:#fee2e2;color:#b91c1c; }
+
+/* ═══ LANDING PAGE ════════════════════════════════════ */
+#landingPage { font-family:'Plus Jakarta Sans',system-ui,sans-serif; }
+#landingPage.lp-hidden { display:none !important; }
+/* HERO */
+.lp-hero {
+  background:linear-gradient(135deg,#0f3d25 0%,#1a5c38 55%,#2d7a50 100%);
+  color:#fff; position:relative; overflow:hidden;
+}
+.lp-hero-pattern {
+  position:absolute;inset:0;
+  background:radial-gradient(circle at 20% 50%,rgba(255,255,255,.04) 0%,transparent 50%),
+             radial-gradient(circle at 80% 20%,rgba(184,135,11,.15) 0%,transparent 40%);
+  pointer-events:none;
+}
+.lp-hero-inner { position:relative;max-width:680px;margin:0 auto;padding:44px 20px 32px; }
+.lp-badge {
+  display:inline-flex;align-items:center;gap:6px;
+  background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);
+  border-radius:100px;padding:4px 14px;font-size:12px;font-weight:700;
+  letter-spacing:.05em;text-transform:uppercase;color:rgba(255,255,255,.9);margin-bottom:20px;
+}
+.lp-badge-dot { width:7px;height:7px;border-radius:50%;background:#4ade80;animation:lpPulse 1.6s ease-in-out infinite; }
+@keyframes lpPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(1.5)}}
+.lp-logo-row { display:flex;align-items:center;gap:14px;margin-bottom:14px; }
+.lp-logo-box {
+  width:54px;height:54px;border-radius:14px;flex-shrink:0;
+  background:rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;font-size:26px;
+}
+.lp-madrasah-name { font-size:clamp(18px,4.5vw,26px);font-weight:800;line-height:1.2; }
+.lp-madrasah-sub  { font-size:13px;color:rgba(255,255,255,.7);margin-top:2px; }
+.lp-tagline       { font-size:13px;color:rgba(255,255,255,.65);margin-bottom:24px;line-height:1.6; }
+/* COUNTDOWN */
+.lp-cd-wrap {
+  background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);
+  border-radius:12px;padding:16px 18px;margin-bottom:22px;
+}
+.lp-cd-label { font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.6);margin-bottom:10px; }
+.lp-cd-grid { display:flex;gap:6px;align-items:flex-start; }
+.lp-cd-unit { flex:1;text-align:center; }
+.lp-cd-num  { font-size:clamp(28px,7vw,42px);font-weight:800;line-height:1;font-variant-numeric:tabular-nums;color:#fff; }
+.lp-cd-lbl  { font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.5);margin-top:3px; }
+.lp-cd-sep  { font-size:30px;font-weight:800;color:rgba(255,255,255,.35);padding-top:2px;line-height:1; }
+.lp-cd-status { font-size:12px;color:rgba(255,255,255,.65);margin-top:8px; }
+.lp-cd-open   { color:#4ade80;font-weight:700; }
+.lp-cd-closed { color:#fca5a5;font-weight:700; }
+/* CTA */
+.lp-cta { display:flex;flex-wrap:wrap;gap:10px; }
+.lp-btn-daftar {
+  display:inline-flex;align-items:center;gap:8px;
+  background:#b8870b;color:#fff;font-weight:700;font-size:15px;
+  padding:13px 24px;border-radius:100px;border:none;cursor:pointer;
+  font-family:inherit;box-shadow:0 4px 16px rgba(184,135,11,.45);
+  transition:transform .15s,box-shadow .15s;
+}
+.lp-btn-daftar:hover { transform:translateY(-2px);box-shadow:0 8px 24px rgba(184,135,11,.55); }
+.lp-btn-cek {
+  display:inline-flex;align-items:center;gap:8px;
+  background:rgba(255,255,255,.15);border:1.5px solid rgba(255,255,255,.3);
+  color:#fff;font-weight:600;font-size:14px;padding:12px 20px;
+  border-radius:100px;cursor:pointer;font-family:inherit;
+  transition:background .15s;
+}
+.lp-btn-cek:hover { background:rgba(255,255,255,.22); }
+/* STATS */
+.lp-stats {
+  background:#b8870b;padding:13px 20px;
+  display:none;
+}
+.lp-stats-inner { max-width:680px;margin:0 auto;display:flex;justify-content:space-around;flex-wrap:wrap; }
+.lp-stat-item { text-align:center;padding:4px 10px;border-right:1px solid rgba(255,255,255,.3); }
+.lp-stat-item:last-child { border-right:none; }
+.lp-stat-num { font-size:22px;font-weight:800;color:#fff;font-variant-numeric:tabular-nums; }
+.lp-stat-lbl { font-size:10px;font-weight:700;color:rgba(255,255,255,.8);letter-spacing:.05em;text-transform:uppercase; }
+/* MAIN CONTENT */
+.lp-main { max-width:680px;margin:0 auto;padding:24px 16px 0;display:grid;grid-template-columns:1fr 290px;gap:18px;align-items:start; }
+@media(max-width:640px){ .lp-main{grid-template-columns:1fr;} }
+/* CARD */
+.lp-card { background:#fff;border:1px solid #e2ddd1;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,.06);overflow:hidden;margin-bottom:14px; }
+.lp-card-head { display:flex;align-items:center;gap:10px;padding:13px 16px;border-bottom:1px solid #e2ddd1;background:#f7f5ef; }
+.lp-card-icon { width:30px;height:30px;border-radius:8px;background:#e6f4ec;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0; }
+.lp-card-title { font-size:12px;font-weight:800;color:#1a1a14;text-transform:uppercase;letter-spacing:.05em; }
+.lp-card-body { padding:14px 16px; }
+/* JALUR */
+.lp-jalur-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px; }
+.lp-jalur-card {
+  border:1.5px solid #e2ddd1;border-radius:10px;padding:12px 8px;text-align:center;
+  background:#fff;transition:border-color .15s,transform .12s,background .15s;cursor:pointer;
+}
+.lp-jalur-card:hover { border-color:#2e7d54;transform:translateY(-2px);background:#e6f4ec; }
+.lp-jalur-card.aktif { border-color:#2e7d54;background:#e6f4ec; }
+.lp-jalur-icon { font-size:26px;margin-bottom:5px; }
+.lp-jalur-name { font-size:11px;font-weight:800;color:#1a1a14; }
+.lp-jalur-desc { font-size:10px;color:#8a877e;margin-top:2px;line-height:1.4; }
+.lp-jalur-badge { display:inline-block;margin-top:5px;font-size:9px;font-weight:800;letter-spacing:.04em;padding:2px 8px;border-radius:100px; }
+.lp-jalur-badge.buka  { background:#e6f4ec;color:#2e7d54; }
+.lp-jalur-badge.tutup { background:#fee2e2;color:#b91c1c; }
+/* PENGUMUMAN */
+.lp-peng-item {
+  display:flex;gap:10px;align-items:flex-start;padding:11px;border-radius:8px;
+  background:#f7f5ef;border:1px solid #e2ddd1;margin-bottom:8px;cursor:pointer;transition:background .12s;
+}
+.lp-peng-item:last-child { margin-bottom:0; }
+.lp-peng-item:hover { background:#e6f4ec;border-color:#2e7d54; }
+.lp-peng-icon { width:34px;height:34px;border-radius:8px;background:#e6f4ec;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0; }
+.lp-peng-date  { font-size:10px;color:#8a877e;font-weight:600; }
+.lp-peng-title { font-size:13px;font-weight:700;color:#1a1a14;line-height:1.35; }
+.lp-peng-exc   { font-size:11px;color:#8a877e;margin-top:2px; }
+.lp-peng-new   { font-size:9px;font-weight:800;background:#b91c1c;color:#fff;padding:2px 6px;border-radius:100px;margin-left:5px; }
+/* TIMELINE */
+.lp-timeline { list-style:none;padding:0; }
+.lp-tl-item { display:flex;gap:10px;padding:9px 0;border-bottom:1px solid #e2ddd1; }
+.lp-tl-item:last-child { border-bottom:none; }
+.lp-tl-dot { width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:4px;border:2px solid #fff; }
+.lp-tl-dot.aktif    { background:#2e7d54;box-shadow:0 0 0 2px #e6f4ec; }
+.lp-tl-dot.mendatang{ background:#b8870b;box-shadow:0 0 0 2px #fdf3d6; }
+.lp-tl-dot.selesai  { background:#8a877e;box-shadow:0 0 0 2px #f0ede4; }
+.lp-tl-date  { font-size:10px;color:#8a877e;font-weight:600; }
+.lp-tl-title { font-size:12px;font-weight:700;color:#1a1a14;margin:1px 0; }
+.lp-tl-note  { font-size:11px;color:#8a877e; }
+.lp-tl-chip  { font-size:9px;font-weight:700;padding:2px 7px;border-radius:100px;display:inline-block;margin-top:2px; }
+.chip-aktif    { background:#e6f4ec;color:#2e7d54; }
+.chip-mendatang{ background:#fdf3d6;color:#8a6408; }
+.chip-selesai  { background:#f0ede4;color:#8a877e; }
+/* SIDEBAR */
+.lp-infobox {
+  background:linear-gradient(135deg,#0f3d25,#1a5c38);
+  border-radius:12px;padding:18px;color:#fff;margin-bottom:14px;
+}
+.lp-infobox h3 { font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;opacity:.65;margin-bottom:10px; }
+.lp-info-row { display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.12); }
+.lp-info-row:last-child { border-bottom:none; }
+.lp-info-icon { font-size:17px;width:26px;text-align:center;flex-shrink:0; }
+.lp-info-label { font-size:10px;opacity:.6;font-weight:700;letter-spacing:.04em;text-transform:uppercase; }
+.lp-info-val   { font-size:13px;font-weight:700; }
+.lp-syarat { list-style:none;padding:0; }
+.lp-syarat li { display:flex;gap:8px;align-items:flex-start;padding:7px 0;border-bottom:1px solid #e2ddd1;font-size:12px;color:#4a4740; }
+.lp-syarat li:last-child { border-bottom:none; }
+.lp-syarat li::before { content:"✓";color:#2e7d54;font-weight:800;flex-shrink:0;margin-top:1px; }
+/* CEK STATUS */
+.lp-cek-wrap { display:flex;gap:8px; }
+.lp-cek-input {
+  flex:1;min-width:0;border:1.5px solid #e2ddd1;border-radius:8px;padding:9px 12px;
+  font-size:13px;font-family:inherit;background:#fff;transition:border-color .15s;
+}
+.lp-cek-input:focus { outline:none;border-color:#2e7d54;box-shadow:0 0 0 3px #e6f4ec; }
+.lp-cek-btn { background:#2e7d54;color:#fff;border:none;border-radius:8px;padding:9px 16px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit; }
+.lp-cek-btn:hover { background:#1a5c38; }
+.lp-cek-result { margin-top:10px;padding:12px;border-radius:8px;font-size:12px;display:none; }
+.lp-cek-result.show { display:block; }
+.lp-cek-result.ok  { background:#e6f4ec;border:1px solid #2e7d54;color:#1a1a14; }
+.lp-cek-result.err { background:#fee2e2;border:1px solid #b91c1c;color:#b91c1c; }
+.lp-cek-name { font-size:14px;font-weight:800;color:#1a1a14;margin-bottom:4px; }
+.lp-cek-meta { display:flex;flex-wrap:wrap;gap:5px;margin-top:5px; }
+.lp-cek-chip { font-size:11px;font-weight:700;padding:3px 10px;border-radius:100px; }
+/* MODAL */
+.lp-modal-overlay {
+  position:fixed;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(4px);
+  display:flex;align-items:center;justify-content:center;z-index:200;padding:16px;
+  opacity:0;pointer-events:none;transition:opacity .2s;
+}
+.lp-modal-overlay.show { opacity:1;pointer-events:all; }
+.lp-modal {
+  background:#fff;border-radius:16px;padding:24px;max-width:460px;width:100%;
+  max-height:80vh;overflow-y:auto;transform:translateY(16px);transition:transform .2s;
+  box-shadow:0 8px 32px rgba(0,0,0,.2);
+}
+.lp-modal-overlay.show .lp-modal { transform:translateY(0); }
+.lp-modal-head { display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px; }
+.lp-modal-title { font-size:15px;font-weight:800;color:#1a1a14;line-height:1.3; }
+.lp-modal-date  { font-size:11px;color:#8a877e;margin-top:2px; }
+.lp-modal-close {
+  background:#f0ede4;border:none;border-radius:8px;width:30px;height:30px;
+  cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;
+  color:#8a877e;flex-shrink:0;
+}
+.lp-modal-close:hover { background:#e2ddd1; }
+.lp-modal-body { font-size:13px;color:#4a4740;line-height:1.7; }
+/* FOOTER */
+.lp-footer {
+  max-width:680px;margin:28px auto 0;padding:16px;
+  border-top:1px solid #e2ddd1;display:flex;justify-content:space-between;
+  align-items:center;flex-wrap:wrap;gap:10px;
+}
+.lp-footer-brand { font-size:11px;color:#8a877e; }
+.lp-footer-brand strong { color:#4a4740; }
+</style>
+</head>
+<body class="min-h-screen">
+
+<!-- ══════════════════════════════════════════ -->
+<!-- LANDING PAGE (tampil pertama)             -->
+<!-- ══════════════════════════════════════════ -->
+<div id="landingPage">
+
+  <!-- HERO -->
+  <div class="lp-hero">
+    <div class="lp-hero-pattern"></div>
+    <div class="lp-hero-inner">
+      <div class="lp-badge">
+        <span class="lp-badge-dot"></span>
+        <span id="lpBadgeText">Pendaftaran Dibuka</span>
+      </div>
+      <div class="lp-logo-row">
+        <div class="lp-logo-box">🏫</div>
+        <div>
+          <div class="lp-madrasah-name" id="lpNama">Memuat…</div>
+          <div class="lp-madrasah-sub" id="lpSub">Penerimaan Murid Baru (PMB)</div>
+        </div>
+      </div>
+      <p class="lp-tagline" id="lpTagline">Bergabunglah bersama kami — cetak generasi Qurani berakhlak mulia dan berprestasi.</p>
+
+      <!-- COUNTDOWN -->
+      <div class="lp-cd-wrap">
+        <div class="lp-cd-label" id="lpCdLabel">Pendaftaran ditutup dalam</div>
+        <div class="lp-cd-grid">
+          <div class="lp-cd-unit"><div class="lp-cd-num" id="lpCdHari">00</div><div class="lp-cd-lbl">Hari</div></div>
+          <div class="lp-cd-sep">:</div>
+          <div class="lp-cd-unit"><div class="lp-cd-num" id="lpCdJam">00</div><div class="lp-cd-lbl">Jam</div></div>
+          <div class="lp-cd-sep">:</div>
+          <div class="lp-cd-unit"><div class="lp-cd-num" id="lpCdMenit">00</div><div class="lp-cd-lbl">Menit</div></div>
+          <div class="lp-cd-sep">:</div>
+          <div class="lp-cd-unit"><div class="lp-cd-num" id="lpCdDetik">00</div><div class="lp-cd-lbl">Detik</div></div>
+        </div>
+        <div class="lp-cd-status" id="lpCdStatus"></div>
+      </div>
+
+      <div class="lp-cta">
+        <button class="lp-btn-daftar" onclick="tampilForm()">✏️ Daftar Sekarang</button>
+        <button class="lp-btn-cek" onclick="lpScrollCek()">🔍 Cek Status Pendaftaran</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- STATS STRIP -->
+  <div class="lp-stats" id="lpStats">
+    <div class="lp-stats-inner">
+      <div class="lp-stat-item"><div class="lp-stat-num" id="lpStatTotal">–</div><div class="lp-stat-lbl">Total Pendaftar</div></div>
+      <div class="lp-stat-item"><div class="lp-stat-num" id="lpStatDiterima">–</div><div class="lp-stat-lbl">Diterima</div></div>
+      <div class="lp-stat-item"><div class="lp-stat-num" id="lpStatProses">–</div><div class="lp-stat-lbl">Proses Verifikasi</div></div>
+      <div class="lp-stat-item"><div class="lp-stat-num" id="lpStatSisa">–</div><div class="lp-stat-lbl">Kuota Tersisa</div></div>
+    </div>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div class="lp-main">
+
+    <!-- KOLOM KIRI -->
+    <div>
+
+      <!-- JALUR -->
+      <div class="lp-card">
+        <div class="lp-card-head"><div class="lp-card-icon">🚪</div><div class="lp-card-title">Jalur Pendaftaran</div></div>
+        <div class="lp-card-body">
+          <div class="lp-jalur-grid" id="lpJalurGrid">
+            <div style="height:80px;border-radius:10px;background:#f0ede4;animation:lpShimmer 1.4s infinite"></div>
+            <div style="height:80px;border-radius:10px;background:#f0ede4;animation:lpShimmer 1.4s infinite"></div>
+            <div style="height:80px;border-radius:10px;background:#f0ede4;animation:lpShimmer 1.4s infinite"></div>
+            <style>@keyframes lpShimmer{0%{opacity:.6}50%{opacity:1}100%{opacity:.6}}</style>
+          </div>
+        </div>
+      </div>
+
+      <!-- PENGUMUMAN -->
+      <div class="lp-card" id="lpPengCard">
+        <div class="lp-card-head"><div class="lp-card-icon">📢</div><div class="lp-card-title">Pengumuman</div></div>
+        <div class="lp-card-body" id="lpPengList"></div>
+      </div>
+
+      <!-- JADWAL -->
+      <div class="lp-card">
+        <div class="lp-card-head"><div class="lp-card-icon">📅</div><div class="lp-card-title">Jadwal Tahapan PMB</div></div>
+        <div class="lp-card-body"><ul class="lp-timeline" id="lpTimeline"></ul></div>
+      </div>
+
+      <!-- CEK STATUS -->
+      <div class="lp-card" id="lpCekSection">
+        <div class="lp-card-head"><div class="lp-card-icon">🔍</div><div class="lp-card-title">Cek Status Pendaftaran</div></div>
+        <div class="lp-card-body">
+          <p style="font-size:12px;color:#8a877e;margin-bottom:10px">Masukkan nomor pendaftaran untuk melihat status terkini.</p>
+          <div class="lp-cek-wrap">
+            <input class="lp-cek-input" id="lpCekInput" placeholder="PMB-2026-XXXX" type="text" maxlength="20">
+            <button class="lp-cek-btn" id="lpCekBtn" onclick="lpCekStatus()">Cek</button>
+          </div>
+          <div class="lp-cek-result" id="lpCekResult"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SIDEBAR -->
+    <div>
+      <div class="lp-infobox">
+        <h3>Informasi PMB</h3>
+        <div class="lp-info-row"><div class="lp-info-icon">📅</div><div><div class="lp-info-label">Tahun Ajaran</div><div class="lp-info-val" id="lpTA">2026/2027</div></div></div>
+        <div class="lp-info-row"><div class="lp-info-icon">🏫</div><div><div class="lp-info-label">Jenjang</div><div class="lp-info-val" id="lpJenjang">–</div></div></div>
+        <div class="lp-info-row"><div class="lp-info-icon">👥</div><div><div class="lp-info-label">Kuota Penerimaan</div><div class="lp-info-val" id="lpKuota">–</div></div></div>
+        <div class="lp-info-row"><div class="lp-info-icon">📬</div><div><div class="lp-info-label">Kontak Panitia</div><div class="lp-info-val" id="lpKontak">Hubungi madrasah</div></div></div>
+      </div>
+
+      <div class="lp-card">
+        <div class="lp-card-head"><div class="lp-card-icon">📋</div><div class="lp-card-title">Persyaratan Berkas</div></div>
+        <div class="lp-card-body">
+          <ul class="lp-syarat">
+            <li>Akta kelahiran / kartu keluarga</li>
+            <li>Ijazah / SKL jenjang sebelumnya</li>
+            <li>SKHUN / Hasil Ujian</li>
+            <li>Foto terbaru ukuran 3×4 (2 lembar)</li>
+            <li>Piagam prestasi (jalur Prestasi)</li>
+            <li>Surat keterangan pindah (jalur Pindahan)</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="lp-card">
+        <div class="lp-card-head"><div class="lp-card-icon">🔗</div><div class="lp-card-title">Bagikan Link Pendaftaran</div></div>
+        <div class="lp-card-body">
+          <p style="font-size:11px;color:#8a877e;margin-bottom:8px">Bagikan link ini ke calon peserta didik.</p>
+          <div style="display:flex;gap:7px">
+            <input id="lpShareInput" class="lp-cek-input" readonly style="font-size:11px;padding:8px 10px">
+            <button class="lp-cek-btn" onclick="lpSalin()" id="lpSalinBtn" style="padding:8px 12px;font-size:12px">Salin</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="lp-footer">
+    <div class="lp-footer-brand">Formulir PMB oleh <strong>Amanah</strong> — Sistem Manajemen Madrasah</div>
+    <div style="display:flex;gap:14px">
+      <a href="#" style="font-size:11px;color:#8a877e;text-decoration:none" onclick="lpScrollCek();return false">Cek Status</a>
+      <a href="#" style="font-size:11px;color:#8a877e;text-decoration:none" onclick="tampilForm();return false">Daftar</a>
+    </div>
+  </div>
+</div>
+<!-- /LANDING PAGE -->
+
+<!-- MODAL PENGUMUMAN -->
+<div class="lp-modal-overlay" id="lpModalOverlay" onclick="lpTutupModal(event)">
+  <div class="lp-modal">
+    <div class="lp-modal-head">
+      <div><div class="lp-modal-title" id="lpModalTitle"></div><div class="lp-modal-date" id="lpModalDate"></div></div>
+      <button class="lp-modal-close" onclick="lpTutupModal()">✕</button>
+    </div>
+    <div class="lp-modal-body" id="lpModalBody"></div>
+  </div>
+</div>
+
+<!-- HEADER (tersembunyi sampai klik Daftar) -->
+<div id="header" class="bg-gradient-to-r from-green-700 to-emerald-600 text-white py-5 px-4 shadow-md" style="display:none">
+  <div class="max-w-2xl mx-auto flex items-center gap-3">
+    <div class="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center text-xl">🏫</div>
+    <div>
+      <div id="header-madrasah" class="font-bold text-lg leading-tight">Pendaftaran Online</div>
+      <div id="header-sub" class="text-green-100 text-sm">Penerimaan Murid Baru (PMB)</div>
+    </div>
+  </div>
+</div>
+
+<div id="formWrapper" class="max-w-2xl mx-auto px-4 py-6" style="display:none">
+
+  <!-- LOADING -->
+  <div id="loadingBox" class="text-center py-16 text-gray-500">
+    <div class="text-3xl mb-2">⏳</div>
+    <div>Memuat data madrasah…</div>
+  </div>
+
+  <!-- ERROR MADRASAH TIDAK DITEMUKAN -->
+  <div id="errorBox" class="hidden text-center py-16">
+    <div class="text-5xl mb-3">⚠️</div>
+    <div class="text-lg font-bold text-red-700 mb-2">Madrasah tidak ditemukan</div>
+    <div class="text-gray-500 text-sm">Pastikan link yang Anda gunakan sudah benar.</div>
+  </div>
+
+  <!-- PILIH MADRASAH (jika tidak ada slug) -->
+  <div id="pilihMadrasahBox" class="hidden section-card">
+    <div class="section-title">🏫 Pilih Madrasah</div>
+    <div class="field-group">
+      <label>Madrasah Tujuan</label>
+      <select id="selectMadrasah" onchange="pilihMadrasah(this.value)">
+        <option value="">-- Pilih madrasah --</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- STEPPER -->
+  <div id="stepperBox" class="hidden mb-6">
+    <div class="flex items-center justify-center">
+      <div id="dot1" class="step-dot bg-green-600 text-white">1</div>
+      <div id="line12" class="step-line bg-gray-300"></div>
+      <div id="dot2" class="step-dot bg-gray-200 text-gray-500">2</div>
+      <div id="line23" class="step-line bg-gray-300"></div>
+      <div id="dot3" class="step-dot bg-gray-200 text-gray-500">3</div>
+    </div>
+    <div class="flex justify-between text-xs text-gray-500 mt-1 px-1">
+      <span>Data Diri</span><span class="text-center">Data Keluarga</span><span class="text-right">Selesai</span>
+    </div>
+  </div>
+
+  <!-- CEK STATUS PENDAFTARAN -->
+  <div id="cekStatusBox" class="hidden mb-4">
+    <button onclick="toggleCekStatus()" class="text-sm text-blue-600 hover:underline">🔍 Sudah mendaftar? Cek status pendaftaran</button>
+    <div id="cekStatusForm" class="hidden mt-3 section-card">
+      <div class="section-title">🔍 Cek Status Pendaftaran</div>
+      <div class="flex gap-2">
+        <input id="inputNoPendaftaran" type="text" placeholder="Nomor pendaftaran (misal: PMB-2026-0001)" class="flex-1 border rounded-lg px-3 py-2 text-sm border-gray-300"/>
+        <button onclick="cekStatus()" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-700">Cek</button>
+      </div>
+      <div id="hasilCek" class="mt-3 hidden"></div>
+    </div>
+  </div>
+
+  <!-- MODAL EDIT DATA PENDAFTAR -->
+  <div id="modalEdit" class="hidden fixed inset-0 bg-black/50 z-50 flex items-start justify-center p-4 overflow-y-auto">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg my-6">
+      <div class="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-5 py-4 rounded-t-2xl flex justify-between items-center">
+        <div>
+          <div class="font-bold text-base">✏️ Edit Data Pendaftaran</div>
+          <div id="editNoPendaftaran" class="text-blue-100 text-xs mt-0.5"></div>
+        </div>
+        <button onclick="tutupModalEdit()" class="text-white/80 hover:text-white text-xl font-bold">✕</button>
+      </div>
+      <div class="p-5 space-y-4">
+        <!-- Data Pribadi -->
+        <div>
+          <div class="text-sm font-bold text-blue-700 mb-3 pb-1 border-b border-blue-100">👤 Data Pribadi</div>
+          <div class="grid grid-cols-1 gap-3">
+            <div class="field-group">
+              <label>Nama Lengkap <span class="text-red-500">*</span></label>
+              <input id="edit_nama" type="text" placeholder="Nama lengkap tanpa singkatan"/>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <div class="field-group">
+                <label>NISN</label>
+                <input id="edit_nisn" type="text" placeholder="10 digit NISN"/>
+              </div>
+              <div class="field-group">
+                <label>Jenis Kelamin <span class="text-red-500">*</span></label>
+                <select id="edit_jk">
+                  <option value="">-- Pilih --</option>
+                  <option value="L">Laki-laki</option>
+                  <option value="P">Perempuan</option>
+                </select>
+              </div>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <div class="field-group">
+                <label>Tempat Lahir <span class="text-red-500">*</span></label>
+                <input id="edit_tempat_lahir" type="text" placeholder="Kota tempat lahir"/>
+              </div>
+              <div class="field-group">
+                <label>Tanggal Lahir <span class="text-red-500">*</span></label>
+                <input id="edit_tgl_lahir" type="date"/>
+              </div>
+            </div>
+            <div class="field-group">
+              <label>Asal Sekolah <span class="text-red-500">*</span></label>
+              <input id="edit_asal_sekolah" type="text" placeholder="Nama sekolah asal"/>
+            </div>
+          </div>
+        </div>
+        <!-- Data Orang Tua -->
+        <div>
+          <div class="text-sm font-bold text-blue-700 mb-3 pb-1 border-b border-blue-100">👨‍👩‍👧 Data Orang Tua / Wali</div>
+          <div class="grid grid-cols-1 gap-3">
+            <div class="grid grid-cols-2 gap-3">
+              <div class="field-group">
+                <label>Nama Ayah</label>
+                <input id="edit_nama_ayah" type="text"/>
+              </div>
+              <div class="field-group">
+                <label>Nama Ibu</label>
+                <input id="edit_nama_ibu" type="text"/>
+              </div>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <div class="field-group">
+                <label>No. HP Orang Tua <span class="text-red-500">*</span></label>
+                <input id="edit_hp_ortu" type="tel" placeholder="08xx-xxxx-xxxx"/>
+              </div>
+              <div class="field-group">
+                <label>No. HP Peserta</label>
+                <input id="edit_hp_peserta" type="tel" placeholder="08xx-xxxx-xxxx"/>
+              </div>
+            </div>
+            <div class="field-group">
+              <label>Alamat Lengkap <span class="text-red-500">*</span></label>
+              <textarea id="edit_alamat" rows="2" placeholder="Alamat lengkap peserta"></textarea>
+            </div>
+          </div>
+        </div>
+        <!-- Upload Foto -->
+        <div>
+          <div class="text-sm font-bold text-blue-700 mb-3 pb-1 border-b border-blue-100">📸 Foto Peserta</div>
+          <div class="flex gap-4 items-start">
+            <div id="editFotoWrap" class="w-20 h-24 border-2 border-dashed border-gray-300 rounded-lg overflow-hidden flex items-center justify-content:center bg-gray-50 flex-shrink-0">
+              <img id="editFotoPreview" src="" class="w-full h-full object-cover object-top hidden"/>
+              <span id="editFotoPlaceholder" class="text-gray-400 text-xs text-center p-1 w-full">Belum ada foto</span>
+            </div>
+            <div class="flex-1">
+              <label class="block text-xs text-gray-500 mb-1">Ganti foto (maks. 2 MB, JPG/PNG)</label>
+              <input id="edit_foto" type="file" accept="image/jpeg,image/png,image/jpg"
+                onchange="previewEditFoto(this)"
+                class="block w-full text-xs text-gray-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"/>
+              <p id="editFotoNama" class="text-xs text-green-600 mt-1 hidden"></p>
+              <p class="text-xs text-gray-400 mt-1">Kosongkan jika tidak ingin mengganti foto</p>
+            </div>
+          </div>
+        </div>
+        <!-- Tombol -->
+        <div class="flex gap-3 pt-2">
+          <button onclick="tutupModalEdit()" class="flex-1 border border-gray-300 text-gray-600 py-2.5 rounded-xl text-sm font-semibold hover:bg-gray-50">Batal</button>
+          <button onclick="simpanEditData()" id="btnSimpanEdit" class="flex-1 bg-blue-600 text-white py-2.5 rounded-xl text-sm font-semibold hover:bg-blue-700">
+            💾 Simpan Perubahan
+          </button>
+        </div>
+        <div id="editMsg" class="hidden text-sm text-center rounded-lg py-2 px-3"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 1: DATA DIRI PESERTA -->
+  <div id="step1" class="hidden">
+
+    <!-- Info Madrasah -->
+    <div id="infoMadrasahCard" class="section-card bg-green-50 border-green-200 mb-4">
+      <div class="flex items-center gap-3">
+        <div class="text-3xl">🏫</div>
+        <div>
+          <div id="namaMadrasahDisplay" class="font-bold text-green-800 text-base"></div>
+          <div id="tahunAjaranDisplay" class="text-sm text-green-600"></div>
+        </div>
+      </div>
+      <div class="mt-2 text-sm text-gray-600 flex gap-4 flex-wrap">
+        <span id="jenjangDisplay"></span>
+        <span id="jalurDisplay"></span>
+      </div>
+    </div>
+
+    <!-- Jalur Pendaftaran -->
+    <div class="section-card">
+      <div class="section-title">📋 Jalur Pendaftaran</div>
+      <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <label id="jalur-reguler" class="jalur-btn flex flex-col items-center gap-1 p-3 border-2 rounded-xl cursor-pointer border-green-500 bg-green-50 text-green-700">
+          <input type="radio" name="jalur" value="Reguler" class="sr-only" checked onchange="setJalur('Reguler')"/>
+          <span class="text-2xl">📝</span><span class="text-xs font-semibold text-center">Reguler</span>
+        </label>
+        <label id="jalur-prestasi" class="jalur-btn flex flex-col items-center gap-1 p-3 border-2 rounded-xl cursor-pointer border-gray-200 text-gray-500">
+          <input type="radio" name="jalur" value="Prestasi" class="sr-only" onchange="setJalur('Prestasi')"/>
+          <span class="text-2xl">🏆</span><span class="text-xs font-semibold text-center">Prestasi</span>
+        </label>
+        <label id="jalur-afirmasi" class="jalur-btn flex flex-col items-center gap-1 p-3 border-2 rounded-xl cursor-pointer border-gray-200 text-gray-500">
+          <input type="radio" name="jalur" value="Afirmasi" class="sr-only" onchange="setJalur('Afirmasi')"/>
+          <span class="text-2xl">💛</span><span class="text-xs font-semibold text-center">Afirmasi</span>
+        </label>
+        <label id="jalur-pindahan" class="jalur-btn flex flex-col items-center gap-1 p-3 border-2 rounded-xl cursor-pointer border-gray-200 text-gray-500">
+          <input type="radio" name="jalur" value="Perpindahan Tugas" class="sr-only" onchange="setJalur('Perpindahan Tugas')"/>
+          <span class="text-2xl">🔄</span><span class="text-xs font-semibold text-center leading-tight">Perpindahan Tugas</span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Data Pribadi -->
+    <div class="section-card">
+      <div class="section-title">👤 Data Pribadi Calon Peserta Didik</div>
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+
+        <!-- Upload Foto -->
+        <div class="field-group sm:col-span-2">
+          <label>Foto Terbaru <span class="text-red-500">*</span></label>
+          <div class="flex flex-col sm:flex-row gap-4 items-start">
+            <div id="fotoPreviewBox" class="w-28 h-36 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center bg-gray-50 shrink-0 overflow-hidden">
+              <span class="text-gray-400 text-xs text-center px-2" id="fotoPlaceholder">Belum ada foto</span>
+              <img id="fotoPreview" class="hidden w-full h-full object-cover" alt="Preview foto"/>
+            </div>
+            <div class="flex-1">
+              <input type="file" id="f_foto" accept="image/jpeg,image/png,image/webp" class="hidden" onchange="previewFoto(this)"/>
+              <button type="button" onclick="document.getElementById('f_foto').click()"
+                class="bg-blue-50 border border-blue-300 text-blue-700 px-4 py-2 rounded-lg text-sm hover:bg-blue-100 transition-colors">
+                📷 Pilih Foto
+              </button>
+              <p class="text-xs text-gray-500 mt-2">• Format: JPG, PNG, WEBP<br>• Ukuran max: 2 MB<br>• Foto formal, latar biru/merah<br>• Tampak wajah jelas</p>
+              <p id="fotoNama" class="text-xs text-green-600 mt-1 hidden"></p>
+            </div>
+          </div>
+        </div>
+
+        <div class="field-group sm:col-span-2">
+          <label>Nama Lengkap <span class="text-red-500">*</span></label>
+          <input type="text" id="f_nama" placeholder="Nama sesuai akta/ijazah" required/>
+        </div>
+        <div class="field-group">
+          <label>NISN</label>
+          <input type="text" id="f_nisn" placeholder="10 digit NISN" maxlength="10"/>
+        </div>
+        <div class="field-group">
+          <label>NIK</label>
+          <input type="text" id="f_nik" placeholder="16 digit NIK" maxlength="16"/>
+        </div>
+        <div class="field-group">
+          <label>Jenis Kelamin <span class="text-red-500">*</span></label>
+          <select id="f_jk" required>
+            <option value="">-- Pilih --</option>
+            <option value="L">Laki-laki</option>
+            <option value="P">Perempuan</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label>Agama</label>
+          <select id="f_agama">
+            <option value="Islam" selected>Islam</option>
+            <option value="Kristen">Kristen</option>
+            <option value="Katolik">Katolik</option>
+            <option value="Hindu">Hindu</option>
+            <option value="Buddha">Buddha</option>
+            <option value="Konghucu">Konghucu</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label>Tempat Lahir <span class="text-red-500">*</span></label>
+          <input type="text" id="f_tempat_lahir" placeholder="Kota/Kabupaten"/>
+        </div>
+        <div class="field-group">
+          <label>Tanggal Lahir <span class="text-red-500">*</span></label>
+          <input type="date" id="f_tgl_lahir"/>
+        </div>
+        <div class="field-group">
+          <label>Anak ke-</label>
+          <input type="number" id="f_anak_ke" min="1" max="20" placeholder="1"/>
+        </div>
+        <div class="field-group">
+          <label>Jumlah Saudara Kandung</label>
+          <input type="number" id="f_saudara" min="0" max="20" placeholder="0"/>
+        </div>
+        <div class="field-group">
+          <label>Golongan Darah</label>
+          <select id="f_gol_darah">
+            <option value="">-- Pilih --</option>
+            <option>A</option><option>B</option><option>AB</option><option>O</option>
+            <option>Tidak Tahu</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label>Kebutuhan Khusus</label>
+          <select id="f_kebutuhan_khusus">
+            <option value="Tidak Ada">Tidak Ada</option>
+            <option value="Tunanetra">Tunanetra</option>
+            <option value="Tunarungu">Tunarungu</option>
+            <option value="Tunadaksa">Tunadaksa</option>
+            <option value="Tunagrahita">Tunagrahita</option>
+            <option value="Autis">Autis</option>
+            <option value="Lainnya">Lainnya</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label>Hobby</label>
+          <input type="text" id="f_hobby" placeholder="Membaca, Olahraga, dll"/>
+        </div>
+        <div class="field-group">
+          <label>Cita-cita</label>
+          <input type="text" id="f_cita" placeholder="Dokter, Guru, dll"/>
+        </div>
+      </div>
+    </div>
+
+    <!-- Alamat -->
+    <div class="section-card">
+      <div class="section-title">📍 Alamat Tempat Tinggal</div>
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div class="field-group sm:col-span-2">
+          <label>Alamat Lengkap <span class="text-red-500">*</span></label>
+          <textarea id="f_alamat" placeholder="Jl. / Gampong / RT/RW" rows="2"></textarea>
+        </div>
+        <div class="field-group">
+          <label>Kelurahan/Desa</label>
+          <input type="text" id="f_kelurahan" placeholder="Nama gampong/desa"/>
+        </div>
+        <div class="field-group">
+          <label>Kecamatan</label>
+          <input type="text" id="f_kecamatan"/>
+        </div>
+        <div class="field-group">
+          <label>Kabupaten/Kota</label>
+          <input type="text" id="f_kabupaten"/>
+        </div>
+        <div class="field-group">
+          <label>Nomor HP / WhatsApp</label>
+          <input type="tel" id="f_hp" placeholder="08xxxxxxxxxx"/>
+        </div>
+      </div>
+    </div>
+
+    <!-- Asal Sekolah -->
+    <div class="section-card">
+      <div class="section-title">🏫 Asal Sekolah</div>
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div class="field-group sm:col-span-2">
+          <label>Nama Sekolah Asal <span class="text-red-500">*</span></label>
+          <input type="text" id="f_asal_sekolah" placeholder="SD/MI/SMP/MTs asal"/>
+        </div>
+        <div class="field-group">
+          <label>NPSN Sekolah Asal</label>
+          <input type="text" id="f_npsn_asal" placeholder="8 digit NPSN"/>
+        </div>
+        <div class="field-group">
+          <label>Tahun Lulus</label>
+          <input type="text" id="f_tahun_lulus_sd" placeholder="2025"/>
+        </div>
+        <div class="field-group">
+          <label>No. Ijazah</label>
+          <input type="text" id="f_no_ijazah"/>
+        </div>
+        <div class="field-group">
+          <label>No. SKHUN</label>
+          <input type="text" id="f_no_skhun"/>
+        </div>
+      </div>
+    </div>
+
+    <!-- Jurusan (MA/MAK) -->
+    <div id="jurusanBox" class="section-card hidden">
+      <div class="section-title">📚 Pilihan Jurusan</div>
+      <div class="field-group">
+        <label>Pilihan Jurusan</label>
+        <select id="f_jurusan">
+          <option value="">-- Pilih Jurusan --</option>
+          <option value="IPA">IPA (Ilmu Pengetahuan Alam)</option>
+          <option value="IPS">IPS (Ilmu Pengetahuan Sosial)</option>
+          <option value="Bahasa">Bahasa</option>
+          <option value="Keagamaan">Keagamaan</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- JALUR PRESTASI -->
+    <div id="jalurPrestasiBox" class="section-card hidden border-l-4 border-yellow-400">
+      <div class="section-title">🏆 Data Prestasi</div>
+      <div class="text-xs text-gray-500 mb-4 bg-yellow-50 rounded-lg p-2">Isi data prestasi yang digunakan sebagai dasar pendaftaran jalur prestasi.</div>
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div class="field-group sm:col-span-2">
+          <label>Jenis Prestasi <span class="text-red-500">*</span></label>
+          <select id="f_jenis_prestasi">
+            <option value="">-- Pilih Jenis --</option>
+            <option value="Akademik">Akademik (Olimpiade, Lomba Pelajaran)</option>
+            <option value="Non-Akademik">Non-Akademik (Olahraga, Seni, dll)</option>
+            <option value="Hafidz Quran">Hafidz Quran</option>
+            <option value="Keagamaan">Keagamaan (MTQ, Kaligrafi, dll)</option>
+          </select>
+        </div>
+        <div class="field-group sm:col-span-2">
+          <label>Nama Prestasi / Lomba <span class="text-red-500">*</span></label>
+          <input type="text" id="f_nama_prestasi" placeholder="Contoh: Juara 1 Olimpiade Matematika"/>
+        </div>
+        <div class="field-group">
+          <label>Tingkat <span class="text-red-500">*</span></label>
+          <select id="f_tingkat_prestasi">
+            <option value="">-- Pilih Tingkat --</option>
+            <option value="Kecamatan">Kecamatan</option>
+            <option value="Kabupaten/Kota">Kabupaten/Kota</option>
+            <option value="Provinsi">Provinsi</option>
+            <option value="Nasional">Nasional</option>
+            <option value="Internasional">Internasional</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label>Tahun Prestasi <span class="text-red-500">*</span></label>
+          <input type="number" id="f_tahun_prestasi" placeholder="Contoh: 2024" min="2010" max="2030"/>
+        </div>
+        <div class="field-group sm:col-span-2">
+          <label>Penyelenggara</label>
+          <input type="text" id="f_penyelenggara_prestasi" placeholder="Contoh: Dinas Pendidikan Kota Banda Aceh"/>
+        </div>
+      </div>
+    </div>
+
+    <!-- JALUR AFIRMASI -->
+    <div id="jalurAfirmasiBox" class="section-card hidden border-l-4 border-orange-400">
+      <div class="section-title">🧡 Data Afirmasi</div>
+      <div class="text-xs text-gray-500 mb-4 bg-orange-50 rounded-lg p-2">Jalur afirmasi diperuntukkan bagi calon peserta didik dari keluarga kurang mampu yang terdaftar dalam program pemerintah.</div>
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div class="field-group sm:col-span-2">
+          <label>Jenis Program <span class="text-red-500">*</span></label>
+          <select id="f_jenis_afirmasi">
+            <option value="">-- Pilih Program --</option>
+            <option value="KIP">KIP (Kartu Indonesia Pintar)</option>
+            <option value="PKH">PKH (Program Keluarga Harapan)</option>
+            <option value="DTKS">DTKS (Data Terpadu Kesejahteraan Sosial)</option>
+            <option value="PIP">PIP (Program Indonesia Pintar)</option>
+            <option value="Yatim/Piatu">Yatim / Piatu</option>
+            <option value="Lainnya">Lainnya</option>
+          </select>
+        </div>
+        <div class="field-group sm:col-span-2">
+          <label>Nomor KIP / PKH / Kartu Program</label>
+          <input type="text" id="f_no_afirmasi" placeholder="Nomor kartu program bantuan (jika ada)"/>
+        </div>
+        <div class="field-group sm:col-span-2">
+          <label>Keterangan Tambahan</label>
+          <textarea id="f_ket_afirmasi" rows="2" placeholder="Keterangan kondisi keluarga atau alasan afirmasi"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- JALUR PERPINDAHAN TUGAS -->
+    <div id="jalurPindahanBox" class="section-card hidden border-l-4 border-blue-400">
+      <div class="section-title">🔄 Data Perpindahan Tugas</div>
+      <div class="text-xs text-gray-500 mb-4 bg-blue-50 rounded-lg p-2">Jalur ini untuk calon peserta didik yang mengikuti perpindahan tugas orang tua/wali dari luar daerah.</div>
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div class="field-group sm:col-span-2">
+          <label>Instansi / Lembaga Orang Tua <span class="text-red-500">*</span></label>
+          <input type="text" id="f_instansi_pindahan" placeholder="Contoh: TNI AD, Kemenag, PLN, dll"/>
+        </div>
+        <div class="field-group sm:col-span-2">
+          <label>Nomor SK Pindah Tugas <span class="text-red-500">*</span></label>
+          <input type="text" id="f_no_sk_pindahan" placeholder="Nomor Surat Keputusan Pindah Tugas"/>
+        </div>
+        <div class="field-group">
+          <label>Asal Daerah Sebelumnya <span class="text-red-500">*</span></label>
+          <input type="text" id="f_asal_daerah_pindahan" placeholder="Kota/Kabupaten asal"/>
+        </div>
+        <div class="field-group">
+          <label>Tahun Pindah</label>
+          <input type="number" id="f_tahun_pindahan" placeholder="Contoh: 2025" min="2010" max="2030"/>
+        </div>
+      </div>
+    </div>
+
+    <button onclick="keStep2()" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-xl mt-2 text-base transition-colors">
+      Lanjut →
+    </button>
+  </div>
+
+  <!-- STEP 2: DATA KELUARGA + BERKAS -->
+  <div id="step2" class="hidden">
+
+    <!-- Data Orang Tua -->
+    <div class="section-card">
+      <div class="section-title">👨‍👩‍👧 Data Orang Tua / Wali</div>
+      <div class="text-xs text-gray-500 mb-4 bg-blue-50 rounded-lg p-2">Isi data sesuai Kartu Keluarga (KK). Jika anak yatim/piatu, isi data wali.</div>
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div class="field-group sm:col-span-2 font-semibold text-gray-700 text-sm pt-1">— Ayah —</div>
+        <div class="field-group sm:col-span-2">
+          <label>Nama Ayah</label>
+          <input type="text" id="f_nama_ayah" placeholder="Nama lengkap ayah"/>
+        </div>
+        <div class="field-group">
+          <label>Pendidikan Terakhir Ayah</label>
+          <select id="f_pend_ayah">
+            <option value="">-- Pilih --</option>
+            <option>Tidak Sekolah</option><option>SD/MI</option><option>SMP/MTs</option>
+            <option>SMA/MA/SMK</option><option>D3</option><option>S1</option><option>S2</option><option>S3</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label>Pekerjaan Ayah</label>
+          <input type="text" id="f_kerja_ayah" placeholder="PNS, Petani, Wiraswasta, dll"/>
+        </div>
+
+        <div class="field-group sm:col-span-2 font-semibold text-gray-700 text-sm pt-1 border-t pt-3">— Ibu —</div>
+        <div class="field-group sm:col-span-2">
+          <label>Nama Ibu</label>
+          <input type="text" id="f_nama_ibu" placeholder="Nama lengkap ibu"/>
+        </div>
+        <div class="field-group">
+          <label>Pendidikan Terakhir Ibu</label>
+          <select id="f_pend_ibu">
+            <option value="">-- Pilih --</option>
+            <option>Tidak Sekolah</option><option>SD/MI</option><option>SMP/MTs</option>
+            <option>SMA/MA/SMK</option><option>D3</option><option>S1</option><option>S2</option><option>S3</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label>Pekerjaan Ibu</label>
+          <input type="text" id="f_kerja_ibu" placeholder="IRT, PNS, Petani, dll"/>
+        </div>
+
+        <div class="field-group sm:col-span-2 border-t pt-3">
+          <label>Penghasilan Orang Tua per Bulan</label>
+          <select id="f_penghasilan">
+            <option value="">-- Pilih --</option>
+            <option value="< 500rb">Di bawah Rp 500.000</option>
+            <option value="500rb-1jt">Rp 500.000 – 1.000.000</option>
+            <option value="1jt-2jt">Rp 1.000.000 – 2.000.000</option>
+            <option value="2jt-5jt">Rp 2.000.000 – 5.000.000</option>
+            <option value="> 5jt">Di atas Rp 5.000.000</option>
+          </select>
+        </div>
+        <div class="field-group sm:col-span-2">
+          <label>No. HP / WhatsApp Orang Tua</label>
+          <input type="tel" id="f_hp_ortu" placeholder="08xxxxxxxxxx"/>
+        </div>
+
+        <div class="field-group sm:col-span-2 border-t pt-3">
+          <label>Nama Wali (jika berbeda dengan orang tua)</label>
+          <input type="text" id="f_nama_wali" placeholder="Kosongkan jika sama dengan orang tua"/>
+        </div>
+        <div class="field-group">
+          <label>Pekerjaan Wali</label>
+          <input type="text" id="f_kerja_wali" placeholder="Jika ada wali"/>
+        </div>
+      </div>
+    </div>
+
+    <!-- Kelengkapan Berkas -->
+    <div class="section-card">
+      <div class="section-title">📂 Kelengkapan Berkas</div>
+      <div class="text-xs text-gray-500 mb-4 bg-yellow-50 border border-yellow-200 rounded-lg p-2">
+        ⚠️ Centang berkas yang sudah disiapkan. Berkas fisik diserahkan ke madrasah saat verifikasi.
+      </div>
+      <div class="space-y-3">
+        <label class="flex items-center gap-3 cursor-pointer">
+          <input type="checkbox" id="b_ijazah" class="w-4 h-4 accent-green-600"/>
+          <span class="text-sm">Fotokopi Ijazah / SKL yang dilegalisir</span>
+        </label>
+        <label class="flex items-center gap-3 cursor-pointer">
+          <input type="checkbox" id="b_skhun" class="w-4 h-4 accent-green-600"/>
+          <span class="text-sm">Fotokopi SKHUN / Transkrip Nilai</span>
+        </label>
+        <label class="flex items-center gap-3 cursor-pointer">
+          <input type="checkbox" id="b_kk" class="w-4 h-4 accent-green-600"/>
+          <span class="text-sm">Fotokopi Kartu Keluarga (KK)</span>
+        </label>
+        <label class="flex items-center gap-3 cursor-pointer">
+          <input type="checkbox" id="b_akta" class="w-4 h-4 accent-green-600"/>
+          <span class="text-sm">Fotokopi Akta Kelahiran</span>
+        </label>
+        <label class="flex items-center gap-3 cursor-pointer">
+          <input type="checkbox" id="b_foto" class="w-4 h-4 accent-green-600"/>
+          <span class="text-sm">Pas Foto terbaru (3×4 dan 4×6)</span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Navigasi -->
+    <div class="flex gap-3 mt-2">
+      <button onclick="keStep1()" class="flex-1 border-2 border-gray-300 text-gray-700 font-semibold py-3 rounded-xl hover:bg-gray-50 transition-colors">
+        ← Kembali
+      </button>
+      <button onclick="submitForm()" id="btnSubmit" class="flex-2 flex-grow bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-xl transition-colors flex items-center justify-center gap-2">
+        <span id="btnSubmitText">✅ Daftar Sekarang</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- STEP 3: SUKSES -->
+  <div id="step3" class="hidden text-center py-8">
+    <div class="section-card">
+      <div class="text-6xl mb-4">🎉</div>
+      <h2 class="text-2xl font-bold text-green-700 mb-2">Pendaftaran Berhasil!</h2>
+      <p class="text-gray-600 mb-6">Data Anda telah berhasil dikirimkan. Simpan nomor pendaftaran Anda:</p>
+
+      <div class="bg-green-50 border-2 border-green-300 rounded-xl p-4 mb-4">
+        <div class="text-sm text-gray-500 mb-1">Nomor Pendaftaran</div>
+        <div id="noPendaftaranResult" class="text-3xl font-bold text-green-700 tracking-wider"></div>
+      </div>
+
+      <div id="ringkasanPendaftar" class="text-left bg-gray-50 rounded-xl p-4 mb-6 text-sm text-gray-700 space-y-1"></div>
+
+      <!-- Kartu Peserta -->
+      <div class="mb-6">
+        <div class="text-sm font-semibold text-gray-600 mb-3">🪪 Kartu Peserta PMB</div>
+        <div id="kartuPesertaBox" class="flex justify-center"></div>
+      </div>
+
+      <div class="bg-yellow-50 border border-yellow-200 rounded-xl p-3 text-sm text-yellow-800 text-left mb-6">
+        <b>📋 Langkah Selanjutnya:</b>
+        <ol class="list-decimal list-inside mt-1 space-y-1">
+          <li>Cetak kartu peserta di bawah dan simpan baik-baik</li>
+          <li>Siapkan berkas fisik yang sudah dicentang</li>
+          <li>Datang ke madrasah untuk verifikasi berkas</li>
+          <li>Cek status penerimaan melalui link ini</li>
+        </ol>
+      </div>
+
+      <div class="flex gap-3 flex-wrap justify-center">
+        <button onclick="cetakKartu()" class="bg-green-600 text-white px-5 py-2.5 rounded-xl font-semibold text-sm hover:bg-green-700">
+          🪪 Cetak Kartu Peserta
+        </button>
+        <button onclick="cetakBukti()" class="bg-blue-600 text-white px-5 py-2.5 rounded-xl font-semibold text-sm hover:bg-blue-700">
+          🖨️ Cetak Bukti Pendaftaran
+        </button>
+        <button onclick="daftarLagi()" class="border-2 border-green-600 text-green-700 px-5 py-2.5 rounded-xl font-semibold text-sm hover:bg-green-50">
+          ➕ Daftar Lagi (Adik/Saudara)
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="text-center text-xs text-gray-400 mt-8 pb-6">
+    Sistem PMB Digital · Amanah Madrasah
+  </div>
+</div>
+
+<!-- PRINT AREA -->
+<div id="printArea" class="hidden">
+  <style>
+    @media print {
+      body > *:not(#printArea) { display: none !important; }
+      #printArea { display: block !important; font-family: 'Times New Roman', serif; }
+      .no-print { display: none; }
+    }
+  </style>
+  <div style="border:2px solid #000;padding:20px;max-width:700px;margin:auto;">
+    <div style="text-align:center;border-bottom:2px solid #000;padding-bottom:12px;margin-bottom:12px;">
+      <b style="font-size:18px;" id="printMadrasah"></b><br/>
+      <span style="font-size:13px;">BUKTI PENDAFTARAN PMB</span>
+    </div>
+    <table style="width:100%;font-size:13px;border-collapse:collapse;" id="printTable"></table>
+    <div style="margin-top:20px;display:flex;justify-content:space-between;font-size:12px;">
+      <div>Calon Peserta Didik,<br/><br/><br/><hr style="width:150px;"/><span id="printNama"></span></div>
+      <div style="text-align:right;">Diterima oleh,<br/><br/><br/><hr style="width:150px;"/><span>Petugas PMB</span></div>
+    </div>
+    <button onclick="window.print()" class="no-print mt-4 bg-blue-600 text-white px-4 py-2 rounded">🖨️ Print</button>
+  </div>
+</div>
+
+<script>
+// ─────────────────────────────────────────────
+// CONFIG
+// ─────────────────────────────────────────────
+const SUPABASE_URL = 'https://djnbttyjyzknujrepdfe.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRqbmJ0dHlqeXprbnVqcmVwZGZlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY1Mzc3MDksImV4cCI6MjEwMjExMzcwOX0.UfrTknQM7EU_3BiSGBy9bPtOeXh5u14X4ujRNxRlYcM';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// State
+let madrasah = null;
+let jalurDipilih = 'Reguler';
+let currentStep = 1;
+let submittedData = null;
+
+// ─────────────────────────────────────────────
+// INIT
+// ─────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', async () => {
+  const params = new URLSearchParams(window.location.search);
+  const slug = params.get('s');
+
+  if (!slug) {
+    // Tidak ada slug → tampilkan form dropdown langsung
+    document.getElementById('landingPage').classList.add('lp-hidden');
+    document.getElementById('loadingBox').classList.add('hidden');
+    document.getElementById('header').style.display = '';
+    document.getElementById('formWrapper').style.display = '';
+    document.getElementById('pilihMadrasahBox').classList.remove('hidden');
+    await muatSemuaMadrasah();
+    return;
+  }
+
+  // Ada slug → tampilkan landing dulu, init JS, lalu muat data
+  document.getElementById('loadingBox').classList.add('hidden');
+
+  // Muat data madrasah + config landing page secara paralel
+  muatMadrasah(slug).catch(e => console.warn('muatMadrasah error:', e));
+});
+
+async function muatMadrasah(slug) {
+  // Muat madrasah + pmb_config secara paralel
+  const [{ data, error }, { data: cfgArr }] = await Promise.all([
+    sb.from('madrasah').select('id,nama,jenjang,slug,jalur_aktif').eq('slug', slug).single(),
+    sb.from('pmb_config').select('*').eq('tahun_ajaran','2026/2027')
+  ]);
+
+  document.getElementById('loadingBox').classList.add('hidden');
+
+  if (error || !data) {
+    document.getElementById('errorBox').classList.remove('hidden');
+    return;
+  }
+
+  madrasah = data;
+
+  // Ambil config untuk madrasah ini (jika ada)
+  const cfg = (cfgArr || []).find(c => c.madrasah_id === data.id) || null;
+  lpTerapkanConfig(cfg);
+
+  try { lpInit(cfg); } catch(e) { console.warn('lpInit error:', e); }
+
+  // Update landing page dengan data madrasah
+  lpTampilkanMadrasah(data);
+  // Siapkan form (masih tersembunyi, tampil setelah klik Daftar)
+  tampilkanMadrasah();
+  filterTombolJalur();
+}
+
+async function muatSemuaMadrasah() {
+  const { data } = await sb.from('madrasah').select('id, nama, slug, jenjang').order('nama');
+  const sel = document.getElementById('selectMadrasah');
+  (data || []).forEach(m => {
+    const opt = document.createElement('option');
+    opt.value = m.slug;
+    opt.textContent = `${m.nama} (${m.jenjang})`;
+    sel.appendChild(opt);
+  });
+}
+
+function pilihMadrasah(slug) {
+  if (!slug) return;
+  // Redirect ke URL yang sama dengan ?s=slug agar URL benar
+  window.location.href = window.location.pathname + '?s=' + encodeURIComponent(slug);
+}
+
+function tampilkanMadrasah() {
+  // Header
+  document.getElementById('header-madrasah').textContent = madrasah.nama;
+  document.getElementById('header-sub').textContent = `PMB ${madrasah.jenjang} · ${new Date().getFullYear()}`;
+
+  // Info card
+  document.getElementById('namaMadrasahDisplay').textContent = madrasah.nama;
+  const tahunAjaran = `${new Date().getFullYear()}/${new Date().getFullYear()+1}`;
+  document.getElementById('tahunAjaranDisplay').textContent = `Tahun Ajaran ${tahunAjaran}`;
+  document.getElementById('jenjangDisplay').textContent = `🏫 ${madrasah.jenjang}`;
+  document.getElementById('jalurDisplay').textContent = `📍 ${madrasah.nama || ''}`;
+
+  // Jurusan hanya MA/MAK
+  if (['MA','MAK'].includes(madrasah.jenjang)) {
+    document.getElementById('jurusanBox').classList.remove('hidden');
+  }
+
+  // Siapkan title — UI form ditampilkan oleh tampilForm()
+  document.title = `PMB ${madrasah.nama}`;
+}
+
+// ─────────────────────────────────────────────
+// FILTER JALUR AKTIF
+// ─────────────────────────────────────────────
+function filterTombolJalur() {
+  // Ambil jalur_aktif dari data madrasah (default: semua aktif)
+  const jalurAktif = Array.isArray(madrasah?.jalur_aktif)
+    ? madrasah.jalur_aktif
+    : ['Reguler', 'Prestasi', 'Afirmasi', 'Perpindahan Tugas'];
+
+  // Map nama jalur ke id elemen tombol
+  const jalurMap = {
+    'Reguler'           : 'jalur-reguler',
+    'Prestasi'          : 'jalur-prestasi',
+    'Afirmasi'          : 'jalur-afirmasi',
+    'Perpindahan Tugas' : 'jalur-pindahan',
+  };
+
+  // Sembunyikan tombol jalur yang tidak aktif
+  Object.entries(jalurMap).forEach(([nama, elId]) => {
+    const el = document.getElementById(elId);
+    if (!el) return;
+    if (jalurAktif.includes(nama)) {
+      el.style.display = '';
+    } else {
+      el.style.display = 'none';
+    }
+  });
+
+  // Jika jalur yang sedang dipilih tidak aktif, pilihkan jalur aktif pertama
+  if (!jalurAktif.includes(jalurDipilih) && jalurAktif.length > 0) {
+    setJalur(jalurAktif[0]);
+  }
+}
+
+// ─────────────────────────────────────────────
+// FOTO
+// ─────────────────────────────────────────────
+// Kompres gambar via Canvas — maks 800px, kualitas 80%
+function kompresGambar(file, callback) {
+  const reader = new FileReader();
+  reader.onload = e => {
+    const img = new Image();
+    img.onload = () => {
+      const MAX = 400;
+      let w = img.width, h = img.height;
+      if (w > MAX || h > MAX) {
+        if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
+        else        { w = Math.round(w * MAX / h); h = MAX; }
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      canvas.toBlob(blob => callback(blob), 'image/jpeg', 0.6);
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function previewFoto(input) {
+  const file = input.files[0];
+  if (!file) return;
+  kompresGambar(file, blob => {
+    // Simpan blob terkompresi ke input (via DataTransfer)
+    try {
+      const dt = new DataTransfer();
+      dt.items.add(new File([blob], file.name.replace(/\.[^.]+$/, '.jpg'), { type: 'image/jpeg' }));
+      input.files = dt.files;
+    } catch(e) { /* fallback: upload blob langsung */ input._kompresBlob = blob; }
+
+    const url = URL.createObjectURL(blob);
+    document.getElementById('fotoPlaceholder').classList.add('hidden');
+    const img = document.getElementById('fotoPreview');
+    img.src = url;
+    img.classList.remove('hidden');
+    const kb = Math.round(blob.size / 1024);
+    document.getElementById('fotoNama').textContent = `✅ ${file.name} (${kb} KB)`;
+    document.getElementById('fotoNama').classList.remove('hidden');
+  });
+}
+
+async function uploadFotoBlob(blob, madrasahId) {
+  const path = `${madrasahId}/${Date.now()}.jpg`;
+  const { error } = await sb.storage.from('pmb-foto').upload(path, blob, { upsert: true, contentType: 'image/jpeg' });
+  if (error) { console.error('Upload foto gagal:', error.message); return null; }
+  const { data: urlData } = sb.storage.from('pmb-foto').getPublicUrl(path);
+  return urlData.publicUrl;
+}
+
+async function uploadFoto(madrasahId) {
+  const input = document.getElementById('f_foto');
+  if (!input.files[0] && !input._kompresBlob) return null;
+  return new Promise(resolve => {
+    const file = input.files[0];
+    kompresGambar(file, async blob => {
+      const url = await uploadFotoBlob(blob, madrasahId);
+      resolve(url);
+    });
+  });
+}
+
+// ─────────────────────────────────────────────
+// JALUR
+// ─────────────────────────────────────────────
+function setJalur(val) {
+  jalurDipilih = val;
+  const jalurMap = { 'Reguler':'reguler','Prestasi':'prestasi','Afirmasi':'afirmasi','Perpindahan Tugas':'pindahan' };
+  document.querySelectorAll('.jalur-btn').forEach(el => {
+    el.classList.remove('border-green-500','bg-green-50','text-green-700');
+    el.classList.add('border-gray-200','text-gray-500');
+  });
+  const key = jalurMap[val];
+  const el = document.getElementById(`jalur-${key}`);
+  if (el) {
+    el.classList.remove('border-gray-200','text-gray-500');
+    el.classList.add('border-green-500','bg-green-50','text-green-700');
+  }
+  // Show/hide section khusus per jalur
+  document.getElementById('jalurPrestasiBox').classList.toggle('hidden', val !== 'Prestasi');
+  document.getElementById('jalurAfirmasiBox').classList.toggle('hidden', val !== 'Afirmasi');
+  document.getElementById('jalurPindahanBox').classList.toggle('hidden', val !== 'Perpindahan Tugas');
+}
+
+// ─────────────────────────────────────────────
+// NAVIGASI STEP
+// ─────────────────────────────────────────────
+function keStep2() {
+  // Validasi wajib
+  const nama = document.getElementById('f_nama').value.trim();
+  const jk   = document.getElementById('f_jk').value;
+  const tgl  = document.getElementById('f_tgl_lahir').value;
+  const tmpt = document.getElementById('f_tempat_lahir').value.trim();
+  const asal = document.getElementById('f_asal_sekolah').value.trim();
+  const almt = document.getElementById('f_alamat').value.trim();
+
+  if (!document.getElementById('f_foto').files[0]) { alert('Foto wajib diunggah.'); return; }
+  if (!nama) { alert('Nama lengkap wajib diisi.'); document.getElementById('f_nama').focus(); return; }
+  if (!jk)   { alert('Jenis kelamin wajib dipilih.'); return; }
+  if (!tgl)  { alert('Tanggal lahir wajib diisi.'); return; }
+  if (!tmpt) { alert('Tempat lahir wajib diisi.'); return; }
+  if (!asal) { alert('Asal sekolah wajib diisi.'); return; }
+  if (!almt) { alert('Alamat wajib diisi.'); return; }
+
+  // Validasi jalur khusus
+  if (jalurDipilih === 'Prestasi') {
+    if (!document.getElementById('f_jenis_prestasi').value) { alert('Jenis prestasi wajib dipilih.'); return; }
+    if (!document.getElementById('f_nama_prestasi').value.trim()) { alert('Nama prestasi/lomba wajib diisi.'); return; }
+    if (!document.getElementById('f_tingkat_prestasi').value) { alert('Tingkat prestasi wajib dipilih.'); return; }
+    if (!document.getElementById('f_tahun_prestasi').value) { alert('Tahun prestasi wajib diisi.'); return; }
+  }
+  if (jalurDipilih === 'Afirmasi') {
+    if (!document.getElementById('f_jenis_afirmasi').value) { alert('Jenis program afirmasi wajib dipilih.'); return; }
+  }
+  if (jalurDipilih === 'Perpindahan Tugas') {
+    if (!document.getElementById('f_instansi_pindahan').value.trim()) { alert('Instansi orang tua wajib diisi.'); return; }
+    if (!document.getElementById('f_no_sk_pindahan').value.trim()) { alert('Nomor SK pindah tugas wajib diisi.'); return; }
+    if (!document.getElementById('f_asal_daerah_pindahan').value.trim()) { alert('Asal daerah wajib diisi.'); return; }
+  }
+
+  currentStep = 2;
+  document.getElementById('step1').classList.add('hidden');
+  document.getElementById('step2').classList.remove('hidden');
+  updateStepper(2);
+  window.scrollTo(0, 0);
+}
+
+function keStep1() {
+  currentStep = 1;
+  document.getElementById('step2').classList.add('hidden');
+  document.getElementById('step1').classList.remove('hidden');
+  updateStepper(1);
+  window.scrollTo(0, 0);
+}
+
+function updateStepper(step) {
+  const aktif = 'bg-green-600 text-white';
+  const selesai = 'bg-green-300 text-white';
+  const nonaktif = 'bg-gray-200 text-gray-500';
+
+  const dot1 = document.getElementById('dot1');
+  const dot2 = document.getElementById('dot2');
+  const dot3 = document.getElementById('dot3');
+  const line12 = document.getElementById('line12');
+  const line23 = document.getElementById('line23');
+
+  if (step === 1) {
+    dot1.className = `step-dot ${aktif}`; dot2.className = `step-dot ${nonaktif}`; dot3.className = `step-dot ${nonaktif}`;
+    line12.className = 'step-line bg-gray-300'; line23.className = 'step-line bg-gray-300';
+  } else if (step === 2) {
+    dot1.className = `step-dot ${selesai}`; dot2.className = `step-dot ${aktif}`; dot3.className = `step-dot ${nonaktif}`;
+    line12.className = 'step-line bg-green-400'; line23.className = 'step-line bg-gray-300';
+  } else {
+    dot1.className = `step-dot ${selesai}`; dot2.className = `step-dot ${selesai}`; dot3.className = `step-dot ${aktif}`;
+    line12.className = 'step-line bg-green-400'; line23.className = 'step-line bg-green-400';
+  }
+}
+
+// ─────────────────────────────────────────────
+// SUBMIT
+// ─────────────────────────────────────────────
+async function submitForm() {
+  if (!madrasah) return;
+
+  const btn = document.getElementById('btnSubmit');
+  const txt = document.getElementById('btnSubmitText');
+  btn.disabled = true;
+  txt.innerHTML = '<span class="spinner"></span> Mengunggah foto…';
+
+  // Upload foto dulu
+  const fotoUrl = await uploadFoto(madrasah.id);
+
+  txt.innerHTML = '<span class="spinner"></span> Mengirim data…';
+
+  const tahunAjaran = `${new Date().getFullYear()}/${new Date().getFullYear()+1}`;
+
+  const payload = {
+    madrasah_id       : madrasah.id,
+    tahun_ajaran      : tahunAjaran,
+    jalur_pendaftaran : jalurDipilih,
+    foto_url          : fotoUrl,
+
+    nama_lengkap      : document.getElementById('f_nama').value.trim(),
+    nisn              : document.getElementById('f_nisn').value.trim() || null,
+    nik               : document.getElementById('f_nik').value.trim() || null,
+    jenis_kelamin     : document.getElementById('f_jk').value,
+    agama             : document.getElementById('f_agama').value,
+    tempat_lahir      : document.getElementById('f_tempat_lahir').value.trim(),
+    tanggal_lahir     : document.getElementById('f_tgl_lahir').value || null,
+    anak_ke           : parseInt(document.getElementById('f_anak_ke').value) || null,
+    jumlah_saudara    : parseInt(document.getElementById('f_saudara').value) || null,
+    golongan_darah    : document.getElementById('f_gol_darah').value || null,
+    kebutuhan_khusus  : document.getElementById('f_kebutuhan_khusus').value,
+    hobby             : document.getElementById('f_hobby').value.trim() || null,
+    cita_cita         : document.getElementById('f_cita').value.trim() || null,
+
+    alamat            : document.getElementById('f_alamat').value.trim(),
+    kelurahan         : document.getElementById('f_kelurahan').value.trim() || null,
+    kecamatan         : document.getElementById('f_kecamatan').value.trim() || null,
+    kabupaten         : document.getElementById('f_kabupaten').value.trim() || null,
+    provinsi          : 'Aceh',
+    nomor_hp          : document.getElementById('f_hp').value.trim() || null,
+
+    asal_sekolah      : document.getElementById('f_asal_sekolah').value.trim(),
+    npsn_asal         : document.getElementById('f_npsn_asal').value.trim() || null,
+    tahun_lulus_sd    : document.getElementById('f_tahun_lulus_sd').value.trim() || null,
+    no_ijazah         : document.getElementById('f_no_ijazah').value.trim() || null,
+    no_skhun          : document.getElementById('f_no_skhun').value.trim() || null,
+    pilihan_jurusan   : document.getElementById('f_jurusan')?.value || null,
+
+    nama_ayah         : document.getElementById('f_nama_ayah').value.trim() || null,
+    pendidikan_ayah   : document.getElementById('f_pend_ayah').value || null,
+    pekerjaan_ayah    : document.getElementById('f_kerja_ayah').value.trim() || null,
+    nama_ibu          : document.getElementById('f_nama_ibu').value.trim() || null,
+    pendidikan_ibu    : document.getElementById('f_pend_ibu').value || null,
+    pekerjaan_ibu     : document.getElementById('f_kerja_ibu').value.trim() || null,
+    nama_wali         : document.getElementById('f_nama_wali').value.trim() || null,
+    pekerjaan_wali    : document.getElementById('f_kerja_wali').value.trim() || null,
+    penghasilan_ortu  : document.getElementById('f_penghasilan').value || null,
+    hp_ortu           : document.getElementById('f_hp_ortu').value.trim() || null,
+
+    berkas_ijazah     : document.getElementById('b_ijazah').checked,
+    berkas_skhun      : document.getElementById('b_skhun').checked,
+    berkas_kk         : document.getElementById('b_kk').checked,
+    berkas_akta       : document.getElementById('b_akta').checked,
+    berkas_foto       : document.getElementById('b_foto').checked,
+
+    // Data jalur khusus
+    jenis_prestasi        : document.getElementById('f_jenis_prestasi')?.value || null,
+    nama_prestasi         : document.getElementById('f_nama_prestasi')?.value.trim() || null,
+    tingkat_prestasi      : document.getElementById('f_tingkat_prestasi')?.value || null,
+    tahun_prestasi        : parseInt(document.getElementById('f_tahun_prestasi')?.value) || null,
+    penyelenggara_prestasi: document.getElementById('f_penyelenggara_prestasi')?.value.trim() || null,
+
+    jenis_afirmasi        : document.getElementById('f_jenis_afirmasi')?.value || null,
+    no_afirmasi           : document.getElementById('f_no_afirmasi')?.value.trim() || null,
+    ket_afirmasi          : document.getElementById('f_ket_afirmasi')?.value.trim() || null,
+
+    instansi_pindahan     : document.getElementById('f_instansi_pindahan')?.value.trim() || null,
+    no_sk_pindahan        : document.getElementById('f_no_sk_pindahan')?.value.trim() || null,
+    asal_daerah_pindahan  : document.getElementById('f_asal_daerah_pindahan')?.value.trim() || null,
+    tahun_pindahan        : parseInt(document.getElementById('f_tahun_pindahan')?.value) || null,
+
+    status            : 'Mendaftar',
+  };
+
+  const { data, error } = await sb.from('pendaftar_pmb').insert(payload).select().single();
+
+  btn.disabled = false;
+  txt.textContent = '✅ Daftar Sekarang';
+
+  if (error) {
+    alert('Gagal menyimpan data: ' + error.message);
+    return;
+  }
+
+  submittedData = data;
+  tampilkanSukses(data);
+}
+
+// ─────────────────────────────────────────────
+// SUKSES
+// ─────────────────────────────────────────────
+function tampilkanSukses(data) {
+  currentStep = 3;
+  document.getElementById('step2').classList.add('hidden');
+  document.getElementById('step3').classList.remove('hidden');
+  updateStepper(3);
+
+  document.getElementById('noPendaftaranResult').textContent = data.no_pendaftaran || 'Tersimpan';
+
+  const ringkasan = [
+    ['Nama', data.nama_lengkap],
+    ['NISN', data.nisn || '-'],
+    ['Jenis Kelamin', data.jenis_kelamin === 'L' ? 'Laki-laki' : 'Perempuan'],
+    ['Tempat, Tgl Lahir', `${data.tempat_lahir}, ${data.tanggal_lahir ? new Date(data.tanggal_lahir).toLocaleDateString('id-ID') : '-'}`],
+    ['Asal Sekolah', data.asal_sekolah],
+    ['Jalur', data.jalur_pendaftaran],
+    ['Status', data.status],
+  ];
+
+  const box = document.getElementById('ringkasanPendaftar');
+  box.innerHTML = ringkasan.map(([k,v]) =>
+    `<div class="flex gap-2"><span class="text-gray-400 w-36 shrink-0">${k}</span><span class="font-medium">${v || '-'}</span></div>`
+  ).join('');
+
+  // Render kartu peserta
+  renderKartuPeserta(data);
+
+  window.scrollTo(0, 0);
+}
+
+function renderKartuPeserta(data) {
+  const tgl = data.tanggal_lahir ? new Date(data.tanggal_lahir).toLocaleDateString('id-ID',{day:'2-digit',month:'long',year:'numeric'}) : '-';
+  const jk  = data.jenis_kelamin === 'L' ? 'Laki-laki' : 'Perempuan';
+  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=90x90&data=${encodeURIComponent(data.no_pendaftaran)}`;
+  const fotoEl = data.foto_url
+    ? `<img src="${data.foto_url}" style="width:100%;height:100%;object-fit:cover;object-position:center top;display:block;" onerror="this.parentElement.innerHTML='<span style=\\'font-size:10px;color:#9ca3af;\\'>Foto</span>'" />`
+    : `<span style="font-size:10px;color:#9ca3af;">Foto</span>`;
+
+  const kartu = `
+  <div id="kartuPeserta" style="width:340px;border:2px solid #166534;border-radius:12px;overflow:hidden;font-family:'Segoe UI',sans-serif;background:#fff;margin:0 auto;">
+    <!-- Header -->
+    <div style="background:linear-gradient(135deg,#166534,#15803d);padding:10px 14px;display:flex;align-items:center;gap:10px;">
+      <span style="font-size:28px;">🏫</span>
+      <div>
+        <div style="color:#fff;font-weight:700;font-size:13px;line-height:1.2;">${madrasah.nama}</div>
+        <div style="color:#bbf7d0;font-size:10px;">Kartu Peserta PMB ${madrasah.jenjang} · TA ${data.tahun_ajaran}</div>
+      </div>
+    </div>
+    <!-- Body -->
+    <div style="padding:12px 14px;display:flex;gap:12px;align-items:flex-start;">
+      <!-- Foto -->
+      <div style="width:72px;min-width:72px;height:90px;border:1.5px solid #d1d5db;border-radius:6px;overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:#f9fafb;">
+        ${fotoEl}
+      </div>
+      <!-- Info -->
+      <div style="flex:1;min-width:0;">
+        <div style="font-weight:700;font-size:13px;color:#111827;margin-bottom:2px;word-break:break-word;">${data.nama_lengkap}</div>
+        <table style="font-size:10.5px;color:#374151;border-collapse:collapse;width:100%;">
+          <tr><td style="color:#6b7280;width:80px;padding:1px 0;">NISN</td><td>${data.nisn || '-'}</td></tr>
+          <tr><td style="color:#6b7280;">Tgl Lahir</td><td>${tgl}</td></tr>
+          <tr><td style="color:#6b7280;">Jenis Kelamin</td><td>${jk}</td></tr>
+          <tr><td style="color:#6b7280;">Asal Sekolah</td><td style="word-break:break-word;">${data.asal_sekolah || '-'}</td></tr>
+          <tr><td style="color:#6b7280;">Jalur</td><td><span style="background:#dcfce7;color:#166534;padding:1px 6px;border-radius:4px;font-weight:600;">${data.jalur_pendaftaran}</span></td></tr>
+        </table>
+      </div>
+    </div>
+    <!-- No Pendaftaran + QR -->
+    <div style="background:#f0fdf4;border-top:1px solid #bbf7d0;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;">
+      <div>
+        <div style="font-size:9px;color:#6b7280;margin-bottom:2px;">NOMOR PENDAFTARAN</div>
+        <div style="font-size:18px;font-weight:800;color:#166534;letter-spacing:1px;">${data.no_pendaftaran}</div>
+        <div style="font-size:9px;color:#6b7280;margin-top:2px;">Status: <strong>${data.status}</strong></div>
+      </div>
+      <img src="${qrUrl}" width="70" height="70" style="border-radius:4px;" alt="QR Code"/>
+    </div>
+    <!-- Footer -->
+    <div style="background:#166534;padding:5px 14px;text-align:center;">
+      <span style="color:#bbf7d0;font-size:9px;">Sistem PMB Digital · Amanah Madrasah</span>
+    </div>
+  </div>`;
+
+  document.getElementById('kartuPesertaBox').innerHTML = kartu;
+}
+
+function cetakKartu() {
+  const kartu = document.getElementById('kartuPeserta');
+  if (!kartu) return;
+  const w = window.open('', '_blank', 'width=420,height=600');
+  w.document.write(`<!DOCTYPE html><html><head><title>Kartu Peserta PMB</title>
+  <style>body{margin:20px;display:flex;flex-direction:column;align-items:center;font-family:'Segoe UI',sans-serif;}
+  @media print{body{margin:0;}button{display:none!important;}}</style></head>
+  <body>${kartu.outerHTML}
+  <button onclick="window.print()" style="margin-top:16px;background:#166534;color:#fff;border:none;padding:10px 24px;border-radius:8px;font-size:14px;cursor:pointer;">🖨️ Print Kartu</button>
+  </body></html>`);
+  w.document.close();
+}
+
+function bukaModalEdit() {
+  const data = window._cekStatusData;
+  if (!data) return;
+
+  // Isi form dengan data yang ada
+  document.getElementById('editNoPendaftaran').textContent = data.no_pendaftaran;
+  document.getElementById('edit_nama').value          = data.nama_lengkap || '';
+  document.getElementById('edit_nisn').value          = data.nisn || '';
+  document.getElementById('edit_jk').value            = data.jenis_kelamin || '';
+  document.getElementById('edit_tempat_lahir').value  = data.tempat_lahir || '';
+  document.getElementById('edit_tgl_lahir').value     = data.tanggal_lahir || '';
+  document.getElementById('edit_asal_sekolah').value  = data.asal_sekolah || '';
+  document.getElementById('edit_nama_ayah').value     = data.nama_ayah || '';
+  document.getElementById('edit_nama_ibu').value      = data.nama_ibu || '';
+  document.getElementById('edit_hp_ortu').value       = data.hp_ortu || '';
+  document.getElementById('edit_hp_peserta').value    = data.nomor_hp || '';
+  document.getElementById('edit_alamat').value        = data.alamat || '';
+
+  // Tampilkan foto yang sudah ada
+  const prevImg = document.getElementById('editFotoPreview');
+  const prevPh  = document.getElementById('editFotoPlaceholder');
+  if (data.foto_url) {
+    prevImg.src = data.foto_url;
+    prevImg.classList.remove('hidden');
+    prevPh.classList.add('hidden');
+  } else {
+    prevImg.classList.add('hidden');
+    prevImg.src = '';
+    prevPh.classList.remove('hidden');
+  }
+  document.getElementById('edit_foto').value = '';
+  document.getElementById('editFotoNama').classList.add('hidden');
+
+  document.getElementById('editMsg').classList.add('hidden');
+  document.getElementById('modalEdit').classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+}
+
+function previewEditFoto(input) {
+  const file = input.files[0];
+  if (!file) return;
+  kompresGambar(file, blob => {
+    input._kompresBlob = blob; // simpan untuk upload
+    const url = URL.createObjectURL(blob);
+    const img = document.getElementById('editFotoPreview');
+    const ph  = document.getElementById('editFotoPlaceholder');
+    img.src = url;
+    img.classList.remove('hidden');
+    ph.classList.add('hidden');
+    const kb = Math.round(blob.size / 1024);
+    const nm = document.getElementById('editFotoNama');
+    nm.textContent = `✅ ${file.name} → ${kb} KB (sudah dikompresi)`;
+    nm.classList.remove('hidden');
+  });
+}
+
+function tutupModalEdit() {
+  document.getElementById('modalEdit').classList.add('hidden');
+  document.body.style.overflow = '';
+}
+
+async function simpanEditData() {
+  const data = window._cekStatusData;
+  if (!data) return;
+
+  const nama = document.getElementById('edit_nama').value.trim();
+  const jk   = document.getElementById('edit_jk').value;
+  const tl   = document.getElementById('edit_tempat_lahir').value.trim();
+  const tgl  = document.getElementById('edit_tgl_lahir').value;
+  const as   = document.getElementById('edit_asal_sekolah').value.trim();
+  const hp   = document.getElementById('edit_hp_ortu').value.trim(); // → hp_ortu
+  const alm  = document.getElementById('edit_alamat').value.trim();
+
+  if (!nama || !jk || !tl || !tgl || !as || !hp || !alm) {
+    const msg = document.getElementById('editMsg');
+    msg.textContent = '⚠️ Mohon lengkapi semua field wajib.';
+    msg.className = 'text-sm text-center rounded-lg py-2 px-3 bg-red-50 text-red-600';
+    msg.classList.remove('hidden');
+    return;
+  }
+
+  const btn = document.getElementById('btnSimpanEdit');
+  btn.disabled = true;
+
+  // Upload foto baru jika ada
+  let fotoUrl = data.foto_url || null;
+  const fotoInput = document.getElementById('edit_foto');
+  if (fotoInput.files[0] || fotoInput._kompresBlob) {
+    btn.innerHTML = '<span class="spinner"></span> Mengunggah foto…';
+    const blob = fotoInput._kompresBlob || await new Promise(resolve =>
+      kompresGambar(fotoInput.files[0], resolve)
+    );
+    const newUrl = await uploadFotoBlob(blob, data.madrasah_id || madrasah.id);
+    if (newUrl) fotoUrl = newUrl;
+  }
+
+  btn.innerHTML = '<span class="spinner"></span> Menyimpan…';
+
+  const payload = {
+    foto_url        : fotoUrl,
+    nama_lengkap    : nama,
+    nisn            : document.getElementById('edit_nisn').value.trim() || null,
+    jenis_kelamin   : jk,
+    tempat_lahir    : tl,
+    tanggal_lahir   : tgl,
+    asal_sekolah    : as,
+    nama_ayah       : document.getElementById('edit_nama_ayah').value.trim() || null,
+    nama_ibu        : document.getElementById('edit_nama_ibu').value.trim() || null,
+    hp_ortu         : hp,
+    nomor_hp        : document.getElementById('edit_hp_peserta').value.trim() || null,
+    alamat          : alm,
+  };
+
+  const { error } = await sb
+    .from('pendaftar_pmb')
+    .update(payload)
+    .eq('no_pendaftaran', data.no_pendaftaran)
+    .eq('status', 'Mendaftar'); // double-check status aman
+
+  btn.disabled = false;
+  btn.innerHTML = '💾 Simpan Perubahan';
+
+  const msg = document.getElementById('editMsg');
+  if (error) {
+    msg.textContent = '❌ Gagal menyimpan: ' + error.message;
+    msg.className = 'text-sm text-center rounded-lg py-2 px-3 bg-red-50 text-red-600';
+    msg.classList.remove('hidden');
+    return;
+  }
+
+  // Update local data cache
+  Object.assign(window._cekStatusData, payload);
+
+  msg.textContent = '✅ Data berhasil diperbarui!';
+  msg.className = 'text-sm text-center rounded-lg py-2 px-3 bg-green-50 text-green-700';
+  msg.classList.remove('hidden');
+
+  setTimeout(() => {
+    tutupModalEdit();
+    // Refresh hasil cek
+    document.getElementById('inputNoPendaftaran').value = data.no_pendaftaran;
+    cekStatus();
+  }, 1500);
+}
+
+function cetakKartuDariCekStatus() {
+  const data = window._cekStatusData;
+  if (!data) return;
+
+  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(data.no_pendaftaran)}`;
+  const fotoEl = data.foto_url
+    ? `<div style="width:72px;min-width:72px;height:90px;border:1.5px solid #d1d5db;border-radius:6px;overflow:hidden;flex-shrink:0;background:#f9fafb;"><img src="${data.foto_url}" style="width:100%;height:100%;object-fit:cover;object-position:center top;display:block;" /></div>`
+    : `<div style="width:72px;min-width:72px;height:90px;border:1.5px solid #d1d5db;border-radius:6px;overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:#f9fafb;font-size:10px;color:#9ca3af;">Foto</div>`;
+
+  const jk  = data.jenis_kelamin === 'L' ? 'Laki-laki' : data.jenis_kelamin === 'P' ? 'Perempuan' : (data.jenis_kelamin || '-');
+  const tgl = data.tanggal_lahir ? new Date(data.tanggal_lahir).toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'}) : '-';
+  const namaM = madrasah ? madrasah.nama : (data.nama_madrasah || '');
+  const jenjM = madrasah ? madrasah.jenjang : '';
+  const taM   = data.tahun_ajaran || (new Date().getFullYear() + '/' + (new Date().getFullYear()+1));
+
+  const kartuHtml = `
+  <div id="kartuPeserta" style="width:340px;border:2px solid #166534;border-radius:12px;overflow:hidden;font-family:'Segoe UI',sans-serif;background:#fff;margin:0 auto;">
+    <div style="background:linear-gradient(135deg,#166534,#15803d);padding:10px 14px;display:flex;align-items:center;gap:10px;">
+      <span style="font-size:28px;">🏫</span>
+      <div>
+        <div style="color:#fff;font-weight:700;font-size:13px;line-height:1.2;">${namaM}</div>
+        <div style="color:#bbf7d0;font-size:10px;">Kartu Peserta PMB ${jenjM} · TA ${taM}</div>
+      </div>
+    </div>
+    <div style="padding:12px 14px;display:flex;gap:12px;align-items:flex-start;">
+      <div style="width:72px;min-width:72px;height:90px;border:1.5px solid #d1d5db;border-radius:6px;overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:#f9fafb;">
+        ${fotoEl}
+      </div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-weight:700;font-size:13px;color:#111827;margin-bottom:2px;word-break:break-word;">${data.nama_lengkap}</div>
+        <table style="font-size:10.5px;color:#374151;border-collapse:collapse;width:100%;">
+          <tr><td style="color:#6b7280;width:80px;padding:1px 0;">NISN</td><td>${data.nisn || '-'}</td></tr>
+          <tr><td style="color:#6b7280;">Tgl Lahir</td><td>${tgl}</td></tr>
+          <tr><td style="color:#6b7280;">Jenis Kelamin</td><td>${jk}</td></tr>
+          <tr><td style="color:#6b7280;">Asal Sekolah</td><td style="word-break:break-word;">${data.asal_sekolah || '-'}</td></tr>
+          <tr><td style="color:#6b7280;">Jalur</td><td><span style="background:#dcfce7;color:#166534;padding:1px 6px;border-radius:4px;font-weight:600;">${data.jalur_pendaftaran}</span></td></tr>
+        </table>
+      </div>
+    </div>
+    <div style="background:#f0fdf4;border-top:1px solid #bbf7d0;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;">
+      <div>
+        <div style="font-size:9px;color:#6b7280;margin-bottom:2px;">NOMOR PENDAFTARAN</div>
+        <div style="font-size:18px;font-weight:800;color:#166534;letter-spacing:1px;">${data.no_pendaftaran}</div>
+        <div style="font-size:9px;color:#6b7280;margin-top:2px;">Status: <strong>${data.status}</strong></div>
+      </div>
+      <img src="${qrUrl}" width="70" height="70" style="border-radius:4px;" alt="QR Code"/>
+    </div>
+    <div style="background:#166534;padding:5px 14px;text-align:center;">
+      <span style="color:#bbf7d0;font-size:9px;">Sistem PMB Digital · Amanah Madrasah</span>
+    </div>
+  </div>`;
+
+  const w = window.open('', '_blank', 'width=420,height=620');
+  w.document.write(`<!DOCTYPE html><html><head><title>Kartu Peserta - ${data.no_pendaftaran}</title>
+  <style>body{margin:20px;display:flex;flex-direction:column;align-items:center;font-family:'Segoe UI',sans-serif;}
+  @media print{body{margin:0;}button{display:none!important;}}</style></head>
+  <body>${kartuHtml}
+  <button onclick="window.print()" style="margin-top:16px;background:#16a34a;color:#fff;border:none;padding:10px 24px;border-radius:8px;font-size:14px;cursor:pointer;">🖨️ Print Kartu</button>
+  </body></html>`);
+  w.document.close();
+}
+
+function daftarLagi() {
+  submittedData = null;
+  currentStep = 1;
+  document.getElementById('step3').classList.add('hidden');
+  document.getElementById('step1').classList.remove('hidden');
+  updateStepper(1);
+  // Reset form
+  document.querySelectorAll('input[type=text], input[type=date], input[type=tel], input[type=number], textarea').forEach(el => el.value = '');
+  document.querySelectorAll('select').forEach(el => el.selectedIndex = 0);
+  document.querySelectorAll('input[type=checkbox]').forEach(el => el.checked = false);
+  // Reset foto
+  document.getElementById('f_foto').value = '';
+  document.getElementById('fotoPreview').classList.add('hidden');
+  document.getElementById('fotoPreview').src = '';
+  document.getElementById('fotoPlaceholder').classList.remove('hidden');
+  document.getElementById('fotoNama').classList.add('hidden');
+  setJalur('Reguler');
+  window.scrollTo(0, 0);
+}
+
+// ─────────────────────────────────────────────
+// CEK STATUS
+// ─────────────────────────────────────────────
+function toggleCekStatus() {
+  const box = document.getElementById('cekStatusForm');
+  box.classList.toggle('hidden');
+}
+
+async function cekStatus() {
+  const no = document.getElementById('inputNoPendaftaran').value.trim().toUpperCase();
+  const box = document.getElementById('hasilCek');
+  if (!no) return;
+
+  box.innerHTML = '<div class="text-gray-400 text-sm">Mencari…</div>';
+  box.classList.remove('hidden');
+
+  const { data, error } = await sb
+    .from('pendaftar_pmb')
+    .select('*')
+    .eq('no_pendaftaran', no)
+    .single();
+
+  if (error || !data) {
+    box.innerHTML = '<div class="text-red-500 text-sm">Nomor pendaftaran tidak ditemukan.</div>';
+    return;
+  }
+
+  const statusColor = {
+    'Mendaftar'      : 'badge-mendaftar',
+    'Verifikasi'     : 'bg-yellow-100 text-yellow-800',
+    'Diterima'       : 'badge-diterima',
+    'Tidak Diterima' : 'badge-tidak',
+    'Cadangan'       : 'bg-purple-100 text-purple-800',
+  }[data.status] || 'badge-mendaftar';
+
+  // Simpan data untuk cetak kartu
+  window._cekStatusData = data;
+
+  box.innerHTML = `
+    <div class="bg-white border rounded-xl p-4 text-sm space-y-2">
+      <div class="flex justify-between items-start">
+        <div>
+          <div class="font-bold text-gray-800 text-base">${data.nama_lengkap}</div>
+          <div class="text-gray-500">${data.no_pendaftaran} · Jalur ${data.jalur_pendaftaran}</div>
+        </div>
+        <span class="px-3 py-1 rounded-full text-xs font-bold ${statusColor}">${data.status}</span>
+      </div>
+      ${data.catatan_admin ? `<div class="bg-blue-50 rounded p-2 text-blue-700"><b>Catatan:</b> ${data.catatan_admin}</div>` : ''}
+      <div class="text-gray-400 text-xs">Terdaftar: ${new Date(data.created_at).toLocaleString('id-ID')}</div>
+      <div class="flex gap-2 mt-2">
+        ${data.status === 'Mendaftar' ? `<button onclick="bukaModalEdit()" class="flex-1 bg-blue-600 text-white py-2 rounded-lg text-sm font-semibold hover:bg-blue-700">✏️ Edit Data</button>` : ''}
+        <button onclick="cetakKartuDariCekStatus()" class="${data.status === 'Mendaftar' ? 'flex-1' : 'w-full'} bg-green-600 text-white py-2 rounded-lg text-sm font-semibold hover:bg-green-700">🪪 Cetak Kartu</button>
+      </div>
+    </div>`;
+}
+
+// ═══════════════════════════════════════════════
+// LANDING PAGE JS
+// ═══════════════════════════════════════════════
+const LP_JALUR_INFO = {
+  'Reguler':           { icon:'📝', desc:'Seleksi akademik reguler' },
+  'Prestasi':          { icon:'🏆', desc:'Berbasis prestasi akademik/non-akademik' },
+  'Afirmasi':          { icon:'💛', desc:'Ekonomi tidak mampu / KIP' },
+  'Perpindahan Tugas': { icon:'🔄', desc:'Anak pindah tugas orang tua' },
+};
+const LP_PENGUMUMAN = [
+  { id:1, icon:'📣', title:'Pembukaan PMB Tahun Ajaran 2026/2027', date:'1 November 2026',
+    excerpt:'Penerimaan Murid Baru resmi dibuka mulai 1 November 2026.',
+    isi:'Dengan mengucap Bismillahirrahmanirrahim, kami mengumumkan pembukaan resmi PMB Tahun Ajaran 2026/2027.\n\nPendaftaran dibuka untuk semua jalur: Reguler, Prestasi, Afirmasi, dan Perpindahan Tugas.\n\nCalon peserta didik dapat mendaftar melalui tombol "Daftar Sekarang" di halaman ini. Pastikan semua berkas persyaratan telah disiapkan.', baru:true },
+  { id:2, icon:'📋', title:'Persyaratan Lengkap Jalur Prestasi', date:'28 Oktober 2026',
+    excerpt:'Detail berkas yang wajib disiapkan pendaftar jalur prestasi.',
+    isi:'Pendaftar melalui jalur Prestasi wajib melampirkan:\n\n• Piagam/sertifikat prestasi (minimal tingkat kabupaten/kota)\n• Foto piagam yang jelas dan terbaca\n• Surat rekomendasi dari kepala sekolah asal\n\nBidang prestasi yang diterima: Akademik, Seni, Olahraga, Keagamaan (MTQ, tahfiz, dll).\n\nPrestasi yang diakui maksimal 3 tahun terakhir.', baru:false },
+  { id:3, icon:'⚠️', title:'Jadwal Tes Seleksi dan Wawancara', date:'25 Oktober 2026',
+    excerpt:'Informasi teknis pelaksanaan seleksi akademik dan wawancara.',
+    isi:'📅 Tes Akademik: 15 Desember 2026\n📅 Wawancara: 16–17 Desember 2026\n📅 Pengumuman Hasil: 20 Desember 2026\n\nPeserta wajib hadir tepat waktu. Bawa kartu peserta dan fotokopi akta kelahiran.', baru:false },
+];
+const LP_TAHAPAN = [
+  { tgl:'1 Nov – 30 Nov 2026', judul:'Pendaftaran Online',        ket:'Pengisian formulir dan upload berkas', status:'aktif' },
+  { tgl:'1 – 5 Des 2026',      judul:'Verifikasi Berkas',          ket:'Panitia memeriksa kelengkapan berkas', status:'mendatang' },
+  { tgl:'15 – 17 Des 2026',    judul:'Tes Seleksi & Wawancara',    ket:'Datang sesuai jadwal yang ditetapkan', status:'mendatang' },
+  { tgl:'20 Des 2026',         judul:'Pengumuman Hasil Seleksi',   ket:'Cek status di halaman ini',           status:'mendatang' },
+  { tgl:'2 – 10 Jan 2027',     judul:'Daftar Ulang & Pembayaran',  ket:'Peserta diterima wajib daftar ulang', status:'mendatang' },
+];
+
+// Terapkan config dari Supabase ke variabel LP_ (override default)
+function lpTerapkanConfig(cfg) {
+  if (!cfg) return;
+  if (cfg.pengumuman && cfg.pengumuman.length) {
+    // Replace LP_PENGUMUMAN dengan data dari Supabase
+    LP_PENGUMUMAN.length = 0;
+    cfg.pengumuman.forEach(p => LP_PENGUMUMAN.push(p));
+  }
+  if (cfg.tahapan && cfg.tahapan.length) {
+    LP_TAHAPAN.length = 0;
+    cfg.tahapan.forEach(t => LP_TAHAPAN.push(t));
+  }
+  if (cfg.tanggal_tutup) window._lpTanggalTutup = new Date(cfg.tanggal_tutup);
+  if (cfg.kuota)         window._lpKuota         = cfg.kuota;
+  if (cfg.kontak)        window._lpKontak        = cfg.kontak;
+  if (cfg.tagline)       window._lpTagline       = cfg.tagline;
+}
+
+function lpInit(cfg) {
+  lpRenderPengumuman();
+  lpRenderTimeline();
+  lpStartCountdown();
+  document.getElementById('lpCekInput').addEventListener('keydown', e => { if(e.key==='Enter') lpCekStatus(); });
+  document.getElementById('lpShareInput').value = location.href;
+}
+
+function lpTampilkanMadrasah(data) {
+  document.getElementById('lpNama').textContent     = data.nama;
+  document.getElementById('lpSub').textContent      = `Penerimaan Murid Baru (PMB) · ${data.jenjang}`;
+  document.getElementById('lpTagline').textContent  = `Bergabunglah bersama ${data.nama} — cetak generasi Qurani berakhlak mulia dan berprestasi.`;
+  document.getElementById('lpJenjang').textContent  = data.jenjang || '–';
+  document.getElementById('lpTA').textContent       = '2026/2027';
+  document.getElementById('lpKuota').textContent    = (window._lpKuota || 60) + ' Siswa';
+  document.getElementById('lpKontak').textContent   = window._lpKontak || 'Hubungi madrasah';
+  if (window._lpTagline) document.getElementById('lpTagline').textContent = window._lpTagline;
+  document.getElementById('lpShareInput').value     = location.href;
+  lpRenderJalur(data.jalur_aktif);
+  lpMuatStatistik(data.id);
+}
+
+function lpRenderJalur(jalurAktif) {
+  const aktif = Array.isArray(jalurAktif) ? jalurAktif : ['Reguler','Prestasi','Afirmasi','Perpindahan Tugas'];
+  const semua = ['Reguler','Prestasi','Afirmasi','Perpindahan Tugas'];
+  document.getElementById('lpJalurGrid').innerHTML = semua.map(j => {
+    const info = LP_JALUR_INFO[j];
+    const ok   = aktif.includes(j);
+    return `<div class="lp-jalur-card${ok?' aktif':''}" style="${ok?'':'opacity:.45;cursor:default'}" onclick="${ok?`tampilForm()`:''}">
+      <div class="lp-jalur-icon">${info.icon}</div>
+      <div class="lp-jalur-name">${j}</div>
+      <div class="lp-jalur-desc">${info.desc}</div>
+      <span class="lp-jalur-badge ${ok?'buka':'tutup'}">${ok?'Dibuka':'Ditutup'}</span>
+    </div>`;
+  }).join('');
+}
+
+async function lpMuatStatistik(madrasahId) {
+  const { data } = await sb.from('pendaftar_pmb').select('status').eq('madrasah_id', madrasahId).eq('tahun_ajaran','2026/2027');
+  if (!data) return;
+  const total = data.length, diterima = data.filter(d=>d.status==='Diterima').length;
+  const proses = data.filter(d=>['Mendaftar','Verifikasi'].includes(d.status)).length;
+  document.getElementById('lpStatTotal').textContent   = total;
+  document.getElementById('lpStatDiterima').textContent= diterima;
+  document.getElementById('lpStatProses').textContent  = proses;
+  document.getElementById('lpStatSisa').textContent    = Math.max(0, (window._lpKuota||60) - diterima);
+  document.getElementById('lpStats').style.display     = '';
+}
+
+function lpRenderPengumuman() {
+  document.getElementById('lpPengList').innerHTML = LP_PENGUMUMAN.map(p =>
+    `<div class="lp-peng-item" onclick="lpBukaModal(${p.id})">
+      <div class="lp-peng-icon">${p.icon}</div>
+      <div><div class="lp-peng-date">${p.date}</div>
+      <div class="lp-peng-title">${p.title}${p.baru?'<span class="lp-peng-new">BARU</span>':''}</div>
+      <div class="lp-peng-exc">${p.excerpt}</div></div>
+    </div>`
+  ).join('');
+}
+
+function lpRenderTimeline() {
+  document.getElementById('lpTimeline').innerHTML = LP_TAHAPAN.map(t =>
+    `<li class="lp-tl-item">
+      <div class="lp-tl-dot ${t.status}"></div>
+      <div><div class="lp-tl-date">${t.tgl}</div>
+      <div class="lp-tl-title">${t.judul}</div>
+      <div class="lp-tl-note">${t.ket}</div>
+      <span class="lp-tl-chip chip-${t.status}">${t.status==='aktif'?'Sedang Berlangsung':t.status==='selesai'?'Selesai':'Akan Datang'}</span></div>
+    </li>`
+  ).join('');
+}
+
+let _lpCdInterval = null;
+function lpStartCountdown() {
+  // Gunakan tanggal dari config Supabase, fallback ke default
+  const target = window._lpTanggalTutup || new Date('2026-11-30T16:59:00Z');
+  function tick() {
+    const diff = target - new Date();
+    if (diff <= 0) {
+      document.getElementById('lpCdLabel').textContent = 'Pendaftaran telah ditutup';
+      document.getElementById('lpCdStatus').innerHTML = '<span class="lp-cd-closed">⏹ Periode pendaftaran sudah berakhir</span>';
+      ['lpCdHari','lpCdJam','lpCdMenit','lpCdDetik'].forEach(id => document.getElementById(id).textContent = '00');
+      clearInterval(_lpCdInterval); return;
+    }
+    document.getElementById('lpCdHari').textContent   = String(Math.floor(diff/86400000)).padStart(2,'0');
+    document.getElementById('lpCdJam').textContent    = String(Math.floor((diff%86400000)/3600000)).padStart(2,'0');
+    document.getElementById('lpCdMenit').textContent  = String(Math.floor((diff%3600000)/60000)).padStart(2,'0');
+    document.getElementById('lpCdDetik').textContent  = String(Math.floor((diff%60000)/1000)).padStart(2,'0');
+    document.getElementById('lpCdStatus').innerHTML   = '<span class="lp-cd-open">● Pendaftaran sedang dibuka</span>';
+  }
+  tick(); _lpCdInterval = setInterval(tick, 1000);
+}
+
+async function lpCekStatus() {
+  const no  = document.getElementById('lpCekInput').value.trim().toUpperCase();
+  const res = document.getElementById('lpCekResult');
+  if (!no) return;
+  document.getElementById('lpCekBtn').textContent = '…';
+  res.className = 'lp-cek-result'; res.style.display = 'none';
+  const { data, error } = await sb.from('pendaftar_pmb').select('*').eq('no_pendaftaran', no).single();
+  document.getElementById('lpCekBtn').textContent = 'Cek';
+  if (error || !data) {
+    res.className = 'lp-cek-result err show';
+    res.innerHTML = `❌ Nomor <strong>${no}</strong> tidak ditemukan.`;
+    res.style.display = 'block'; return;
+  }
+  const stCls = {'Mendaftar':'background:#dbeafe;color:#1d4ed8','Verifikasi':'background:#fef9c3;color:#854d0e','Diterima':'background:#dcfce7;color:#15803d','Tidak Diterima':'background:#fee2e2;color:#b91c1c','Cadangan':'background:#ede9fe;color:#6d28d9'}[data.status]||'background:#dbeafe;color:#1d4ed8';
+  res.className = 'lp-cek-result ok show';
+  res.innerHTML = `<div class="lp-cek-name">${data.nama_lengkap}</div>
+    <div style="font-size:11px;color:#8a877e">No: <strong>${data.no_pendaftaran}</strong></div>
+    <div class="lp-cek-meta">
+      <span class="lp-cek-chip" style="${stCls}">${data.status}</span>
+      <span class="lp-cek-chip" style="background:#f0ede4;color:#4a4740">${data.jalur_pendaftaran||'Reguler'}</span>
+    </div>
+    ${data.catatan_admin?`<div style="margin-top:7px;font-size:11px;background:#f0ede4;border-radius:6px;padding:7px 9px;color:#4a4740">📝 ${data.catatan_admin}</div>`:''}`;
+  res.style.display = 'block';
+}
+
+function lpScrollCek() {
+  document.getElementById('lpCekSection').scrollIntoView({behavior:'smooth',block:'center'});
+  setTimeout(() => document.getElementById('lpCekInput').focus(), 500);
+}
+
+function lpBukaModal(id) {
+  const p = LP_PENGUMUMAN.find(x => x.id === id); if (!p) return;
+  document.getElementById('lpModalTitle').textContent = p.title;
+  document.getElementById('lpModalDate').textContent  = p.date;
+  document.getElementById('lpModalBody').innerHTML    = p.isi.split('\n').map(l => l ? `<p style="margin-bottom:8px">${l}</p>` : '<br>').join('');
+  document.getElementById('lpModalOverlay').classList.add('show');
+}
+function lpTutupModal(e) {
+  if (!e || e.target === document.getElementById('lpModalOverlay')) {
+    document.getElementById('lpModalOverlay').classList.remove('show');
+  }
+}
+
+function lpSalin() {
+  const val = document.getElementById('lpShareInput').value;
+  navigator.clipboard.writeText(val).then(() => {
+    const btn = document.getElementById('lpSalinBtn');
+    btn.textContent = '✓ Tersalin';
+    setTimeout(() => btn.textContent = 'Salin', 2000);
+  });
+}
+
+function tampilForm() {
+  clearInterval(_lpCdInterval);
+  document.getElementById('landingPage').classList.add('lp-hidden');
+  document.getElementById('lpModalOverlay').classList.remove('show');
+  document.getElementById('header').style.display        = '';
+  document.getElementById('formWrapper').style.display   = '';
+  document.getElementById('stepperBox').classList.remove('hidden');
+  document.getElementById('cekStatusBox').classList.remove('hidden');
+  document.getElementById('step1').classList.remove('hidden');
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+// ─────────────────────────────────────────────
+// CETAK BUKTI
+// ─────────────────────────────────────────────
+function cetakBukti() {
+  if (!submittedData) return;
+  const d = submittedData;
+  document.getElementById('printMadrasah').textContent = madrasah?.nama || '';
+  document.getElementById('printNama').textContent = d.nama_lengkap;
+
+  const rows = [
+    ['No. Pendaftaran', d.no_pendaftaran],
+    ['Nama Lengkap', d.nama_lengkap],
+    ['NISN', d.nisn || '-'],
+    ['Jenis Kelamin', d.jenis_kelamin === 'L' ? 'Laki-laki' : 'Perempuan'],
+    ['Tempat, Tgl Lahir', `${d.tempat_lahir}, ${d.tanggal_lahir ? new Date(d.tanggal_lahir).toLocaleDateString('id-ID') : '-'}`],
+    ['Asal Sekolah', d.asal_sekolah],
+    ['Jalur Pendaftaran', d.jalur_pendaftaran],
+    ['Alamat', d.alamat],
+    ['No. HP', d.nomor_hp || '-'],
+    ['Status', d.status],
+    ['Tanggal Daftar', new Date(d.created_at).toLocaleString('id-ID')],
+  ];
+
+  document.getElementById('printTable').innerHTML = rows.map(([k,v]) =>
+    `<tr><td style="padding:4px 8px;border:1px solid #ccc;width:200px;font-weight:600;">${k}</td><td style="padding:4px 8px;border:1px solid #ccc;">${v || '-'}</td></tr>`
+  ).join('');
+
+  document.getElementById('printArea').classList.remove('hidden');
+  window.print();
+}
+</script>
+</body>
+</html>
