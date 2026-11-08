@@ -1874,12 +1874,14 @@ function lpTerapkanConfig(cfg) {
   window._lpStatusBuka = cfg.status_buka !== false;
   // Bangun datetime buka & tutup dari tanggal + jam
   if (cfg.tanggal_buka) {
-    const jam = cfg.jam_buka || '08:00';
-    window._lpTanggalBuka = new Date(`${cfg.tanggal_buka}T${jam}`);
+    const tgl = String(cfg.tanggal_buka).slice(0, 10);
+    const jam = cfg.jam_buka ? String(cfg.jam_buka).slice(0, 5) : '08:00';
+    window._lpTanggalBuka = new Date(`${tgl}T${jam}`);
   }
   if (cfg.tanggal_tutup) {
-    const jam = cfg.jam_tutup || '23:59';
-    window._lpTanggalTutup = new Date(`${cfg.tanggal_tutup}T${jam}`);
+    const tgl = String(cfg.tanggal_tutup).slice(0, 10);
+    const jam = cfg.jam_tutup ? String(cfg.jam_tutup).slice(0, 5) : '23:59';
+    window._lpTanggalTutup = new Date(`${tgl}T${jam}`);
   }
   if (cfg.pengumuman && cfg.pengumuman.length) {
     LP_PENGUMUMAN.length = 0;
