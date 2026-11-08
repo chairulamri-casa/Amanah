@@ -1914,15 +1914,7 @@ function lpTampilkanMadrasah(data) {
   document.getElementById('lpShareInput').value     = location.href;
   lpRenderJalur(data.jalur_aktif);
   lpMuatStatistik(data.id);
-  // Update badge dan tombol sesuai status_buka
-  if (window._lpStatusBuka === false) {
-    const badgeEl = document.getElementById('lpBadgeText');
-    if (badgeEl) { badgeEl.textContent = 'Pendaftaran Ditutup'; badgeEl.parentElement.style.background='rgba(239,68,68,.2)'; badgeEl.parentElement.style.borderColor='rgba(239,68,68,.4)'; }
-    const dotEl = document.querySelector('.lp-badge-dot');
-    if (dotEl) { dotEl.style.background='#f87171'; dotEl.style.animation='none'; }
-    const btnDaftar = document.querySelector('.lp-btn-daftar');
-    if (btnDaftar) { btnDaftar.style.opacity='0.5'; btnDaftar.style.cursor='not-allowed'; btnDaftar.textContent='⛔ Pendaftaran Ditutup'; }
-  }
+  // Badge & tombol diupdate oleh lpUpdateBadgeBtn() yang dipanggil dari tick countdown
 }
 
 function lpRenderJalur(jalurAktif) {
@@ -1976,6 +1968,20 @@ function lpRenderTimeline() {
 }
 
 let _lpCdInterval = null;
+function lpUpdateBadgeBtn(buka) {
+  const badgeEl  = document.getElementById('lpBadgeText');
+  const dotEl    = document.querySelector('.lp-badge-dot');
+  const btnDaftar = document.querySelector('.lp-btn-daftar');
+  if (buka) {
+    if (badgeEl)  { badgeEl.textContent = 'Pendaftaran Dibuka'; badgeEl.parentElement.style.background=''; badgeEl.parentElement.style.borderColor=''; }
+    if (dotEl)    { dotEl.style.background='#4ade80'; dotEl.style.animation=''; }
+    if (btnDaftar){ btnDaftar.style.opacity=''; btnDaftar.style.cursor=''; btnDaftar.textContent='✏️ Daftar Sekarang'; }
+  } else {
+    if (badgeEl)  { badgeEl.textContent = 'Pendaftaran Ditutup'; badgeEl.parentElement.style.background='rgba(239,68,68,.2)'; badgeEl.parentElement.style.borderColor='rgba(239,68,68,.4)'; }
+    if (dotEl)    { dotEl.style.background='#f87171'; dotEl.style.animation='none'; }
+    if (btnDaftar){ btnDaftar.style.opacity='0.5'; btnDaftar.style.cursor='not-allowed'; btnDaftar.textContent='⛔ Pendaftaran Ditutup'; }
+  }
+}
 function lpFmtDiff(diff) {
   const h = Math.floor(diff/3600000);
   const m = Math.floor((diff%3600000)/60000);
@@ -1996,29 +2002,32 @@ function lpStartCountdown() {
 
     // ── KONDISI 1: Belum buka ──────────────────────────────────
     if (buka && diffBuka > 0) {
+      window._lpStatusBuka = false;
+      lpUpdateBadgeBtn(false);
       document.getElementById('lpCdLabel').textContent = '⏳ Pendaftaran akan dibuka dalam';
-      document.getElementById('lpCdStatus').innerHTML  = `<span class="lp-cd-closed">🔒 Belum dibuka — ${new Date(buka).toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'})} pukul ${buka.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'})} WIB</span>`;
+      document.getElementById('lpCdStatus').innerHTML  = `<span class="lp-cd-closed">🔒 Dibuka: ${buka.toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'})} pukul ${buka.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'})} WIB</span>`;
       const diff = diffBuka;
       document.getElementById('lpCdHari').textContent   = String(Math.floor(diff/86400000)).padStart(2,'0');
       document.getElementById('lpCdJam').textContent    = String(Math.floor((diff%86400000)/3600000)).padStart(2,'0');
       document.getElementById('lpCdMenit').textContent  = String(Math.floor((diff%3600000)/60000)).padStart(2,'0');
       document.getElementById('lpCdDetik').textContent  = String(Math.floor((diff%60000)/1000)).padStart(2,'0');
-      // Blokir tombol daftar
-      window._lpStatusBuka = false;
       return;
     }
 
     // ── KONDISI 3: Sudah tutup ─────────────────────────────────
     if (tutup && diffTutup <= 0) {
+      window._lpStatusBuka = false;
+      lpUpdateBadgeBtn(false);
       document.getElementById('lpCdLabel').textContent = '🔒 Pendaftaran telah ditutup';
       document.getElementById('lpCdStatus').innerHTML  = '<span class="lp-cd-closed">⏹ Periode pendaftaran sudah berakhir</span>';
       ['lpCdHari','lpCdJam','lpCdMenit','lpCdDetik'].forEach(id => document.getElementById(id).textContent = '00');
-      window._lpStatusBuka = false;
       clearInterval(_lpCdInterval); return;
     }
 
     // ── KONDISI 2: Masa pendaftaran berlangsung ─────────────────
     if (tutup && diffTutup > 0) {
+      window._lpStatusBuka = true;
+      lpUpdateBadgeBtn(true);
       document.getElementById('lpCdLabel').textContent = '⏰ Pendaftaran ditutup dalam';
       document.getElementById('lpCdStatus').innerHTML  = '<span class="lp-cd-open">● Pendaftaran sedang dibuka</span>';
       const diff = diffTutup;
@@ -2029,8 +2038,10 @@ function lpStartCountdown() {
       return;
     }
 
-    // Fallback: tidak ada tanggal yang dikonfigurasi
-    document.getElementById('lpCdStatus').innerHTML = '<span class="lp-cd-open">● Pendaftaran sedang dibuka</span>';
+    // Fallback: tanggal tidak dikonfigurasi — ikuti toggle status_buka
+    const statusManual = window._lpStatusBuka !== false;
+    lpUpdateBadgeBtn(statusManual);
+    document.getElementById('lpCdStatus').innerHTML = statusManual ? '<span class="lp-cd-open">● Pendaftaran sedang dibuka</span>' : '<span class="lp-cd-closed">⏹ Pendaftaran ditutup</span>';
     document.getElementById('lpCdLabel').textContent = 'Status Pendaftaran';
     ['lpCdHari','lpCdJam','lpCdMenit','lpCdDetik'].forEach(id => document.getElementById(id).textContent = '--');
   }
