@@ -2013,16 +2013,6 @@ function lpStartCountdown() {
       return;
     }
 
-    // ── KONDISI 3: Sudah tutup ─────────────────────────────────
-    if (tutup && diffTutup <= 0) {
-      window._lpStatusBuka = false;
-      lpUpdateBadgeBtn(false);
-      document.getElementById('lpCdLabel').textContent = '🔒 Pendaftaran telah ditutup';
-      document.getElementById('lpCdStatus').innerHTML  = '<span class="lp-cd-closed">⏹ Periode pendaftaran sudah berakhir</span>';
-      ['lpCdHari','lpCdJam','lpCdMenit','lpCdDetik'].forEach(id => document.getElementById(id).textContent = '00');
-      clearInterval(_lpCdInterval); return;
-    }
-
     // ── KONDISI 2: Masa pendaftaran berlangsung ─────────────────
     if (tutup && diffTutup > 0) {
       window._lpStatusBuka = true;
@@ -2035,6 +2025,16 @@ function lpStartCountdown() {
       document.getElementById('lpCdMenit').textContent  = String(Math.floor((diff%3600000)/60000)).padStart(2,'0');
       document.getElementById('lpCdDetik').textContent  = String(Math.floor((diff%60000)/1000)).padStart(2,'0');
       return;
+    }
+
+    // ── KONDISI 3: Sudah tutup ─────────────────────────────────
+    if (tutup && diffTutup <= 0) {
+      window._lpStatusBuka = false;
+      lpUpdateBadgeBtn(false);
+      document.getElementById('lpCdLabel').textContent = '🔒 Pendaftaran telah ditutup';
+      document.getElementById('lpCdStatus').innerHTML  = '<span class="lp-cd-closed">⏹ Periode pendaftaran sudah berakhir</span>';
+      ['lpCdHari','lpCdJam','lpCdMenit','lpCdDetik'].forEach(id => document.getElementById(id).textContent = '00');
+      clearInterval(_lpCdInterval); return;
     }
 
     // Fallback: tanggal tidak dikonfigurasi — ikuti toggle status_buka
