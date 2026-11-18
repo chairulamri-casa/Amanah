@@ -1,1177 +1,582 @@
-<title>Pendaftaran Murid Baru</title>
-<meta name="claude:viewport-fit-sides" content="cover">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Amiri:ital,wght@0,400;0,700;1,400&display=swap">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>SD Negeri Lambada Klieng</title>
+  <meta name="description" content="Website resmi SD Negeri Lambada Klieng, Kecamatan Baitussalam, Aceh Besar">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f5f7fa;
+      --bg2: #ffffff;
+      --fg: #1a2332;
+      --fg2: #4a5568;
+      --accent: #1a56a0;
+      --accent2: #e8f0fb;
+      --accent3: #c8192b;
+      --border: #e2e8f0;
+      --shadow: 0 2px 16px rgba(26,86,160,0.08);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --bg: #0f1923; --bg2: #1a2535; --fg: #e8edf5; --fg2: #94a3b8;
+        --accent: #3b82f6; --accent2: #1e2d45; --accent3: #f87171;
+        --border: #2d3f55; --shadow: 0 2px 16px rgba(0,0,0,0.3);
+        color-scheme: dark;
+      }
+    }
+    :root[data-theme="dark"] {
+      --bg: #0f1923; --bg2: #1a2535; --fg: #e8edf5; --fg2: #94a3b8;
+      --accent: #3b82f6; --accent2: #1e2d45; --accent3: #f87171;
+      --border: #2d3f55; --shadow: 0 2px 16px rgba(0,0,0,0.3);
+      color-scheme: dark;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--fg);
+      line-height: 1.6;
+    }
 
-<style>
-/* ─── DESIGN TOKENS ──────────────────────────────────── */
-:root {
-  --bg:       #f7f5ef;
-  --surface:  #ffffff;
-  --surface2: #f0ede4;
-  --border:   #e2ddd1;
-  --ink:      #1a1a14;
-  --ink2:     #4a4740;
-  --ink3:     #8a877e;
-  --gold:     #b8870b;
-  --gold-l:   #fdf3d6;
-  --gold-d:   #8a6408;
-  --green:    #1a5c38;
-  --green-l:  #e6f4ec;
-  --green-m:  #2e7d54;
-  --green-b:  #0f3d25;
-  --accent:   #c0392b;
-  --accent-l: #fdecea;
-  --shadow:   0 2px 12px rgba(26,26,20,.08);
-  --shadow-m: 0 6px 24px rgba(26,26,20,.12);
-  --r:        12px;
-}
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --bg:      #111209;
-    --surface: #1c1d14;
-    --surface2:#252618;
-    --border:  #2e2f22;
-    --ink:     #f0eddf;
-    --ink2:    #b8b4a0;
-    --ink3:    #706d60;
-    --gold:    #d4a017;
-    --gold-l:  #2a2410;
-    --gold-d:  #f0c040;
-    --green:   #3dbc72;
-    --green-l: #0d2518;
-    --green-m: #4ecb82;
-    --green-b: #c6f0d8;
-    --accent:  #e05545;
-    --accent-l:#2d1410;
-    --shadow:  0 2px 12px rgba(0,0,0,.3);
-    --shadow-m:0 6px 24px rgba(0,0,0,.4);
-    color-scheme: dark;
-  }
-}
-:root[data-theme="dark"] {
-  --bg:      #111209;
-  --surface: #1c1d14;
-  --surface2:#252618;
-  --border:  #2e2f22;
-  --ink:     #f0eddf;
-  --ink2:    #b8b4a0;
-  --ink3:    #706d60;
-  --gold:    #d4a017;
-  --gold-l:  #2a2410;
-  --gold-d:  #f0c040;
-  --green:   #3dbc72;
-  --green-l: #0d2518;
-  --green-m: #4ecb82;
-  --green-b: #c6f0d8;
-  --accent:  #e05545;
-  --accent-l:#2d1410;
-  --shadow:  0 2px 12px rgba(0,0,0,.3);
-  --shadow-m:0 6px 24px rgba(0,0,0,.4);
-  color-scheme: dark;
-}
+    /* HEADER */
+    header {
+      background: var(--accent);
+      color: #fff;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+    }
+    .header-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0.75rem max(16px, env(safe-area-inset-left, 0px));
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      justify-content: space-between;
+    }
+    .header-left { display: flex; align-items: center; gap: 0.75rem; }
+    .header-logo {
+      width: 44px; height: 44px;
+      background: #fff;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.4rem;
+      flex-shrink: 0;
+    }
+    .header-title { font-size: 1rem; font-weight: 700; line-height: 1.2; }
+    .header-sub { font-size: 0.72rem; opacity: 0.8; }
+    .btn-login {
+      background: #fff;
+      color: var(--accent);
+      border: none;
+      padding: 0.5rem 1.1rem;
+      border-radius: 6px;
+      font-weight: 700;
+      font-size: 0.85rem;
+      cursor: pointer;
+      text-decoration: none;
+      white-space: nowrap;
+      transition: opacity 0.2s;
+    }
+    .btn-login:hover { opacity: 0.85; }
 
-/* ─── RESET & BASE ───────────────────────────────────── */
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html, body { height: 100%; }
-body {
-  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
-  background: var(--bg);
-  color: var(--ink);
-  padding-left: max(16px, env(safe-area-inset-left, 0px));
-  padding-right: max(16px, env(safe-area-inset-right, 0px));
-  padding-bottom: max(24px, env(safe-area-inset-bottom, 0px));
-}
-img { max-width: 100%; }
+    /* HERO */
+    .hero {
+      background: linear-gradient(135deg, #1a56a0 0%, #0d3a73 60%, #c8192b 100%);
+      color: #fff;
+      padding: 4rem max(16px, env(safe-area-inset-left, 0px));
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    }
+    .hero-content { position: relative; max-width: 700px; margin: 0 auto; }
+    .hero-badge {
+      display: inline-block;
+      background: rgba(255,255,255,0.15);
+      border: 1px solid rgba(255,255,255,0.3);
+      padding: 0.3rem 0.9rem;
+      border-radius: 20px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      margin-bottom: 1rem;
+    }
+    .hero h1 {
+      font-size: clamp(1.6rem, 4vw, 2.4rem);
+      font-weight: 800;
+      line-height: 1.2;
+      margin-bottom: 0.75rem;
+      text-wrap: balance;
+    }
+    .hero p {
+      font-size: 1rem;
+      opacity: 0.85;
+      margin-bottom: 2rem;
+    }
+    .hero-actions { display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap; }
+    .btn-primary {
+      background: #fff;
+      color: var(--accent);
+      padding: 0.7rem 1.5rem;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 0.9rem;
+      text-decoration: none;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,0.2); }
+    .btn-outline {
+      background: transparent;
+      color: #fff;
+      border: 2px solid rgba(255,255,255,0.6);
+      padding: 0.7rem 1.5rem;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      text-decoration: none;
+      transition: background 0.2s;
+    }
+    .btn-outline:hover { background: rgba(255,255,255,0.1); }
 
-/* ─── HERO ───────────────────────────────────────────── */
-.hero {
-  background: linear-gradient(135deg, var(--green-b) 0%, var(--green) 55%, #2d7a50 100%);
-  color: #fff;
-  padding: 0;
-  position: relative;
-  overflow: hidden;
-}
-.hero-pattern {
-  position: absolute; inset: 0;
-  background-image:
-    radial-gradient(circle at 20% 50%, rgba(255,255,255,.04) 0%, transparent 50%),
-    radial-gradient(circle at 80% 20%, rgba(184,135,11,.15) 0%, transparent 40%);
-  pointer-events: none;
-}
-.hero-arabesque {
-  position: absolute; right: -40px; top: -40px;
-  width: 280px; height: 280px; opacity: .06;
-  font-family: 'Amiri', serif; font-size: 240px; line-height: 1;
-  color: #fff; pointer-events: none; user-select: none;
-}
-.hero-inner {
-  position: relative;
-  max-width: 760px; margin: 0 auto;
-  padding: 48px max(16px, env(safe-area-inset-left, 0px)) 36px;
-}
-.hero-badge {
-  display: inline-flex; align-items: center; gap: 6px;
-  background: rgba(255,255,255,.15);
-  border: 1px solid rgba(255,255,255,.25);
-  border-radius: 100px;
-  padding: 4px 14px; font-size: 12px; font-weight: 600;
-  letter-spacing: .04em; text-transform: uppercase;
-  color: rgba(255,255,255,.9); margin-bottom: 20px;
-}
-.hero-badge-dot {
-  width: 6px; height: 6px; border-radius: 50%;
-  background: #4ade80; animation: pulse-green 1.6s ease-in-out infinite;
-}
-@keyframes pulse-green {
-  0%,100% { opacity: 1; transform: scale(1); }
-  50%      { opacity: .5; transform: scale(1.4); }
-}
-.hero-logo-row {
-  display: flex; align-items: center; gap: 14px; margin-bottom: 16px;
-}
-.hero-logo-box {
-  width: 56px; height: 56px; border-radius: 14px;
-  background: rgba(255,255,255,.18);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 28px; flex-shrink: 0;
-}
-.hero-madrasah-name {
-  font-size: clamp(18px, 4vw, 26px);
-  font-weight: 800; line-height: 1.2;
-  text-wrap: balance;
-}
-.hero-sub {
-  font-size: 13px; color: rgba(255,255,255,.7);
-  margin-top: 2px;
-}
-.hero-tagline {
-  font-family: 'Amiri', serif;
-  font-size: clamp(13px, 2.5vw, 16px);
-  color: rgba(255,255,255,.7);
-  font-style: italic; margin-bottom: 28px;
-  line-height: 1.6;
-}
+    /* STATS BAR */
+    .stats-bar {
+      background: var(--bg2);
+      border-bottom: 1px solid var(--border);
+      box-shadow: var(--shadow);
+    }
+    .stats-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 max(16px, env(safe-area-inset-left, 0px));
+      display: flex;
+      justify-content: space-around;
+      flex-wrap: wrap;
+    }
+    .stat-item {
+      padding: 1.2rem 1rem;
+      text-align: center;
+      flex: 1;
+      min-width: 120px;
+    }
+    .stat-num { font-size: 1.6rem; font-weight: 800; color: var(--accent); }
+    .stat-label { font-size: 0.75rem; color: var(--fg2); font-weight: 500; }
 
-/* ─── COUNTDOWN ──────────────────────────────────────── */
-.countdown-wrap {
-  background: rgba(255,255,255,.1);
-  border: 1px solid rgba(255,255,255,.18);
-  border-radius: var(--r);
-  padding: 18px 20px;
-  margin-bottom: 24px;
-}
-.countdown-label {
-  font-size: 11px; font-weight: 700; letter-spacing: .08em;
-  text-transform: uppercase; color: rgba(255,255,255,.6);
-  margin-bottom: 12px;
-}
-.countdown-grid {
-  display: flex; gap: 8px; align-items: flex-start;
-}
-.countdown-unit {
-  flex: 1; text-align: center;
-}
-.countdown-num {
-  font-size: clamp(28px, 6vw, 42px);
-  font-weight: 800; line-height: 1;
-  font-variant-numeric: tabular-nums;
-  color: #fff;
-}
-.countdown-unit-label {
-  font-size: 10px; font-weight: 600; letter-spacing: .06em;
-  text-transform: uppercase; color: rgba(255,255,255,.55);
-  margin-top: 4px;
-}
-.countdown-sep {
-  font-size: 32px; font-weight: 800; color: rgba(255,255,255,.4);
-  padding-top: 2px; line-height: 1;
-}
-.countdown-status {
-  font-size: 12px; color: rgba(255,255,255,.65);
-  margin-top: 10px;
-}
-.countdown-open { color: #4ade80; font-weight: 700; }
-.countdown-closed { color: #fca5a5; font-weight: 700; }
+    /* SECTION */
+    section { padding: 3rem max(16px, env(safe-area-inset-left, 0px)); }
+    .section-inner { max-width: 1100px; margin: 0 auto; }
+    .section-title {
+      font-size: 1.3rem;
+      font-weight: 800;
+      color: var(--fg);
+      margin-bottom: 0.4rem;
+    }
+    .section-sub { color: var(--fg2); font-size: 0.9rem; margin-bottom: 2rem; }
+    .section-title-line {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 0.4rem;
+    }
+    .title-accent {
+      width: 4px; height: 1.4rem;
+      background: var(--accent3);
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
 
-.hero-cta {
-  display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 8px;
-}
-.btn-primary {
-  display: inline-flex; align-items: center; gap: 8px;
-  background: var(--gold);
-  color: #fff; font-weight: 700; font-size: 14px;
-  padding: 13px 22px; border-radius: 100px;
-  border: none; cursor: pointer;
-  text-decoration: none;
-  transition: transform .15s, box-shadow .15s;
-  box-shadow: 0 4px 16px rgba(184,135,11,.4);
-}
-.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(184,135,11,.5); }
-.btn-secondary {
-  display: inline-flex; align-items: center; gap: 8px;
-  background: rgba(255,255,255,.15);
-  border: 1.5px solid rgba(255,255,255,.3);
-  color: #fff; font-weight: 600; font-size: 14px;
-  padding: 12px 20px; border-radius: 100px;
-  cursor: pointer; text-decoration: none;
-  transition: background .15s;
-}
-.btn-secondary:hover { background: rgba(255,255,255,.22); }
+    /* PROFIL CARDS */
+    .profil-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+    }
+    @media (max-width: 600px) { .profil-grid { grid-template-columns: 1fr; } }
+    .profil-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.5rem;
+      box-shadow: var(--shadow);
+    }
+    .profil-card h3 {
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--accent);
+      margin-bottom: 1rem;
+    }
+    .profil-row {
+      display: flex;
+      gap: 0.75rem;
+      margin-bottom: 0.6rem;
+      font-size: 0.88rem;
+    }
+    .profil-row .label { color: var(--fg2); min-width: 90px; flex-shrink: 0; }
+    .profil-row .value { color: var(--fg); font-weight: 500; }
 
-/* ─── STATS STRIP ────────────────────────────────────── */
-.stats-strip {
-  background: var(--gold);
-  padding: 14px max(16px, env(safe-area-inset-left, 0px));
-}
-.stats-inner {
-  max-width: 760px; margin: 0 auto;
-  display: flex; gap: 0; justify-content: space-around;
-  flex-wrap: wrap;
-}
-.stat-item {
-  text-align: center; padding: 4px 12px;
-  border-right: 1px solid rgba(255,255,255,.3);
-}
-.stat-item:last-child { border-right: none; }
-.stat-num {
-  font-size: 22px; font-weight: 800; color: #fff;
-  font-variant-numeric: tabular-nums;
-}
-.stat-lbl { font-size: 10px; font-weight: 600; color: rgba(255,255,255,.8); letter-spacing: .05em; text-transform: uppercase; }
+    /* VISI MISI */
+    .vm-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+    }
+    @media (max-width: 640px) { .vm-grid { grid-template-columns: 1fr; } }
+    .vm-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.5rem;
+      box-shadow: var(--shadow);
+    }
+    .vm-card.visi { border-top: 4px solid var(--accent); }
+    .vm-card.misi { border-top: 4px solid var(--accent3); }
+    .vm-card h3 {
+      font-size: 1rem;
+      font-weight: 800;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .vm-card p { font-size: 0.9rem; color: var(--fg2); line-height: 1.7; }
+    .vm-card ul { list-style: none; }
+    .vm-card ul li {
+      font-size: 0.88rem;
+      color: var(--fg2);
+      padding: 0.4rem 0;
+      padding-left: 1.2rem;
+      position: relative;
+      border-bottom: 1px solid var(--border);
+    }
+    .vm-card ul li:last-child { border-bottom: none; }
+    .vm-card ul li::before {
+      content: '→';
+      position: absolute;
+      left: 0;
+      color: var(--accent3);
+      font-weight: 700;
+    }
 
-/* ─── MAIN CONTENT ───────────────────────────────────── */
-.main {
-  max-width: 760px; margin: 0 auto;
-  padding-top: 28px;
-  display: grid;
-  grid-template-columns: 1fr 320px;
-  gap: 20px;
-  align-items: start;
-}
-@media (max-width: 680px) {
-  .main { grid-template-columns: 1fr; }
-}
+    /* PROGRAM UNGGULAN */
+    .program-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 1rem;
+    }
+    .program-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.25rem;
+      text-align: center;
+      box-shadow: var(--shadow);
+      transition: transform 0.2s;
+    }
+    .program-card:hover { transform: translateY(-3px); }
+    .program-icon { font-size: 2rem; margin-bottom: 0.6rem; }
+    .program-card h4 { font-size: 0.9rem; font-weight: 700; margin-bottom: 0.3rem; }
+    .program-card p { font-size: 0.78rem; color: var(--fg2); }
 
-/* ─── CARDS ──────────────────────────────────────────── */
-.card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--r);
-  box-shadow: var(--shadow);
-  overflow: hidden;
-  margin-bottom: 16px;
-}
-.card-head {
-  display: flex; align-items: center; gap: 10px;
-  padding: 14px 18px;
-  border-bottom: 1px solid var(--border);
-  background: var(--surface2);
-}
-.card-head-icon {
-  width: 32px; height: 32px; border-radius: 8px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 16px; background: var(--green-l); flex-shrink: 0;
-}
-.card-head-title {
-  font-size: 13px; font-weight: 700; color: var(--ink);
-  text-transform: uppercase; letter-spacing: .05em;
-}
-.card-body { padding: 16px 18px; }
+    /* LAYANAN */
+    .layanan-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 1rem;
+    }
+    .layanan-card {
+      background: var(--accent2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.25rem 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      text-decoration: none;
+      color: var(--fg);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .layanan-card:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+    .layanan-icon { font-size: 1.8rem; flex-shrink: 0; }
+    .layanan-card h4 { font-size: 0.9rem; font-weight: 700; }
+    .layanan-card p { font-size: 0.78rem; color: var(--fg2); }
 
-/* ─── JALUR CARDS ────────────────────────────────────── */
-.jalur-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-  gap: 10px;
-}
-.jalur-card {
-  border: 1.5px solid var(--border);
-  border-radius: 10px; padding: 14px 10px;
-  text-align: center; cursor: pointer;
-  background: var(--surface);
-  transition: border-color .15s, transform .12s, background .15s;
-}
-.jalur-card:hover { border-color: var(--green-m); transform: translateY(-2px); background: var(--green-l); }
-.jalur-card.aktif { border-color: var(--green-m); background: var(--green-l); }
-.jalur-icon { font-size: 28px; margin-bottom: 6px; }
-.jalur-name { font-size: 11px; font-weight: 700; color: var(--ink); }
-.jalur-desc { font-size: 10px; color: var(--ink3); margin-top: 3px; line-height: 1.4; }
-.jalur-badge {
-  display: inline-block; margin-top: 6px;
-  font-size: 9px; font-weight: 700; letter-spacing: .04em;
-  padding: 2px 8px; border-radius: 100px;
-  background: var(--green-l); color: var(--green-m);
-}
-.jalur-badge.tutup { background: var(--accent-l); color: var(--accent); }
+    /* KEPALA SEKOLAH */
+    .kepsek-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 2rem;
+      display: flex;
+      gap: 1.5rem;
+      align-items: center;
+      box-shadow: var(--shadow);
+      max-width: 600px;
+    }
+    @media (max-width: 500px) { .kepsek-card { flex-direction: column; text-align: center; } }
+    .kepsek-avatar {
+      width: 80px; height: 80px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), #0d3a73);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2rem;
+      flex-shrink: 0;
+    }
+    .kepsek-info h3 { font-size: 1.1rem; font-weight: 800; margin-bottom: 0.2rem; }
+    .kepsek-info .jabatan { font-size: 0.82rem; color: var(--accent); font-weight: 600; margin-bottom: 0.5rem; }
+    .kepsek-info p { font-size: 0.85rem; color: var(--fg2); font-style: italic; }
 
-/* ─── TIMELINE ───────────────────────────────────────── */
-.timeline { list-style: none; padding: 0; }
-.tl-item {
-  display: flex; gap: 12px; padding: 10px 0;
-  border-bottom: 1px solid var(--border);
-  position: relative;
-}
-.tl-item:last-child { border-bottom: none; }
-.tl-dot {
-  width: 10px; height: 10px; border-radius: 50%;
-  background: var(--border); flex-shrink: 0;
-  margin-top: 5px;
-  border: 2px solid var(--surface);
-  box-shadow: 0 0 0 2px var(--border);
-}
-.tl-dot.aktif { background: var(--green-m); box-shadow: 0 0 0 2px var(--green-l); }
-.tl-dot.selesai { background: var(--ink3); box-shadow: 0 0 0 2px var(--surface2); }
-.tl-dot.mendatang { background: var(--gold); box-shadow: 0 0 0 2px var(--gold-l); }
-.tl-body { flex: 1; min-width: 0; }
-.tl-date { font-size: 11px; color: var(--ink3); font-weight: 600; }
-.tl-title { font-size: 13px; font-weight: 700; color: var(--ink); margin: 1px 0; }
-.tl-note { font-size: 11px; color: var(--ink3); }
-.tl-chip {
-  font-size: 9px; font-weight: 700; letter-spacing: .05em;
-  padding: 2px 8px; border-radius: 100px;
-  display: inline-block; margin-top: 3px;
-}
-.chip-aktif { background: var(--green-l); color: var(--green-m); }
-.chip-selesai { background: var(--surface2); color: var(--ink3); }
-.chip-mendatang { background: var(--gold-l); color: var(--gold-d); }
+    /* FOOTER */
+    footer {
+      background: #0d1f35;
+      color: #94a3b8;
+      padding: 2rem max(16px, env(safe-area-inset-left, 0px));
+      text-align: center;
+    }
+    .footer-inner { max-width: 1100px; margin: 0 auto; }
+    footer h3 { color: #fff; font-size: 1rem; font-weight: 700; margin-bottom: 0.5rem; }
+    footer p { font-size: 0.82rem; line-height: 1.8; }
+    .footer-divider { border: none; border-top: 1px solid #1e3a5f; margin: 1.5rem 0; }
+    .footer-bottom { font-size: 0.75rem; opacity: 0.6; }
 
-/* ─── PENGUMUMAN ─────────────────────────────────────── */
-.pengumuman-list { display: flex; flex-direction: column; gap: 10px; }
-.peng-item {
-  display: flex; gap: 12px; align-items: flex-start;
-  padding: 12px; border-radius: 8px;
-  background: var(--surface2);
-  border: 1px solid var(--border);
-  cursor: pointer;
-  transition: background .12s;
-}
-.peng-item:hover { background: var(--green-l); border-color: var(--green-m); }
-.peng-icon {
-  width: 36px; height: 36px; border-radius: 8px;
-  background: var(--green-l); display: flex; align-items: center;
-  justify-content: center; font-size: 18px; flex-shrink: 0;
-}
-.peng-body { flex: 1; min-width: 0; }
-.peng-date { font-size: 10px; color: var(--ink3); font-weight: 600; }
-.peng-title { font-size: 13px; font-weight: 700; color: var(--ink); line-height: 1.35; }
-.peng-excerpt { font-size: 11px; color: var(--ink3); margin-top: 2px; }
-.peng-new {
-  font-size: 9px; font-weight: 800; background: var(--accent);
-  color: #fff; padding: 2px 7px; border-radius: 100px;
-  display: inline-block; margin-left: 6px;
-}
+    /* BG ALT */
+    .bg-alt { background: var(--bg2); }
+  </style>
+</head>
+<body>
 
-/* ─── SIDEBAR ────────────────────────────────────────── */
-.sidebar {}
-.info-box {
-  background: linear-gradient(135deg, var(--green-b), var(--green));
-  border-radius: var(--r); padding: 20px;
-  color: #fff; margin-bottom: 16px;
-}
-.info-box h3 { font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: .05em; opacity: .7; margin-bottom: 12px; }
-.info-row {
-  display: flex; align-items: center; gap: 10px;
-  padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,.12);
-}
-.info-row:last-child { border-bottom: none; }
-.info-row-icon { font-size: 18px; width: 28px; text-align: center; flex-shrink: 0; }
-.info-row-body {}
-.info-row-label { font-size: 10px; opacity: .6; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; }
-.info-row-val { font-size: 13px; font-weight: 700; line-height: 1.35; }
-
-.syarat-list { list-style: none; padding: 0; }
-.syarat-item {
-  display: flex; gap: 10px; align-items: flex-start;
-  padding: 7px 0; border-bottom: 1px solid var(--border);
-  font-size: 12px; color: var(--ink2);
-}
-.syarat-item:last-child { border-bottom: none; }
-.syarat-item::before {
-  content: "✓"; color: var(--green-m); font-weight: 800;
-  flex-shrink: 0; margin-top: 1px;
-}
-
-/* ─── CEK STATUS ─────────────────────────────────────── */
-.cek-wrap {
-  display: flex; gap: 8px;
-}
-.cek-input {
-  flex: 1; min-width: 0;
-  border: 1.5px solid var(--border);
-  border-radius: 8px; padding: 10px 14px;
-  font-size: 13px; font-family: inherit;
-  background: var(--surface); color: var(--ink);
-  transition: border-color .15s;
-}
-.cek-input:focus { outline: none; border-color: var(--green-m); box-shadow: 0 0 0 3px var(--green-l); }
-.cek-btn {
-  background: var(--green-m); color: #fff;
-  border: none; border-radius: 8px; padding: 10px 16px;
-  font-size: 13px; font-weight: 700; cursor: pointer;
-  font-family: inherit;
-  transition: background .15s;
-}
-.cek-btn:hover { background: var(--green); }
-.cek-result {
-  margin-top: 12px; padding: 14px;
-  border-radius: 8px; font-size: 12px;
-  display: none;
-}
-.cek-result.show { display: block; }
-.cek-result.ok { background: var(--green-l); border: 1px solid var(--green-m); color: var(--ink); }
-.cek-result.err { background: var(--accent-l); border: 1px solid var(--accent); color: var(--accent); }
-.cek-name { font-size: 15px; font-weight: 800; color: var(--ink); margin-bottom: 6px; }
-.cek-meta { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
-.cek-chip {
-  font-size: 11px; font-weight: 700; padding: 3px 10px;
-  border-radius: 100px;
-}
-.status-mendaftar { background: #dbeafe; color: #1d4ed8; }
-.status-verifikasi { background: #fef9c3; color: #854d0e; }
-.status-diterima   { background: #dcfce7; color: #15803d; }
-.status-tidak      { background: #fee2e2; color: #b91c1c; }
-.status-cadangan   { background: #ede9fe; color: #6d28d9; }
-
-/* ─── MODAL ──────────────────────────────────────────── */
-.modal-overlay {
-  position: fixed; inset: 0;
-  background: rgba(0,0,0,.55); backdrop-filter: blur(4px);
-  display: flex; align-items: center; justify-content: center;
-  z-index: 100; padding: 16px;
-  opacity: 0; pointer-events: none;
-  transition: opacity .2s;
-}
-.modal-overlay.show { opacity: 1; pointer-events: all; }
-.modal {
-  background: var(--surface);
-  border-radius: 16px; padding: 28px;
-  max-width: 480px; width: 100%;
-  max-height: 80vh; overflow-y: auto;
-  transform: translateY(16px);
-  transition: transform .2s;
-  box-shadow: var(--shadow-m);
-}
-.modal-overlay.show .modal { transform: translateY(0); }
-.modal-head {
-  display: flex; justify-content: space-between; align-items: flex-start;
-  margin-bottom: 16px;
-}
-.modal-title { font-size: 16px; font-weight: 800; color: var(--ink); line-height: 1.3; }
-.modal-date { font-size: 11px; color: var(--ink3); margin-top: 2px; }
-.modal-close {
-  background: var(--surface2); border: none; border-radius: 8px;
-  width: 32px; height: 32px; cursor: pointer; font-size: 16px;
-  display: flex; align-items: center; justify-content: center;
-  color: var(--ink3); flex-shrink: 0; transition: background .12s;
-}
-.modal-close:hover { background: var(--border); }
-.modal-body { font-size: 13px; color: var(--ink2); line-height: 1.7; }
-
-/* ─── FOOTER ─────────────────────────────────────────── */
-.footer {
-  max-width: 760px; margin: 32px auto 0;
-  padding: 20px max(16px, env(safe-area-inset-left, 0px));
-  border-top: 1px solid var(--border);
-  display: flex; justify-content: space-between; align-items: center;
-  flex-wrap: wrap; gap: 10px;
-}
-.footer-brand { font-size: 12px; color: var(--ink3); }
-.footer-brand strong { color: var(--ink2); }
-.footer-links { display: flex; gap: 16px; }
-.footer-link { font-size: 12px; color: var(--ink3); text-decoration: none; }
-.footer-link:hover { color: var(--green-m); }
-
-/* ─── LOADING SKELETON ───────────────────────────────── */
-.skeleton {
-  background: linear-gradient(90deg, var(--surface2) 25%, var(--border) 50%, var(--surface2) 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.4s infinite;
-  border-radius: 6px;
-}
-@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
-
-/* reduced motion */
-@media (prefers-reduced-motion: reduce) {
-  * { animation-duration: .01ms !important; transition-duration: .01ms !important; }
-}
-</style>
-
-<!-- ─── HERO ─────────────────────────────────────────── -->
-<div class="hero">
-  <div class="hero-arabesque">م</div>
-  <div class="hero-pattern"></div>
-  <div class="hero-inner">
-    <div class="hero-badge">
-      <span class="hero-badge-dot"></span>
-      <span id="heroBadgeText">Membuka Pendaftaran</span>
-    </div>
-
-    <div class="hero-logo-row">
-      <div class="hero-logo-box" id="heroLogoBox">🏫</div>
+<!-- HEADER -->
+<header>
+  <div class="header-inner">
+    <div class="header-left">
+      <div class="header-logo">🏫</div>
       <div>
-        <div class="hero-madrasah-name" id="heroNama">Memuat…</div>
-        <div class="hero-sub" id="heroSub">Penerimaan Murid Baru (PMB)</div>
+        <div class="header-title">SD Negeri Lambada Klieng</div>
+        <div class="header-sub">Kec. Baitussalam · Aceh Besar</div>
       </div>
     </div>
+    <a href="/index8.html?sekolah=sdn-lambada-klieng" class="btn-login">Portal Sekolah</a>
+  </div>
+</header>
 
-    <p class="hero-tagline" id="heroTagline">
-      Mendaftar sekarang — raih masa depan cerah bersama kami.
-    </p>
-
-    <!-- COUNTDOWN -->
-    <div class="countdown-wrap" id="countdownWrap">
-      <div class="countdown-label" id="countdownLabel">Sisa waktu pendaftaran</div>
-      <div class="countdown-grid">
-        <div class="countdown-unit">
-          <div class="countdown-num" id="cdHari">00</div>
-          <div class="countdown-unit-label">Hari</div>
-        </div>
-        <div class="countdown-sep">:</div>
-        <div class="countdown-unit">
-          <div class="countdown-num" id="cdJam">00</div>
-          <div class="countdown-unit-label">Jam</div>
-        </div>
-        <div class="countdown-sep">:</div>
-        <div class="countdown-unit">
-          <div class="countdown-num" id="cdMenit">00</div>
-          <div class="countdown-unit-label">Menit</div>
-        </div>
-        <div class="countdown-sep">:</div>
-        <div class="countdown-unit">
-          <div class="countdown-num" id="cdDetik">00</div>
-          <div class="countdown-unit-label">Detik</div>
-        </div>
-      </div>
-      <div class="countdown-status" id="countdownStatus"></div>
-    </div>
-
-    <div class="hero-cta">
-      <a href="#" id="btnDaftar" class="btn-primary">
-        ✏️ Daftar Sekarang
-      </a>
-      <button class="btn-secondary" onclick="scrollToCek()">
-        🔍 Cek Status Pendaftaran
-      </button>
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-content">
+    <div class="hero-badge">🎓 Sekolah Dasar Negeri</div>
+    <h1>SD Negeri Lambada Klieng</h1>
+    <p>Membentuk generasi cerdas, berkarakter, dan berprestasi<br>di Kecamatan Baitussalam, Aceh Besar</p>
+    <div class="hero-actions">
+      <a href="/index8.html?sekolah=sdn-lambada-klieng" class="btn-primary">🔐 Masuk Portal Sekolah</a>
+      <a href="#profil" class="btn-outline">Lihat Profil →</a>
     </div>
   </div>
 </div>
 
-<!-- STATS STRIP -->
-<div class="stats-strip" id="statsStrip" style="display:none">
+<!-- STATS -->
+<div class="stats-bar">
   <div class="stats-inner">
     <div class="stat-item">
-      <div class="stat-num" id="statTotal">–</div>
-      <div class="stat-lbl">Total Pendaftar</div>
+      <div class="stat-num">6</div>
+      <div class="stat-label">Rombongan Belajar</div>
     </div>
     <div class="stat-item">
-      <div class="stat-num" id="statDiterima">–</div>
-      <div class="stat-lbl">Diterima</div>
+      <div class="stat-num">SD</div>
+      <div class="stat-label">Jenjang Pendidikan</div>
     </div>
     <div class="stat-item">
-      <div class="stat-num" id="statMendaftar">–</div>
-      <div class="stat-lbl">Proses Verifikasi</div>
+      <div class="stat-num">Negeri</div>
+      <div class="stat-label">Status Sekolah</div>
     </div>
     <div class="stat-item">
-      <div class="stat-num" id="statSisa">–</div>
-      <div class="stat-lbl">Kuota Tersisa</div>
+      <div class="stat-num">Aceh Besar</div>
+      <div class="stat-label">Kabupaten</div>
     </div>
   </div>
 </div>
 
-<!-- MAIN CONTENT -->
-<div class="main">
-
-  <!-- ── KOLOM KIRI ── -->
-  <div class="col-left">
-
-    <!-- JALUR PENDAFTARAN -->
-    <div class="card">
-      <div class="card-head">
-        <div class="card-head-icon">🚪</div>
-        <div class="card-head-title">Jalur Pendaftaran</div>
+<!-- PROFIL -->
+<section id="profil">
+  <div class="section-inner">
+    <div class="section-title-line">
+      <div class="title-accent"></div>
+      <h2 class="section-title">Profil Sekolah</h2>
+    </div>
+    <p class="section-sub">Informasi resmi SD Negeri Lambada Klieng</p>
+    <div class="profil-grid">
+      <div class="profil-card">
+        <h3>📋 Identitas Sekolah</h3>
+        <div class="profil-row"><span class="label">Nama</span><span class="value">SD Negeri Lambada Klieng</span></div>
+        <div class="profil-row"><span class="label">Status</span><span class="value">Negeri</span></div>
+        <div class="profil-row"><span class="label">Jenjang</span><span class="value">Sekolah Dasar (SD)</span></div>
+        <div class="profil-row"><span class="label">NPSN</span><span class="value">-</span></div>
+        <div class="profil-row"><span class="label">Akreditasi</span><span class="value">-</span></div>
       </div>
-      <div class="card-body">
-        <div class="jalur-grid" id="jalurGrid">
-          <div class="skeleton" style="height:90px;border-radius:10px"></div>
-          <div class="skeleton" style="height:90px;border-radius:10px"></div>
-          <div class="skeleton" style="height:90px;border-radius:10px"></div>
-        </div>
+      <div class="profil-card">
+        <h3>📍 Lokasi & Kontak</h3>
+        <div class="profil-row"><span class="label">Alamat</span><span class="value">Jl. Laksamana Malahayati KM. 10 Lambada Lhok</span></div>
+        <div class="profil-row"><span class="label">Kecamatan</span><span class="value">Baitussalam</span></div>
+        <div class="profil-row"><span class="label">Kabupaten</span><span class="value">Aceh Besar</span></div>
+        <div class="profil-row"><span class="label">Provinsi</span><span class="value">Aceh</span></div>
+        <div class="profil-row"><span class="label">Website</span><span class="value">sdnlambadaklieng.sch.id</span></div>
       </div>
     </div>
+  </div>
+</section>
 
-    <!-- PENGUMUMAN -->
-    <div class="card" id="pengumumanCard" style="display:none">
-      <div class="card-head">
-        <div class="card-head-icon">📢</div>
-        <div class="card-head-title">Pengumuman</div>
-      </div>
-      <div class="card-body">
-        <div class="pengumuman-list" id="pengumumanList"></div>
+<!-- KEPALA SEKOLAH -->
+<section class="bg-alt">
+  <div class="section-inner">
+    <div class="section-title-line">
+      <div class="title-accent"></div>
+      <h2 class="section-title">Kepala Sekolah</h2>
+    </div>
+    <p class="section-sub">Pimpinan SD Negeri Lambada Klieng</p>
+    <div class="kepsek-card">
+      <div class="kepsek-avatar">👩‍💼</div>
+      <div class="kepsek-info">
+        <h3>Sri Wahyuni, S.Pd., M.Pd.</h3>
+        <div class="jabatan">Kepala SD Negeri Lambada Klieng</div>
+        <p>"Bersama membangun sekolah yang unggul, berkarakter, dan berprestasi untuk generasi Aceh yang gemilang."</p>
       </div>
     </div>
+  </div>
+</section>
 
-    <!-- JADWAL & TAHAPAN -->
-    <div class="card">
-      <div class="card-head">
-        <div class="card-head-icon">📅</div>
-        <div class="card-head-title">Jadwal Tahapan PMB</div>
+<!-- VISI MISI -->
+<section>
+  <div class="section-inner">
+    <div class="section-title-line">
+      <div class="title-accent"></div>
+      <h2 class="section-title">Visi & Misi</h2>
+    </div>
+    <p class="section-sub">Landasan arah pengembangan SD Negeri Lambada Klieng</p>
+    <div class="vm-grid">
+      <div class="vm-card visi">
+        <h3>🎯 Visi</h3>
+        <p>Terwujudnya peserta didik yang cerdas, beriman, berkarakter mulia, dan berwawasan lingkungan dalam bingkai budaya Aceh.</p>
       </div>
-      <div class="card-body">
-        <ul class="timeline" id="timelineList">
-          <!-- diisi JS -->
+      <div class="vm-card misi">
+        <h3>📌 Misi</h3>
+        <ul>
+          <li>Menyelenggarakan pembelajaran yang berkualitas dan berkarakter</li>
+          <li>Menumbuhkan nilai keimanan dan ketaqwaan kepada Allah SWT</li>
+          <li>Mengembangkan potensi peserta didik secara optimal</li>
+          <li>Menciptakan lingkungan sekolah yang bersih, indah, dan nyaman</li>
+          <li>Menjalin kerjasama yang harmonis dengan masyarakat</li>
         </ul>
       </div>
     </div>
-
-    <!-- CEK STATUS -->
-    <div class="card" id="cekStatusSection">
-      <div class="card-head">
-        <div class="card-head-icon">🔍</div>
-        <div class="card-head-title">Cek Status Pendaftaran</div>
-      </div>
-      <div class="card-body">
-        <p style="font-size:12px;color:var(--ink3);margin-bottom:12px">Masukkan nomor pendaftaran untuk melihat status terkini.</p>
-        <div class="cek-wrap">
-          <input class="cek-input" id="cekInput" placeholder="PMB-2026-XXXX" type="text" maxlength="20">
-          <button class="cek-btn" id="cekBtn" onclick="cekStatus()">Cek</button>
-        </div>
-        <div class="cek-result" id="cekResult"></div>
-      </div>
-    </div>
-
   </div>
+</section>
 
-  <!-- ── KOLOM KANAN (SIDEBAR) ── -->
-  <div class="sidebar">
-
-    <!-- INFO MADRASAH -->
-    <div class="info-box" id="infoBox">
-      <h3>Informasi PMB</h3>
-      <div class="info-row">
-        <div class="info-row-icon">📅</div>
-        <div class="info-row-body">
-          <div class="info-row-label">Tahun Ajaran</div>
-          <div class="info-row-val" id="infoTA">2026/2027</div>
-        </div>
+<!-- PROGRAM UNGGULAN -->
+<section class="bg-alt">
+  <div class="section-inner">
+    <div class="section-title-line">
+      <div class="title-accent"></div>
+      <h2 class="section-title">Program Unggulan</h2>
+    </div>
+    <p class="section-sub">Kegiatan dan program andalan sekolah</p>
+    <div class="program-grid">
+      <div class="program-card">
+        <div class="program-icon">📖</div>
+        <h4>Literasi & Numerasi</h4>
+        <p>Program pembiasaan membaca dan berhitung setiap hari</p>
       </div>
-      <div class="info-row">
-        <div class="info-row-icon">🏫</div>
-        <div class="info-row-body">
-          <div class="info-row-label">Jenjang</div>
-          <div class="info-row-val" id="infoJenjang">–</div>
-        </div>
+      <div class="program-card">
+        <div class="program-icon">🕌</div>
+        <h4>Pembiasaan Islami</h4>
+        <p>Shalat dhuha, tahfidz, dan kultum harian</p>
       </div>
-      <div class="info-row">
-        <div class="info-row-icon">👥</div>
-        <div class="info-row-body">
-          <div class="info-row-label">Kuota Penerimaan</div>
-          <div class="info-row-val" id="infoKuota">–</div>
-        </div>
+      <div class="program-card">
+        <div class="program-icon">🏆</div>
+        <h4>Olimpiade Sains</h4>
+        <p>Pembinaan siswa berprestasi tingkat kecamatan dan kabupaten</p>
       </div>
-      <div class="info-row">
-        <div class="info-row-icon">📬</div>
-        <div class="info-row-body">
-          <div class="info-row-label">Kontak Panitia</div>
-          <div class="info-row-val" id="infoKontak">–</div>
-        </div>
+      <div class="program-card">
+        <div class="program-icon">🌿</div>
+        <h4>Sekolah Adiwiyata</h4>
+        <p>Program peduli dan berbudaya lingkungan hidup</p>
+      </div>
+      <div class="program-card">
+        <div class="program-icon">💻</div>
+        <h4>Pembelajaran Digital</h4>
+        <p>Integrasi teknologi dalam proses belajar mengajar</p>
+      </div>
+      <div class="program-card">
+        <div class="program-icon">🎨</div>
+        <h4>Seni & Budaya Aceh</h4>
+        <p>Pelestarian budaya lokal melalui ekstrakurikuler seni</p>
       </div>
     </div>
-
-    <!-- PERSYARATAN -->
-    <div class="card">
-      <div class="card-head">
-        <div class="card-head-icon">📋</div>
-        <div class="card-head-title">Persyaratan Berkas</div>
-      </div>
-      <div class="card-body">
-        <ul class="syarat-list">
-          <li class="syarat-item">Akta kelahiran / kartu keluarga</li>
-          <li class="syarat-item">Ijazah / SKL jenjang sebelumnya</li>
-          <li class="syarat-item">SKHUN / Hasil Ujian</li>
-          <li class="syarat-item">Foto terbaru ukuran 3×4 (2 lembar)</li>
-          <li class="syarat-item">Piagam prestasi (jalur Prestasi)</li>
-          <li class="syarat-item">Surat keterangan pindah (jalur Pindahan)</li>
-        </ul>
-      </div>
-    </div>
-
-    <!-- KONTAK / SHARE -->
-    <div class="card">
-      <div class="card-head">
-        <div class="card-head-icon">🔗</div>
-        <div class="card-head-title">Bagikan Link Pendaftaran</div>
-      </div>
-      <div class="card-body">
-        <p style="font-size:11px;color:var(--ink3);margin-bottom:10px">Bagikan link ini ke calon peserta didik.</p>
-        <div style="display:flex;gap:8px">
-          <input id="shareInput" class="cek-input" readonly style="font-size:11px;padding:8px 10px">
-          <button class="cek-btn" onclick="salinLink()" style="padding:8px 12px;font-size:12px" id="salinBtn">Salin</button>
-        </div>
-      </div>
-    </div>
-
   </div>
-</div>
+</section>
+
+<!-- LAYANAN -->
+<section>
+  <div class="section-inner">
+    <div class="section-title-line">
+      <div class="title-accent"></div>
+      <h2 class="section-title">Layanan Digital</h2>
+    </div>
+    <p class="section-sub">Akses layanan sekolah secara online</p>
+    <div class="layanan-grid">
+      <a href="/index8.html?sekolah=sdn-lambada-klieng" class="layanan-card">
+        <div class="layanan-icon">🏫</div>
+        <div>
+          <h4>Portal Sekolah (Amanah)</h4>
+          <p>Absensi, kerja harian, dan manajemen sekolah</p>
+        </div>
+      </a>
+      <a href="/index8.html?sekolah=sdn-lambada-klieng&tab=pmb" class="layanan-card">
+        <div class="layanan-icon">📝</div>
+        <div>
+          <h4>Pendaftaran Siswa Baru</h4>
+          <p>Daftar online penerimaan murid baru (PPDB)</p>
+        </div>
+      </a>
+      <a href="/index8.html?sekolah=sdn-lambada-klieng&tab=berita" class="layanan-card">
+        <div class="layanan-icon">📢</div>
+        <div>
+          <h4>Berita & Pengumuman</h4>
+          <p>Informasi terkini dari sekolah</p>
+        </div>
+      </a>
+      <a href="/index8.html?sekolah=sdn-lambada-klieng" class="layanan-card">
+        <div class="layanan-icon">👨‍👩‍👧</div>
+        <div>
+          <h4>Layanan Orang Tua</h4>
+          <p>Pantau perkembangan dan kehadiran siswa</p>
+        </div>
+      </a>
+    </div>
+  </div>
+</section>
 
 <!-- FOOTER -->
-<div class="footer">
-  <div class="footer-brand">Formulir PMB oleh <strong>Amanah</strong> — Sistem Manajemen Madrasah</div>
-  <div class="footer-links">
-    <a href="#" class="footer-link" onclick="scrollToCek();return false">Cek Status</a>
-    <a href="#" class="footer-link" id="footerDaftar">Daftar</a>
-    <a href="#" class="footer-link" id="footerBeranda">🏠 Beranda Sekolah</a>
+<footer>
+  <div class="footer-inner">
+    <h3>SD Negeri Lambada Klieng</h3>
+    <p>
+      Jl. Laksamana Malahayati KM. 10 Lambada Lhok<br>
+      Kecamatan Baitussalam, Kabupaten Aceh Besar, Provinsi Aceh
+    </p>
+    <hr class="footer-divider">
+    <p class="footer-bottom">© 2026 SD Negeri Lambada Klieng · sdnlambadaklieng.sch.id</p>
   </div>
-</div>
+</footer>
 
-<!-- MODAL PENGUMUMAN -->
-<div class="modal-overlay" id="modalOverlay" onclick="tutupModal(event)">
-  <div class="modal">
-    <div class="modal-head">
-      <div>
-        <div class="modal-title" id="modalTitle"></div>
-        <div class="modal-date" id="modalDate"></div>
-      </div>
-      <button class="modal-close" onclick="tutupModal()">✕</button>
-    </div>
-    <div class="modal-body" id="modalBody"></div>
-  </div>
-</div>
-
-<script>
-// ── CONFIG SUPABASE ─────────────────────────────────────
-const SUPA_URL = 'https://djnbttyjyzknujrepdfe.supabase.co';
-const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRqbmJ0dHlqeXprbnVqcmVwZGZlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY1Mzc3MDksImV4cCI6MjEwMjExMzcwOX0.UfrTknQM7EU_3BiSGBy9bPtOeXh5u14X4ujRNxRlYcM';
-const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
-
-// ── GLOBAL STATE ────────────────────────────────────────
-let madrasah      = null;
-let countdownTarget = null;
-let countdownInterval = null;
-let pmbUrl        = '';
-let tahunAjaran   = `${new Date().getFullYear()}/${new Date().getFullYear()+1}`;
-
-// Kuota aktif (bisa dioverride dari pmb_config)
-let _kuota = 60;
-
-// ── JALUR DATA ──────────────────────────────────────────
-const JALUR_INFO = {
-  'Reguler':           { icon:'📝', desc:'Seleksi akademik reguler', kuota: 'Terbuka' },
-  'Prestasi':          { icon:'🏆', desc:'Berbasis prestasi akademik/non-akademik', kuota: 'Terbatas' },
-  'Afirmasi':          { icon:'💛', desc:'Ekonomi tidak mampu / KIP', kuota: 'Terbatas' },
-  'Perpindahan Tugas': { icon:'🔄', desc:'Anak pindah tugas orang tua', kuota: 'Sangat terbatas' },
-};
-
-// ── DATA DEFAULT (dipakai jika pmb_config tidak ada) ────
-const DEFAULT_PENGUMUMAN = [
-  {
-    id: 1,
-    icon: '📣',
-    title: 'Pengumuman Pembukaan PMB Tahun Ajaran 2026/2027',
-    date: '1 November 2026',
-    excerpt: 'Penerimaan Murid Baru resmi dibuka mulai 1 November 2026.',
-    isi: `Dengan mengucap Bismillahirrahmanirrahim, kami dengan bangga mengumumkan pembukaan resmi Penerimaan Murid Baru (PMB) Tahun Ajaran 2026/2027.\n\nPendaftaran dibuka untuk semua jalur: Reguler, Prestasi, Afirmasi, dan Perpindahan Tugas.\n\nCalon peserta didik dapat mendaftar secara online melalui formulir pada halaman ini. Pastikan semua berkas persyaratan telah disiapkan sebelum mengisi formulir.\n\nUntuk informasi lebih lanjut, hubungi panitia PMB madrasah kami.`,
-    baru: true,
-  },
-  {
-    id: 2,
-    icon: '📋',
-    title: 'Persyaratan Lengkap Jalur Prestasi',
-    date: '28 Oktober 2026',
-    excerpt: 'Detail berkas yang wajib disiapkan pendaftar jalur prestasi.',
-    isi: `Pendaftar melalui jalur Prestasi wajib melampirkan:\n\n• Piagam/sertifikat prestasi (minimal tingkat kabupaten/kota)\n• Foto piagam yang jelas dan terbaca\n• Surat rekomendasi dari kepala sekolah asal\n\nBidang prestasi yang diterima:\n— Akademik (olimpiade, lomba ilmiah)\n— Seni (musabaqah, tari, dll)\n— Olahraga (kejuaraan resmi)\n— Keagamaan (MTQ, tahfiz, dll)\n\nPrestasi yang diakui maksimal 3 tahun terakhir.`,
-    baru: false,
-  },
-  {
-    id: 3,
-    icon: '⚠️',
-    title: 'Jadwal Tes Seleksi dan Wawancara',
-    date: '25 Oktober 2026',
-    excerpt: 'Informasi teknis pelaksanaan seleksi akademik dan wawancara.',
-    isi: `Seleksi akan dilaksanakan dengan ketentuan berikut:\n\n📅 Tes Akademik: 15 Desember 2026\n📅 Wawancara: 16–17 Desember 2026\n📅 Pengumuman Hasil: 20 Desember 2026\n\nPeserta wajib hadir tepat waktu. Bawa kartu peserta (dicetak dari sistem setelah mendaftar) dan satu lembar fotokopi akta kelahiran.\n\nBagi yang berhalangan hadir karena sakit, harap menghubungi panitia minimal H-1 sebelum tes.`,
-    baru: false,
-  },
-];
-
-const DEFAULT_TAHAPAN = [
-  { tgl: '1 Nov – 30 Nov 2026',  judul: 'Pendaftaran Online',          ket: 'Pengisian formulir dan upload berkas', status: 'aktif' },
-  { tgl: '1 – 5 Des 2026',       judul: 'Verifikasi Berkas',            ket: 'Panitia memeriksa kelengkapan berkas', status: 'mendatang' },
-  { tgl: '15 – 17 Des 2026',     judul: 'Tes Seleksi & Wawancara',      ket: 'Datang sesuai jadwal yang ditetapkan', status: 'mendatang' },
-  { tgl: '20 Des 2026',          judul: 'Pengumuman Hasil Seleksi',     ket: 'Cek status di halaman ini', status: 'mendatang' },
-  { tgl: '2 – 10 Jan 2027',      judul: 'Daftar Ulang & Pembayaran',    ket: 'Peserta diterima wajib daftar ulang', status: 'mendatang' },
-  { tgl: '13 Juli 2027',         judul: 'Tahun Ajaran Baru Dimulai',   ket: 'Hari pertama masuk sekolah', status: 'mendatang' },
-];
-
-// Data aktif (akan diisi setelah pmb_config dimuat)
-let PENGUMUMAN_DATA = DEFAULT_PENGUMUMAN.slice();
-let TAHAPAN        = DEFAULT_TAHAPAN.slice();
-
-// ── TERAPKAN CONFIG DARI pmb_config ─────────────────────
-function terapkanConfig(cfg) {
-  if (!cfg) return;
-
-  // Pengumuman dari Supabase
-  if (cfg.pengumuman && Array.isArray(cfg.pengumuman) && cfg.pengumuman.length > 0) {
-    PENGUMUMAN_DATA = cfg.pengumuman;
-  }
-
-  // Tahapan dari Supabase
-  if (cfg.tahapan && Array.isArray(cfg.tahapan) && cfg.tahapan.length > 0) {
-    TAHAPAN = cfg.tahapan;
-  }
-
-  // Tanggal tutup pendaftaran
-  if (cfg.tanggal_tutup) {
-    countdownTarget = new Date(cfg.tanggal_tutup);
-  }
-
-  // Kuota
-  if (cfg.kuota) {
-    _kuota = cfg.kuota;
-  }
-
-  // Kontak
-  if (cfg.kontak) {
-    document.getElementById('infoKontak').textContent = cfg.kontak;
-  }
-
-  // Tagline hero
-  if (cfg.tagline) {
-    document.getElementById('heroTagline').textContent = cfg.tagline;
-  }
-}
-
-// ── INIT ────────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', () => {
-  const params = new URLSearchParams(location.search);
-  const slug = params.get('s');
-
-  // Set countdown default — akan dioverride oleh pmb_config jika ada
-  countdownTarget = new Date('2026-11-30T16:59:00Z');
-
-  if (slug) {
-    // Set link beranda sekolah
-    const berandaUrl = location.origin + '/index8.html?sekolah=' + encodeURIComponent(slug);
-    const elBeranda = document.getElementById('footerBeranda');
-    if (elBeranda) { elBeranda.href = berandaUrl; elBeranda.target = '_blank'; }
-    // Render UI kosong dulu, muat data asli dari Supabase
-    muatMadrasah(slug);
-  } else {
-    // Demo mode — pakai data default
-    renderPengumuman();
-    renderTimeline();
-    startCountdown();
-    muatDemoMode();
-  }
-});
-
-// ── MUAT MADRASAH + pmb_config (parallel) ───────────────
-async function muatMadrasah(slug) {
-  try {
-    // Fetch madrasah dan pmb_config secara bersamaan
-    const [{ data, error }, { data: cfgArr }] = await Promise.all([
-      sb.from('madrasah')
-        .select('id,nama,jenjang,slug,jalur_aktif')
-        .eq('slug', slug)
-        .single(),
-      sb.from('pmb_config')
-        .select('*')
-        .eq('tahun_ajaran', tahunAjaran),
-    ]);
-
-    if (error || !data) {
-      renderPengumuman();
-      renderTimeline();
-      startCountdown();
-      muatDemoMode();
-      return;
-    }
-
-    madrasah = data;
-    pmbUrl = location.origin + location.pathname + '?s=' + encodeURIComponent(slug);
-
-    // Cari config untuk madrasah ini
-    const cfg = (cfgArr || []).find(c => c.madrasah_id === data.id) || null;
-
-    // Terapkan config (override PENGUMUMAN_DATA, TAHAPAN, countdownTarget, dll)
-    terapkanConfig(cfg);
-
-    // Render setelah config diterapkan
-    renderPengumuman();
-    renderTimeline();
-    startCountdown();
-
-    // Update hero
-    document.getElementById('heroNama').textContent = data.nama;
-    document.getElementById('heroSub').textContent = `Penerimaan Murid Baru (PMB) · ${data.jenjang}`;
-
-    // Tagline default jika tidak ada di config
-    if (!cfg || !cfg.tagline) {
-      document.getElementById('heroTagline').textContent =
-        `Bergabunglah bersama ${data.nama} — cetak generasi Qurani berakhlak mulia dan berprestasi.`;
-    }
-
-    // Info sidebar
-    document.getElementById('infoJenjang').textContent = data.jenjang || '–';
-    document.getElementById('infoTA').textContent = tahunAjaran;
-    document.getElementById('infoKuota').textContent = _kuota + ' Siswa';
-
-    // Kontak default jika tidak ada di config
-    if (!cfg || !cfg.kontak) {
-      document.getElementById('infoKontak').textContent = 'Hubungi madrasah';
-    }
-
-    // Link daftar & share
-    const formUrl = location.origin + '/pmb.html?s=' + encodeURIComponent(slug);
-    document.getElementById('btnDaftar').href = formUrl;
-    document.getElementById('footerDaftar').href = formUrl;
-    document.getElementById('shareInput').value = location.href;
-
-    // Jalur grid
-    renderJalurGrid(data.jalur_aktif);
-
-    // Muat statistik
-    muatStatistik(data.id);
-
-  } catch (err) {
-    console.error('muatMadrasah error:', err);
-    renderPengumuman();
-    renderTimeline();
-    startCountdown();
-    muatDemoMode();
-  }
-}
-
-// ── DEMO MODE ───────────────────────────────────────────
-function muatDemoMode() {
-  document.getElementById('heroNama').textContent = 'MIN 8 Kota Banda Aceh';
-  document.getElementById('heroSub').textContent = 'Penerimaan Murid Baru (PMB) · MI';
-  document.getElementById('heroTagline').textContent =
-    'Bergabunglah bersama kami — cetak generasi Qurani berakhlak mulia dan berprestasi.';
-  document.getElementById('infoJenjang').textContent = 'Madrasah Ibtidaiyah (MI)';
-  document.getElementById('infoTA').textContent = tahunAjaran;
-  document.getElementById('infoKuota').textContent = '60 Siswa';
-  document.getElementById('infoKontak').textContent = '0812-3456-7890';
-  document.getElementById('shareInput').value = location.href;
-  document.getElementById('btnDaftar').href = 'pmb.html';
-  document.getElementById('footerDaftar').href = 'pmb.html';
-  renderJalurGrid(['Reguler','Prestasi','Afirmasi','Perpindahan Tugas']);
-
-  // Demo stats
-  document.getElementById('statsStrip').style.display = '';
-  document.getElementById('statTotal').textContent = '47';
-  document.getElementById('statDiterima').textContent = '0';
-  document.getElementById('statMendaftar').textContent = '47';
-  document.getElementById('statSisa').textContent = '13';
-}
-
-// ── STATISTIK ───────────────────────────────────────────
-async function muatStatistik(madrasahId) {
-  const { data } = await sb
-    .from('pendaftar_pmb')
-    .select('status')
-    .eq('madrasah_id', madrasahId)
-    .eq('tahun_ajaran', tahunAjaran);
-
-  if (!data) return;
-
-  const total    = data.length;
-  const diterima = data.filter(d => d.status === 'Diterima').length;
-  const proses   = data.filter(d => ['Mendaftar','Verifikasi'].includes(d.status)).length;
-  const sisa     = Math.max(0, _kuota - diterima);
-
-  document.getElementById('statTotal').textContent    = total;
-  document.getElementById('statDiterima').textContent = diterima;
-  document.getElementById('statMendaftar').textContent= proses;
-  document.getElementById('statSisa').textContent     = sisa;
-  document.getElementById('statsStrip').style.display = '';
-}
-
-// ── JALUR GRID ──────────────────────────────────────────
-function renderJalurGrid(jalurAktif) {
-  const aktif = Array.isArray(jalurAktif)
-    ? jalurAktif
-    : ['Reguler','Prestasi','Afirmasi','Perpindahan Tugas'];
-
-  const semua = ['Reguler','Prestasi','Afirmasi','Perpindahan Tugas'];
-  const html = semua.map(j => {
-    const info = JALUR_INFO[j];
-    const isAktif = aktif.includes(j);
-    return `
-      <div class="jalur-card ${isAktif ? 'aktif' : ''}" style="${isAktif ? '' : 'opacity:.5;cursor:default'}">
-        <div class="jalur-icon">${info.icon}</div>
-        <div class="jalur-name">${j}</div>
-        <div class="jalur-desc">${info.desc}</div>
-        <span class="jalur-badge${isAktif ? '' : ' tutup'}">${isAktif ? 'Dibuka' : 'Ditutup'}</span>
-      </div>
-    `;
-  }).join('');
-  document.getElementById('jalurGrid').innerHTML = html;
-}
-
-// ── PENGUMUMAN ──────────────────────────────────────────
-function renderPengumuman() {
-  if (!PENGUMUMAN_DATA.length) return;
-  document.getElementById('pengumumanCard').style.display = '';
-  const html = PENGUMUMAN_DATA.map(p => `
-    <div class="peng-item" onclick="bukaModal(${p.id})">
-      <div class="peng-icon">${p.icon}</div>
-      <div class="peng-body">
-        <div class="peng-date">${p.date}</div>
-        <div class="peng-title">${p.title}${p.baru ? '<span class="peng-new">BARU</span>' : ''}</div>
-        <div class="peng-excerpt">${p.excerpt}</div>
-      </div>
-    </div>
-  `).join('');
-  document.getElementById('pengumumanList').innerHTML = html;
-}
-
-// ── TIMELINE ────────────────────────────────────────────
-function renderTimeline() {
-  const html = TAHAPAN.map(t => `
-    <li class="tl-item">
-      <div class="tl-dot ${t.status}"></div>
-      <div class="tl-body">
-        <div class="tl-date">${t.tgl}</div>
-        <div class="tl-title">${t.judul}</div>
-        <div class="tl-note">${t.ket}</div>
-        <span class="tl-chip chip-${t.status}">${
-          t.status === 'aktif' ? 'Sedang Berlangsung' :
-          t.status === 'selesai' ? 'Selesai' : 'Akan Datang'
-        }</span>
-      </div>
-    </li>
-  `).join('');
-  document.getElementById('timelineList').innerHTML = html;
-}
-
-// ── COUNTDOWN ───────────────────────────────────────────
-function startCountdown() {
-  if (countdownInterval) clearInterval(countdownInterval);
-  function tick() {
-    const now  = new Date();
-    const diff = countdownTarget - now;
-
-    if (diff <= 0) {
-      document.getElementById('cdHari').textContent  = '00';
-      document.getElementById('cdJam').textContent   = '00';
-      document.getElementById('cdMenit').textContent = '00';
-      document.getElementById('cdDetik').textContent = '00';
-      document.getElementById('countdownLabel').textContent  = 'Pendaftaran telah ditutup';
-      document.getElementById('countdownStatus').innerHTML   =
-        '<span class="countdown-closed">⏹ Periode pendaftaran sudah berakhir</span>';
-      document.getElementById('heroBadgeText').textContent = 'Pendaftaran Ditutup';
-      clearInterval(countdownInterval);
-      return;
-    }
-
-    const hari  = Math.floor(diff / 86400000);
-    const jam   = Math.floor((diff % 86400000) / 3600000);
-    const menit = Math.floor((diff % 3600000)  / 60000);
-    const detik = Math.floor((diff % 60000)    / 1000);
-
-    document.getElementById('cdHari').textContent  = String(hari).padStart(2,'0');
-    document.getElementById('cdJam').textContent   = String(jam).padStart(2,'0');
-    document.getElementById('cdMenit').textContent = String(menit).padStart(2,'0');
-    document.getElementById('cdDetik').textContent = String(detik).padStart(2,'0');
-
-    document.getElementById('countdownLabel').textContent = 'Sisa waktu pendaftaran';
-    document.getElementById('countdownStatus').innerHTML =
-      '<span class="countdown-open">● Pendaftaran sedang dibuka</span>';
-    document.getElementById('heroBadgeText').textContent = 'Pendaftaran Dibuka';
-  }
-  tick();
-  countdownInterval = setInterval(tick, 1000);
-}
-
-// ── CEK STATUS ──────────────────────────────────────────
-function scrollToCek() {
-  document.getElementById('cekStatusSection').scrollIntoView({ behavior: 'smooth', block: 'center' });
-  setTimeout(() => document.getElementById('cekInput').focus(), 500);
-}
-
-document.getElementById('cekInput').addEventListener('keydown', e => {
-  if (e.key === 'Enter') cekStatus();
-});
-
-async function cekStatus() {
-  const no  = document.getElementById('cekInput').value.trim().toUpperCase();
-  const res = document.getElementById('cekResult');
-  if (!no) return;
-
-  document.getElementById('cekBtn').textContent = '…';
-  res.className = 'cek-result';
-  res.style.display = 'none';
-
-  const { data, error } = await sb
-    .from('pendaftar_pmb')
-    .select('*')
-    .eq('no_pendaftaran', no)
-    .single();
-
-  document.getElementById('cekBtn').textContent = 'Cek';
-
-  if (error || !data) {
-    res.className = 'cek-result err show';
-    res.innerHTML = `❌ Nomor pendaftaran <strong>${no}</strong> tidak ditemukan.`;
-    res.style.display = 'block';
-    return;
-  }
-
-  const stMap = {
-    'Mendaftar':      'status-mendaftar',
-    'Verifikasi':     'status-verifikasi',
-    'Diterima':       'status-diterima',
-    'Tidak Diterima': 'status-tidak',
-    'Cadangan':       'status-cadangan',
-  };
-  const cls = stMap[data.status] || 'status-mendaftar';
-
-  res.className = 'cek-result ok show';
-  res.innerHTML = `
-    <div class="cek-name">${data.nama_lengkap}</div>
-    <div style="font-size:11px;color:var(--ink3)">No. Pendaftaran: <strong>${data.no_pendaftaran}</strong></div>
-    <div class="cek-meta">
-      <span class="cek-chip ${cls}">${data.status}</span>
-      <span class="cek-chip" style="background:var(--surface2);color:var(--ink2)">${data.jalur_pendaftaran || 'Reguler'}</span>
-      ${data.asal_sekolah ? `<span class="cek-chip" style="background:var(--surface2);color:var(--ink2)">${data.asal_sekolah}</span>` : ''}
-    </div>
-    ${data.catatan_admin ? `<div style="margin-top:8px;font-size:11px;color:var(--ink2);background:var(--surface2);border-radius:6px;padding:8px 10px">📝 ${data.catatan_admin}</div>` : ''}
-    <div style="margin-top:10px">
-      <a href="pmb.html?s=${new URLSearchParams(location.search).get('s')||''}" style="font-size:11px;font-weight:700;color:var(--green-m);text-decoration:none">🖨 Cetak Kartu Peserta →</a>
-    </div>
-  `;
-  res.style.display = 'block';
-}
-
-// ── MODAL ───────────────────────────────────────────────
-function bukaModal(id) {
-  const p = PENGUMUMAN_DATA.find(x => x.id === id);
-  if (!p) return;
-  document.getElementById('modalTitle').textContent = p.title;
-  document.getElementById('modalDate').textContent  = p.date;
-  document.getElementById('modalBody').innerHTML    = p.isi
-    .split('\n')
-    .map(l => l ? `<p style="margin-bottom:8px">${l}</p>` : '<br>')
-    .join('');
-  document.getElementById('modalOverlay').classList.add('show');
-}
-function tutupModal(e) {
-  if (!e || e.target === document.getElementById('modalOverlay') || !e.currentTarget) {
-    document.getElementById('modalOverlay').classList.remove('show');
-  }
-}
-
-// ── SALIN LINK ──────────────────────────────────────────
-function salinLink() {
-  const val = document.getElementById('shareInput').value;
-  navigator.clipboard.writeText(val).then(() => {
-    const btn = document.getElementById('salinBtn');
-    btn.textContent = '✓ Tersalin';
-    setTimeout(() => btn.textContent = 'Salin', 2000);
-  }).catch(() => {
-    document.getElementById('shareInput').select();
-  });
-}
-</script>
+</body>
+</html>
