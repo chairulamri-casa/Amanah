@@ -656,7 +656,7 @@
 
   try {
     const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/galeri_foto?madrasah_id=eq.${MADRASAH_ID}&is_aktif=eq.true&order=urutan.asc,created_at.desc&limit=12`,
+      `${SUPABASE_URL}/rest/v1/galeri?madrasah_id=eq.${MADRASAH_ID}&order=created_at.desc&limit=12`,
       { headers: { 'apikey': 'sb_publishable_2NM4R5w9VxxHITH8GZ642w_ADTYV1sW' } }
     );
     const data = await res.json();
@@ -671,7 +671,7 @@
     data.forEach((foto, i) => {
       const div = document.createElement('div');
       div.className = 'carousel-item';
-      div.innerHTML = `<img src="${foto.url_foto}" alt="${foto.judul||'Foto Sekolah'}" loading="lazy">
+      div.innerHTML = `<img src="${foto.foto_url}" alt="${foto.judul||'Foto Sekolah'}" loading="lazy">
         ${foto.judul ? `<div class="foto-caption">${foto.judul}</div>` : ''}`;
       track.appendChild(div);
     });
