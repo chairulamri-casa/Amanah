@@ -327,16 +327,70 @@
     }
     @media (max-width: 500px) { .kepsek-card { flex-direction: column; text-align: center; } }
     .kepsek-avatar {
-      width: 80px; height: 80px;
+      width: 100px; height: 100px;
       border-radius: 50%;
       background: linear-gradient(135deg, var(--accent), #0d3a73);
       display: flex; align-items: center; justify-content: center;
       font-size: 2rem;
       flex-shrink: 0;
+      overflow: hidden;
+      border: 3px solid var(--accent);
     }
+    .kepsek-avatar img { width: 100%; height: 100%; object-fit: cover; }
     .kepsek-info h3 { font-size: 1.1rem; font-weight: 800; margin-bottom: 0.2rem; }
     .kepsek-info .jabatan { font-size: 0.82rem; color: var(--accent); font-weight: 600; margin-bottom: 0.5rem; }
     .kepsek-info p { font-size: 0.85rem; color: var(--fg2); font-style: italic; }
+
+    /* GALERI FOTO */
+    .galeri-section { }
+    .carousel-wrap { position: relative; overflow: hidden; }
+    .carousel-track {
+      display: flex;
+      gap: 1rem;
+      transition: transform 0.4s ease;
+    }
+    .carousel-item {
+      flex: 0 0 calc(33.33% - 0.67rem);
+      border-radius: 10px;
+      overflow: hidden;
+      aspect-ratio: 4/3;
+      background: var(--border);
+    }
+    @media (max-width: 700px) { .carousel-item { flex: 0 0 calc(100% - 0rem); } }
+    @media (min-width: 701px) and (max-width: 950px) { .carousel-item { flex: 0 0 calc(50% - 0.5rem); } }
+    .carousel-item img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.3s; }
+    .carousel-item:hover img { transform: scale(1.05); }
+    .carousel-item .foto-caption {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      background: linear-gradient(transparent, rgba(0,0,0,0.6));
+      color: #fff;
+      font-size: 0.75rem;
+      padding: 1rem 0.75rem 0.5rem;
+    }
+    .carousel-item { position: relative; }
+    .carousel-nav {
+      display: flex;
+      justify-content: center;
+      gap: 0.5rem;
+      margin-top: 1rem;
+    }
+    .carousel-btn {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 50%;
+      width: 36px; height: 36px;
+      cursor: pointer;
+      font-size: 1rem;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--fg);
+      transition: background 0.2s;
+    }
+    .carousel-btn:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .galeri-empty { text-align: center; padding: 2rem; color: var(--fg2); font-size: 0.9rem; }
+    .galeri-dots { display: flex; justify-content: center; gap: 6px; margin-top: 0.75rem; }
+    .galeri-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); cursor: pointer; transition: background 0.2s; }
+    .galeri-dot.active { background: var(--accent); }
 
     /* FOOTER */
     footer {
@@ -446,7 +500,7 @@
     </div>
     <p class="section-sub">Pimpinan SD Negeri Lambada Klieng</p>
     <div class="kepsek-card">
-      <div class="kepsek-avatar">👩‍💼</div>
+      <div class="kepsek-avatar"><img src="https://djnbttyjyzknujrepdfe.supabase.co/storage/v1/object/public/logo-madrasah/f7c1e9fa-8568-4e2e-9924-c61fd4983286/1787555108614.jpg" alt="Sri Wahyuni" onerror="this.parentElement.innerHTML='👩‍💼'"></div>
       <div class="kepsek-info">
         <h3>Sri Wahyuni, S.Pd., M. Pd</h3>
         <div class="jabatan">Kepala SD Negeri Lambada Klieng</div>
@@ -566,6 +620,104 @@
     </div>
   </div>
 </section>
+
+<!-- GALERI FOTO -->
+<section class="bg-alt galeri-section">
+  <div class="section-inner">
+    <div class="section-title-line">
+      <div class="title-accent"></div>
+      <h2 class="section-title">Galeri Foto</h2>
+    </div>
+    <p class="section-sub">Dokumentasi kegiatan SD Negeri Lambada Klieng</p>
+    <div class="carousel-wrap">
+      <div class="carousel-track" id="galeriFotoTrack">
+        <div class="galeri-empty" id="galeriEmpty">Memuat foto...</div>
+      </div>
+    </div>
+    <div class="carousel-nav" id="galeriNav" style="display:none">
+      <button class="carousel-btn" id="galeriBtnPrev" onclick="galeriSlide(-1)">‹</button>
+      <div class="galeri-dots" id="galeriDots"></div>
+      <button class="carousel-btn" id="galeriBtnNext" onclick="galeriSlide(1)">›</button>
+    </div>
+  </div>
+</section>
+
+<script>
+(async function() {
+  const SUPABASE_URL = 'https://djnbttyjyzknujrepdfe.supabase.co';
+  const MADRASAH_ID = 'f7c1e9fa-8568-4e2e-9924-c61fd4983286';
+  const track = document.getElementById('galeriFotoTrack');
+  const nav = document.getElementById('galeriNav');
+  const dotsEl = document.getElementById('galeriDots');
+  const emptyEl = document.getElementById('galeriEmpty');
+  let currentIdx = 0;
+  let items = [];
+  let perPage = window.innerWidth <= 700 ? 1 : window.innerWidth <= 950 ? 2 : 3;
+
+  try {
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/galeri_foto?madrasah_id=eq.${MADRASAH_ID}&is_aktif=eq.true&order=urutan.asc,created_at.desc&limit=12`,
+      { headers: { 'apikey': 'sb_publishable_2NM4R5w9VxxHITH8GZ642w_ADTYV1sW' } }
+    );
+    const data = await res.json();
+
+    if (!data || data.length === 0) {
+      emptyEl.textContent = 'Belum ada foto yang diunggah.';
+      return;
+    }
+
+    track.innerHTML = '';
+    items = data;
+    data.forEach((foto, i) => {
+      const div = document.createElement('div');
+      div.className = 'carousel-item';
+      div.innerHTML = `<img src="${foto.url_foto}" alt="${foto.judul||'Foto Sekolah'}" loading="lazy">
+        ${foto.judul ? `<div class="foto-caption">${foto.judul}</div>` : ''}`;
+      track.appendChild(div);
+    });
+
+    // dots
+    const totalDots = Math.ceil(data.length / perPage);
+    dotsEl.innerHTML = '';
+    for (let i = 0; i < totalDots; i++) {
+      const d = document.createElement('div');
+      d.className = 'galeri-dot' + (i === 0 ? ' active' : '');
+      d.onclick = () => goTo(i);
+      dotsEl.appendChild(d);
+    }
+
+    nav.style.display = 'flex';
+    updateCarousel();
+  } catch(e) {
+    emptyEl.textContent = 'Gagal memuat foto.';
+  }
+
+  function updateCarousel() {
+    const itemWidth = track.children[0]?.offsetWidth + 16 || 0;
+    track.style.transform = `translateX(-${currentIdx * itemWidth * perPage}px)`;
+    document.querySelectorAll('.galeri-dot').forEach((d, i) => {
+      d.classList.toggle('active', i === currentIdx);
+    });
+  }
+
+  function goTo(idx) {
+    const totalDots = Math.ceil(items.length / perPage);
+    currentIdx = Math.max(0, Math.min(idx, totalDots - 1));
+    updateCarousel();
+  }
+
+  window.galeriSlide = function(dir) {
+    const totalDots = Math.ceil(items.length / perPage);
+    goTo((currentIdx + dir + totalDots) % totalDots);
+  };
+
+  window.addEventListener('resize', () => {
+    perPage = window.innerWidth <= 700 ? 1 : window.innerWidth <= 950 ? 2 : 3;
+    currentIdx = 0;
+    updateCarousel();
+  });
+})();
+</script>
 
 <!-- FOOTER -->
 <footer>
