@@ -17,24 +17,24 @@
   :root {
     /* Default = palet madrasah (MI/MTs/MA). Disuntik ulang lewat JS begitu
        data institusi termuat -- lihat useEffect tema warna di App(). */
-    --c-ink: #064e3b;
-    --c-ink-deep: #022c22;
-    --c-ink-deep-rgb: 6, 78, 59;
+    --c-ink: #1e3a5f;
+    --c-ink-deep: #0f172a;
+    --c-ink-deep-rgb: 15, 23, 42;
     --c-accent: #C0392B;
-    --c-gold: #059669;
-    --c-gold-deep: #047857;
-    --c-gold-bright: #6ee7b7;
-    --c-gold-border: #34d399;
-    --c-gold-border-light: #a7f3d0;
-    --c-cream: #f0fdf4;
-    --c-canvas: #ecfdf5;
-    --c-muted: #4b7c68;
-    --c-muted-light: #86c5a9;
-    --c-border: #bbf7d0;
+    --c-gold: #3b82f6;
+    --c-gold-deep: #1d4ed8;
+    --c-gold-bright: #93c5fd;
+    --c-gold-border: #60a5fa;
+    --c-gold-border-light: #bfdbfe;
+    --c-cream: #f0f4ff;
+    --c-canvas: #e8eef8;
+    --c-muted: #5b7499;
+    --c-muted-light: #93b4d4;
+    --c-border: #c3d4ec;
     --c-green: #059669;
-    --c-offwhite: #f7fefb;
-    --c-notice-bg: #d1fae5;
-    --c-notice-border: #6ee7b7;
+    --c-offwhite: #f5f8ff;
+    --c-notice-bg: #dbeafe;
+    --c-notice-border: #93c5fd;
   }
   @import url('https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700&family=Public+Sans:wght@400;500;600&family=JetBrains+Mono:wght@500;700&display=swap');
   body { font-family: 'Public Sans', 'Inter', sans-serif; background: var(--c-canvas); }
@@ -474,7 +474,7 @@ const[toast,setToast]=useState("");const[myPegawai,setMyPegawai]=useState(null);
 // mengganggu karena disuntik lewat CSS variable di :root saat madrasah
 // termuat, sebelum konten dirender dengan warna final.
 useEffect(()=>{if(!madrasah)return;const root=document.documentElement.style;const isUmum=madrasah.jenjang==="SD";// siap diperluas ke SMP/SMA kalau constraint jenjang ditambah nanti
-const tema=isUmum?{ink:"#064e3b",inkDeep:"#022c22",inkDeepRgb:"6, 78, 59",accent:"#C0392B",gold:"#059669",goldDeep:"#047857",goldBright:"#6ee7b7",goldBorder:"#34d399",goldBorderLight:"#a7f3d0",cream:"#f0fdf4",canvas:"#ecfdf5",muted:"#4b7c68",mutedLight:"#86c5a9",border:"#bbf7d0",green:"#059669",offwhite:"#f7fefb",noticeBg:"#d1fae5",noticeBorder:"#6ee7b7"}:{ink:"#064e3b",inkDeep:"#022c22",inkDeepRgb:"6, 78, 59",accent:"#C0392B",gold:"#059669",goldDeep:"#047857",goldBright:"#6ee7b7",goldBorder:"#34d399",goldBorderLight:"#a7f3d0",cream:"#f0fdf4",canvas:"#ecfdf5",muted:"#4b7c68",mutedLight:"#86c5a9",border:"#bbf7d0",green:"#059669",offwhite:"#f7fefb",noticeBg:"#d1fae5",noticeBorder:"#6ee7b7"};root.setProperty("--c-ink",tema.ink);root.setProperty("--c-ink-deep",tema.inkDeep);root.setProperty("--c-ink-deep-rgb",tema.inkDeepRgb);root.setProperty("--c-accent",tema.accent);root.setProperty("--c-gold",tema.gold);root.setProperty("--c-gold-deep",tema.goldDeep);root.setProperty("--c-gold-bright",tema.goldBright);root.setProperty("--c-gold-border",tema.goldBorder);root.setProperty("--c-gold-border-light",tema.goldBorderLight);root.setProperty("--c-cream",tema.cream);root.setProperty("--c-canvas",tema.canvas);root.setProperty("--c-muted",tema.muted);root.setProperty("--c-muted-light",tema.mutedLight);root.setProperty("--c-border",tema.border);root.setProperty("--c-green",tema.green);root.setProperty("--c-offwhite",tema.offwhite);root.setProperty("--c-notice-bg",tema.noticeBg);root.setProperty("--c-notice-border",tema.noticeBorder);},[madrasah?.jenjang]);// PWA per-institusi: manifest dibuat dinamis (bukan file manifest.json
+const tema=isUmum?{ink:"#1e3a5f",inkDeep:"#0f172a",inkDeepRgb:"15, 23, 42",accent:"#C0392B",gold:"#3b82f6",goldDeep:"#1d4ed8",goldBright:"#93c5fd",goldBorder:"#60a5fa",goldBorderLight:"#bfdbfe",cream:"#f0f4ff",canvas:"#e8eef8",muted:"#5b7499",mutedLight:"#93b4d4",border:"#c3d4ec",green:"#059669",offwhite:"#f5f8ff",noticeBg:"#dbeafe",noticeBorder:"#93c5fd"}:{ink:"#1e3a5f",inkDeep:"#0f172a",inkDeepRgb:"15, 23, 42",accent:"#C0392B",gold:"#3b82f6",goldDeep:"#1d4ed8",goldBright:"#93c5fd",goldBorder:"#60a5fa",goldBorderLight:"#bfdbfe",cream:"#f0f4ff",canvas:"#e8eef8",muted:"#5b7499",mutedLight:"#93b4d4",border:"#c3d4ec",green:"#059669",offwhite:"#f5f8ff",noticeBg:"#dbeafe",noticeBorder:"#93c5fd"};root.setProperty("--c-ink",tema.ink);root.setProperty("--c-ink-deep",tema.inkDeep);root.setProperty("--c-ink-deep-rgb",tema.inkDeepRgb);root.setProperty("--c-accent",tema.accent);root.setProperty("--c-gold",tema.gold);root.setProperty("--c-gold-deep",tema.goldDeep);root.setProperty("--c-gold-bright",tema.goldBright);root.setProperty("--c-gold-border",tema.goldBorder);root.setProperty("--c-gold-border-light",tema.goldBorderLight);root.setProperty("--c-cream",tema.cream);root.setProperty("--c-canvas",tema.canvas);root.setProperty("--c-muted",tema.muted);root.setProperty("--c-muted-light",tema.mutedLight);root.setProperty("--c-border",tema.border);root.setProperty("--c-green",tema.green);root.setProperty("--c-offwhite",tema.offwhite);root.setProperty("--c-notice-bg",tema.noticeBg);root.setProperty("--c-notice-border",tema.noticeBorder);},[madrasah?.jenjang]);// PWA per-institusi: manifest dibuat dinamis (bukan file manifest.json
 // statis) supaya nama, warna, dan ikon "Add to Home Screen" ikut
 // menyesuaikan madrasah/sekolah yang sedang dibuka -- satu file HTML,
 // banyak identitas PWA. Hanya benar-benar berfungsi kalau diakses lewat
@@ -482,7 +482,7 @@ const tema=isUmum?{ink:"#064e3b",inkDeep:"#022c22",inkDeepRgb:"6, 78, 59",accent
 // service worker & sebagian fitur PWA di file:// (dibuka lokal dobel
 // klik), jadi di situ blok ini otomatis tidak berdampak apa-apa (aman,
 // tidak error, cuma tidak aktif).
-useEffect(()=>{if(!madrasah)return;const isUmum=madrasah.jenjang==="SD";const tema=isUmum?{themeColor:"#064e3b",bg:"#ecfdf5"}:{themeColor:"#064e3b",bg:"#ecfdf5"};const ikon=isUmum?PWA_ICONS.sekolah:PWA_ICONS.madrasah;// 1) Manifest dinamis lewat Blob URL
+useEffect(()=>{if(!madrasah)return;const isUmum=madrasah.jenjang==="SD";const tema=isUmum?{themeColor:"#0f172a",bg:"#e8eef8"}:{themeColor:"#0f172a",bg:"#e8eef8"};const ikon=isUmum?PWA_ICONS.sekolah:PWA_ICONS.madrasah;// 1) Manifest dinamis lewat Blob URL
 const manifest={name:`Amanah — ${madrasah.nama}`,short_name:madrasah.nama.length>20?sebutan(madrasah.jenjang).Institusi:madrasah.nama,start_url:window.location.pathname+window.location.search,scope:window.location.pathname.replace(/[^/]*$/,""),display:"standalone",background_color:tema.bg,theme_color:tema.themeColor,icons:[{src:ikon[192],sizes:"192x192",type:"image/png",purpose:"any maskable"},{src:ikon[512],sizes:"512x512",type:"image/png",purpose:"any maskable"}]};const blob=new Blob([JSON.stringify(manifest)],{type:"application/json"});const manifestUrl=URL.createObjectURL(blob);let link=document.querySelector('link[rel="manifest"]');if(!link){link=document.createElement("link");link.rel="manifest";document.head.appendChild(link);}link.href=manifestUrl;// 2) Meta theme-color & apple-touch-icon (Android/iOS baca ini di luar manifest)
 let themeMeta=document.querySelector('meta[name="theme-color"]');if(!themeMeta){themeMeta=document.createElement("meta");themeMeta.name="theme-color";document.head.appendChild(themeMeta);}themeMeta.content=tema.themeColor;let appleIcon=document.querySelector('link[rel="apple-touch-icon"]');if(!appleIcon){appleIcon=document.createElement("link");appleIcon.rel="apple-touch-icon";document.head.appendChild(appleIcon);}appleIcon.href=ikon[192];// 3) Service worker -- gagal diam-diam kalau tidak didukung (mis. file://
 // lokal), tidak perlu ditampilkan sebagai error ke pengguna.
